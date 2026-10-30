@@ -2,7 +2,7 @@
 
 The source of truth for every decision about the Call Confirmation Specialist role. The SOP, the Close setup, the Zaps and the payout code all follow this file. If anything conflicts with it, this file wins until Sheila changes it.
 
-Last updated: 2026-10-30
+Last updated: 2026-10-30 (rev 2)
 
 ---
 
@@ -10,7 +10,8 @@ Last updated: 2026-10-30
 
 - **Role:** Call Confirmation Specialist. A dedicated confirmation-and-recovery role, separate from inbound and outbound setting.
 - **In scope (as of Oct 27):**
-  - Confirm **all booked closer calls**.
+  - Confirm **all booked closer calls**: any **45-minute** meeting booked with someone on the closer roster, whichever Calendly link was used (`emorg_startnow` is the main one, but there are dozens of 45-minute closer event types). This includes rebooks from recovery.
+  - **Excluded:** the closers' 30-minute follow-up calls, which closers manage themselves.
   - Recover **no-shows, reschedules and cancellations**.
 - **Out of scope for now:** confirming inbound setter calls. That's a later expansion.
 - **Location:** Alberta, Canada (Mountain Time).
@@ -78,8 +79,8 @@ For each booked closer call, until the invite is accepted:
 ### Triggers
 | Type | Trigger | Specialist's action |
 |---|---|---|
-| No-show | The closer owns the first 10 minutes: text at minute 2, call at minute 4, email at minute 5, "missed each other" at minute 10. Then the closer moves the lead to the **no-show** stage in Close. | Follow up the **next business day** from the smart view or Slack alert. |
-| Reschedule request (before the call) | The closer moves the lead to the **reschedule-request** stage in Close | Call **immediately** to rebook |
+| No-show | The closer owns the first 10 minutes: text at minute 2, call at minute 4, email at minute 5, "missed each other" at minute 10. Then the closer moves the opportunity to **`No Show/Cancel`** in the Sales pipeline. | Follow up the **next business day** from the smart view or Slack alert. |
+| Reschedule request (before the call) | The closer moves the opportunity to **`Reschedule Request`** in the Sales pipeline | Call **immediately** to rebook |
 | Rescheduled on the calendar | A Zap alerts the specialist | Call and confirm the new time (full confirmation cadence) |
 | Cancellation | A cancel caught during confirmation, or a calendar cancel | Recover |
 
@@ -117,10 +118,10 @@ Nero's `Needs confirmation` / `Provisional report` markers count as unresolved a
 
 ## 10. Closer reporting and the backstop
 
-- Closers must move the lead to the **no-show** or **reschedule-request** stage in Close. This will be enforced.
+- Closers must move the opportunity to **`No Show/Cancel`** or **`Reschedule Request`** in the Sales pipeline. This will be enforced. `No Show/Cancel` is one combined stage, so no-show vs. cancel is decided by timing (section 8).
 - **Backstop check, 2 hours after each closer call ends:**
-  1. A Zoom recording on the Close record of **10+ minutes** means the call happened.
-  2. If there's no qualifying recording: look for an inbound email or text asking to cancel or reschedule.
+  1. **Showed = the prospect joined the Zoom.** Read `meeting.integrations` (`integration_name == "zoom"`) on the Close meeting. If anyone other than the closer and the closer's notetaker appears in `integration_data.participants`, the call happened. Zoom duration is reported as context only and never decides on its own: closers wait 10–16 minutes in the room when a prospect no-shows. On Oct 29, three EOD no-shows had 12–16 minutes of Zoom time.
+  2. If there's no Zoom data, or the prospect didn't join: look for an inbound email or text asking to cancel or reschedule.
   3. If neither is found, and the closer hasn't marked the lead: flag it and add the lead to the specialist's smart view.
 
 ## 11. Systems
@@ -129,7 +130,9 @@ Nero's `Needs confirmation` / `Provisional report` markers count as unresolved a
 - **Platform:** hybrid.
   - Zapier handles real-time triggers.
   - Code in this repo handles daily reconciliation and the payout report, with tests and an audit trail.
-- **Where bookings originate:** to be checked by Claude, read-only (Calendly, Close meetings or Google Calendar).
+- **Bookings:** Calendly, mostly through `calendly.com/smb-st/emorg_startnow`. Calendly bookings sync to Close as meetings; a 45-minute duration identifies closer calls. Some meetings appear twice in Close, so the code dedupes them.
+- **Close meeting fields:** `duration` is the scheduled length in seconds. `actual_duration` is Close's own call time and is often empty; it is not the Zoom time. Zoom data is under `integrations[].integration_data` (`duration` in minutes, `start_time`, `end_time`, `participants`).
+- **Sales pipeline stages** (`pipe_6BtcTllrXJwFF7nSvcRrLu`): Discovery Call Scheduled, Next 7 Days, In Month Closing, Long Term w/ Intention, Long Term No Timeline, Long Term Farm, Split Pay/Deposit, Offer Not Presented, **Reschedule Request**, **No Show/Cancel**, WON, LOST.
 - **Close guardrails:** never delete or merge anything. Every write needs Sheila's explicit approval of the exact change.
 
 ## 12. Open items
@@ -139,6 +142,5 @@ Nero's `Needs confirmation` / `Provisional report` markers count as unresolved a
 | 1 | Cancellation recovery cadence | Sheila → Jay |
 | 2 | How long no-show recovery runs before nurture | Sheila → Jay |
 | 3 | Date the gate starts counting fully | Sheila, after he joins |
-| 4 | Where bookings originate, and which event types are closer calls | Claude (read-only check) |
-| 5 | Whether recent EOD Tracker rows fill the per-lead columns | Claude (read-only check) |
-| 6 | Shift is 11am–8pm ET, so the "2–3 hours before" touch is impossible for ET calls before about 1pm. Proposal: those calls get the day-before touch plus the start of his shift. | Sheila to confirm |
+| 4 | Whether recent EOD Tracker rows fill the per-lead columns | Claude (read-only check) |
+| 5 | Shift is 11am–8pm ET, so the "2–3 hours before" touch is impossible for ET calls before about 1pm. Proposal: those calls get the day-before touch plus the start of his shift. | Sheila to confirm |
