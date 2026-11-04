@@ -80,8 +80,10 @@ def check(name):
         print("ERROR", name, str(d)[:300])
         return
     tot = d["count"]["total"]
-    if len(d["data"]) >= tot:
-        print("OK", name, tot)
+    # Only a full 200-row page can be cut off. Close's count sometimes includes a few records the
+    # search won't return (likely deleted), so a short page with total > rows is still complete.
+    if len(d["data"]) >= tot or len(d["data"]) < 200:
+        print("OK", name, len(d["data"]), "of", tot)
         return
     os.remove(out)
     print("TRUNCATED", name, tot, "-> split:")
