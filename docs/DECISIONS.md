@@ -111,7 +111,7 @@ The cutoff is **12:00 a.m. on the day of the call**.
 
 In order:
 1. **`#closer-eod`** in Slack (C06RE8S1L4V). Nero's per-lead EOD lines link to Close leads.
-2. **EOD Tracker** Google Sheet (`11PnemLh8wDT-baqbYBcW3cw0zv4vl82J7NumHTh7dCc`).
+2. **EOD Tracker** Google Sheet (`11PnemLh8wDT-baqbYBcW3cw0zv4vl82J7NumHTh7dCc`). Columns W–AB (`follow_ups`, `showed_leads`, `no_showed_leads`, `cancelled_leads`, `rescheduled_leads`, `follow_up_leads`) list Close lead links, so matching is by lead ID. Rows that Nero marks `Needs confirmation` leave the counts blank, and Slack corrections don't flow back to the sheet.
 3. If those two don't settle it → **flag to Sheila**, then check Close outcomes, the calendar and the closer sheet.
 
 Nero's `Needs confirmation` / `Provisional report` markers count as unresolved and are flagged.
@@ -142,5 +142,8 @@ Nero's `Needs confirmation` / `Provisional report` markers count as unresolved a
 | 1 | Cancellation recovery cadence | Sheila → Jay |
 | 2 | How long no-show recovery runs before nurture | Sheila → Jay |
 | 3 | Date the gate starts counting fully | Sheila, after he joins |
-| 4 | Whether recent EOD Tracker rows fill the per-lead columns | Claude (read-only check) |
-| 5 | Shift is 11am–8pm ET, so the "2–3 hours before" touch is impossible for ET calls before about 1pm. Proposal: those calls get the day-before touch plus the start of his shift. | Sheila to confirm |
+| 4 | Shift is 11am–8pm ET, so the "2–3 hours before" touch is impossible for ET calls before about 1pm. Proposal: those calls get the day-before touch plus the start of his shift. | Sheila to confirm |
+| 5 | Closers must submit EODs through Nero only; plain-text EODs (Tyler, Oct 29) never reach the EOD Tracker | Sheila → closers |
+| 6 | Slack corrections don't update the EOD Tracker row (VeJohn, Oct 29). Can Nero write corrections back? | Sheila → Nero's owner |
+
+Full open-items list, including SOP-level items: see `SOP.md`.

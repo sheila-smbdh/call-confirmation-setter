@@ -12,6 +12,30 @@ Scope, as Sheila corrected it:
 - The **Call Confirmation Specialist** handles confirmation for **direct-to-closer** calls only.
 - **Setter-set** calls are on the **setter and closer**. The specialist does not touch them.
 
+## Six-month update (later on Nov 4)
+
+May 1 – Oct 31, 2026 was pulled and analysed with `calls6.py` and `analyze6.py`. The report now opens with it.
+
+- **Showed:** taken from Zoom attendance on the Close meeting (anyone other than staff or a notetaker bot joined).
+  - The EOD Tracker only lists leads from Sep 2026, so it can't cover the earlier months.
+  - Checked against the EOD for Sep–Oct: Zoom agrees on 94% of EOD shows and 99% of EOD no-shows.
+  - A Zoom room that never opened counts as unknown.
+  - VeJohn's meetings have no Zoom data, so his calls are left out of show rates.
+- **Dave is David Martin** (`user_sByZkVjk2If3ioL4CC26O5JmTWuzzKzDEjr9fzZHJ26`, `david@`). The ID below was wrong.
+- **"Conversation: set to closer"** call outcomes only exist from Oct 2026.
+- **Results:**
+  - Setter-set calls show 78% vs 71% for direct calls (+7.5 points within closer).
+  - Invite accepted: 88% showed, against 53–64% when it wasn't.
+  - Dave and Yobani text the day before on about 70% of sets, and their sets show 86% vs 75% for other setters.
+  - Within a single setter, the day-before text adds only about 1 point, so the habit and the setter can't be separated.
+  - A day-of text from either the setter or the closer shows no lift.
+  - When both the setter and the closer texted on the day, those calls showed 58% (−23 points within closer, 19 calls).
+- **Recommendation now in the report:**
+  - Setter day-before text, required, aimed at getting the invite accepted.
+  - On the day, one text from one person: the closer's one-liner. The setter's Zoom-link handoff replaces it only if the invite is still unaccepted that morning.
+  - Baseline for the 4-week test: setter-set show rate 78% on Zoom (75% in October), invite acceptance 56%.
+- **How the pull works:** `prep_bodies.py` builds lead-batched search bodies, and `curl -d @file` runs one read-only search per command. Close's count can be one higher than the rows it returns. Only a full 200-row page is treated as cut off.
+
 ## Where we left off
 
 Sheila is sending this proposal to leadership. It covers setter-set calls only.
@@ -175,6 +199,7 @@ Setter-set calls by who touched the lead, day before or day of (145 with a show 
 | `report.html` | Copy of the published report. |
 
 - Both scripts are offline. They make no network calls; run them with `python3 -I`.
+- `FINDINGS.md` is the written summary of all results to date (six months and October).
 - Raw data is **not** committed because it contains lead PII. `.gitignore` excludes those folders.
 - To re-run, pull the data again into those folders using the recipe above.
 

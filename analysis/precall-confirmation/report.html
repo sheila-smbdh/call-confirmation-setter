@@ -113,6 +113,10 @@ h3.sub { font-family: var(--display); font-weight: 600; font-size: 17px; margin:
 .row.empty .bars { font-size: 12px; color: var(--muted); }
 .sw.faint { opacity: 0.35; }
 .panel .bars { margin-right: 230px; }
+.row.topic, .axis.topic { grid-template-columns: 210px 1fr; }
+.row.topic .bars { margin-right: 160px; }
+table.small { min-width: 640px; }
+@media (max-width: 640px) { .row.topic, .axis.topic { grid-template-columns: 110px 1fr; } }
 @media (max-width: 640px) { .panel .bars { margin-right: 150px; } .panel .bar span { white-space: normal; width: 145px; line-height: 1.2; } }
 @media (max-width: 520px) { .panels { grid-template-columns: 1fr; } }
 .quotes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
@@ -125,13 +129,96 @@ ul.method li { color: var(--fg); }
   .row, .axis { grid-template-columns: 70px 1fr; }
   .bars { margin-right: 36px; }
 }
+.six { display: grid; gap: 44px; }
+.divider { border: 0; border-top: 1px solid var(--line); margin: 0; }
+.plain { min-width: 620px; }
+.steps { margin: 0; padding-left: 22px; display: grid; gap: 10px; max-width: 72ch; }
+.steps li strong { display: block; }
+.steps li span { color: var(--muted); font-size: 14px; }
+.big { font-family: var(--display); font-size: 28px; line-height: 1; font-variant-numeric: tabular-nums; }
+.vs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.vs .finding { gap: 4px; }
+.mini .row { grid-template-columns: 150px 1fr; }
+.mini .bars { margin-right: 120px; }
+@media (max-width: 520px) { .mini .row { grid-template-columns: 96px 1fr; } .mini .bars { margin-right: 96px; } }
 </style>
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">Close CRM · 45-min closer calls · Oct 3 – Nov 2, 2026</div>
-    <h1>Do closers confirm their calls?</h1>
-    <p class="lede">Only Adam Larkins confirms consistently, with a templated text on the morning of nearly every call. Solomon and Nick rarely send a confirmation themselves. Almost all day-before contact comes from the automated pre-call email sequence, which goes out under each closer's name. Most calls (77%) go direct to the closer with no setter, and setter-set calls show at about the same rate as direct ones (66% vs 68%).</p>
+    <div class="eyebrow">Close CRM · 45-min closer calls · May 1 – Oct 31, 2026 · 5,307 calls</div>
+    <h1>Which confirmation actually gets setter-set calls to show?</h1>
+    <p class="lede">Six months of calls point to one habit: the setter texts the lead the day before and gets the calendar invite accepted. The two setters who do this on most of their sets, Dave and Yobani, have the best-showing sets on the team. Texts on the day of the call show no lift, and calls where both the setter and the closer texted on the day showed far worse.</p>
+  </header>
+
+  <div class="six">
+  <section>
+    <h2>Six months at a glance</h2>
+    <div class="vs">
+      <div class="finding good"><span class="eyebrow">Setter-set calls</span><span class="big">78%</span><p>showed (866 of 1,109). Direct calls: 71% (1,884 of 2,643). Within the same closer, setter-set calls show 7.5 points higher (95% range +4 to +11).</p></div>
+      <div class="finding good"><span class="eyebrow">Invite accepted</span><span class="big">88%</span><p>showed when the lead accepted the invite, against 64% on setter-set calls and 53% on direct calls when they didn't. Only 56% of setter-set leads accept.</p></div>
+      <div class="finding good"><span class="eyebrow">Dave + Yobani's sets</span><span class="big">86%</span><p>showed (282 of 328), against 75% for every other setter (584 of 781). That's +11 points within the same closer.</p></div>
+      <div class="finding flag"><span class="eyebrow">Setter + closer both text on the day</span><span class="big">58%</span><p>showed (11 of 19), against about 80% when only one of them texted. That's 23 points lower within the same closer.</p></div>
+    </div>
+    <p class="note">October alone suggested setter-set and direct calls showed the same (66% vs 68%). Over six months, setter-set calls show more in five of six months; October was the closest month (75% vs 72% on Zoom attendance).</p>
+  </section>
+
+  <section>
+    <h2>What the best setters do differently</h2>
+    <p>Dave and Yobani text the lead the day before on about 70% of their sets, and almost never text on the day. The other setters text the day before on 5–28% of sets. Quinn texts on the day of half her sets, and her sets show at the team average.</p>
+    <div class="tablewrap">
+      <table class="plain">
+        <thead><tr><th>Setter</th><th>Sets</th><th>Showed</th><th>Invite accepted</th><th>Texted day before</th><th>Texted day of</th></tr></thead>
+        <tbody id="setterTable"></tbody>
+      </table>
+    </div>
+    <p class="note">Day before is measured on calls booked 2+ days ahead. Omar's sets are from May–June, before he moved to closing. Bali and Jose started in August.</p>
+    <div class="findings">
+      <div class="finding">
+        <strong>The habit and the setter come together</strong>
+        <p>Within each setter, calls that got a day-before text showed only slightly more than calls that didn't (+1 point, not significant). So the data can't prove the text itself causes the lift. What it does show is that the two setters who make the day-before text routine have sets that show 11 points better.</p>
+      </div>
+      <div class="finding good">
+        <strong>The day-before text gets invites accepted</strong>
+        <p>When Dave texted the day before, 67% of leads had accepted the invite, against 48% when he didn't. Acceptance is the strongest predictor of showing in the data.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Day-of texts on setter-set calls</h2>
+    <p>One text on the day, from either person, performs about the same as no text. Two texts on the day, one from each, is the worst pattern in the data.</p>
+    <div class="chart mini" id="dayofChart" role="img" aria-label="Show rate of setter-set calls by who texted on the day of the call"></div>
+    <p class="note">About half of the double texts were replies to a lead who had written first, so some of these leads were already wobbling. Even so, there is no sign that adding a second sender on the day helps.</p>
+  </section>
+
+  <section>
+    <h2>Proposed workflow for setter-set calls</h2>
+    <ol class="steps">
+      <li><strong>Setter, day before: the confirmation text (required).</strong><span>Its one job is to get the calendar invite accepted. Name the closer, give the time with the time zone, ask "Still good for [Time] [TZ]?", and offer to resend the invite. This is what Dave and Yobani already do.</span></li>
+      <li><strong>Day of: one short text, from one person.</strong><span>The closer sends one line a few hours before: "Hey [Name], [Closer] here. Looking forward to talking at [Time]!" The setter doesn't text on the day, unless the invite still isn't accepted by that morning. Then the setter sends the warm handoff with the Zoom link instead, and the closer skips the line.</span></li>
+      <li><strong>Measure it for 4 weeks.</strong><span>Save each text as a Close SMS template so adoption shows in the data. Compare against this six-month baseline, using the same Zoom-attendance method: setter-set show rate 78% (75% in October) and invite acceptance 56%.</span></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>How the six-month numbers were measured</h2>
+    <ul class="method">
+      <li><strong>Calls:</strong> every 45-minute meeting on a closer's calendar in Close starting May 1 – Oct 31 (ET), one per lead and start time, including closers who have since left (EJ, Chris, Kameron, Giovana, Jordan W).</li>
+      <li><strong>Showed:</strong> the prospect joined the Zoom (anyone other than staff or a notetaker bot), the backstop rule in the decisions log. Checked against the EOD Tracker's lead-level results for Sep–Oct: Zoom agreed on 94% of EOD shows and 99% of EOD no-shows. The EOD Tracker only lists leads from September, so it couldn't be used for May–Aug.</li>
+      <li><strong>Left out of show rates:</strong> cancelled meetings (Close doesn't record when a cancel happened, so same-day cancels can't be counted as no-shows); calls where the Zoom room never opened; and VeJohn's calls, which have no Zoom data in Close.</li>
+      <li><strong>Setter-set:</strong> in the 21 days before the booking, a setter held a meeting with the lead or had a 2+ minute call with them. Setters: Dave, Jordan K, Gabriel, Quinn, Yobani, Bali, Jose, and Omar for his May–June sets. Dave is David Martin in Close.</li>
+      <li><strong>Texts and calls counted:</strong> sent texts, dials and non-sequence emails from the setter or the closer, after booking and before the call, with the same exclusions as the October report (booking welcome texts, bulk blasts, drafts, the last 10 minutes).</li>
+      <li><strong>Within-closer comparisons</strong> compare calls on the same closer's calendar and pool the differences, so a closer with a strong lead mix doesn't skew the result.</li>
+      <li>All data was read from Close and the EOD Tracker; nothing was changed in either.</li>
+    </ul>
+  </section>
+  <hr class="divider">
+  </div>
+
+  <header>
+    <div class="eyebrow">October deep-dive · Oct 3 – Nov 2, 2026</div>
+    <h2>Do closers confirm their calls?</h2>
+    <p>Only Adam Larkins confirms consistently, with a templated text on the morning of nearly every call. Solomon and Nick rarely send a confirmation themselves. Almost all day-before contact comes from the automated pre-call email sequence, which goes out under each closer's name. Most calls (77%) go direct to the closer with no setter. In October, setter-set calls showed at about the same rate as direct ones (66% vs 68%, from the EOD Tracker).</p>
   </header>
 
   <section>
@@ -283,7 +370,61 @@ ul.method li { color: var(--fg); }
       <div><span class="who">Jose</span><q>Hey Vivek, this is Jose with SMB Deal Hunter. Had a great chat with you the other day. I scheduled you with Nick Vaughan today at 8:00 AM PDT. Just checking that you got the calendar invite and Zoom link and are all set for today's call…</q></div>
       <div><span class="who">Bali</span><q>Hey Lyndon, this is the team at SMB Deal Hunter just sending you a final reminder. We'll see you on the zoom call tomorrow at 10am PST!</q></div>
     </div>
-    <p class="note">Jordan K, Jose and Bali send closer-call reminders by text, on the day or the day before. Quinn and Yobani's reminders in October were for their own intro calls. Dave and Gabriel had no October activity in Close.</p>
+    <p class="note">Jordan K, Jose and Bali send closer-call reminders by text, on the day or the day before. Quinn and Yobani's reminders in October were for their own intro calls. Gabriel had no October activity in Close. Dave looked inactive in October only because the wrong Close user was checked; he is David Martin, and he is in the six-month numbers above.</p>
+  </section>
+
+  <section>
+    <h2>What leads say before the call</h2>
+    <p>Organic messages from the lead between booking and the call, by text, email or phone. Automated notices from Calendly, Zoom, Otter and Close are left out.</p>
+    <div class="findings">
+      <div class="finding">
+        <strong>1 in 3 calls had a real back-and-forth</strong>
+        <p>46% of calls had at least one message from the lead. 31% (273 of 875) had messages from both sides: 30% of setter-set calls and 31% of direct calls. The lead started 81% of these threads, usually by replying to the closer's welcome text or the automated “You're confirmed” email.</p>
+      </div>
+      <div class="finding flag">
+        <strong>A quarter of calls hit a reschedule or cancel</strong>
+        <p>24% of calls had a reschedule or cancel signal: a lead message, a Calendly cancel (9%) or reschedule (9%) notice, or a declined invite (3%). Those calls showed 41%, against 62% for calls where the lead never wrote.</p>
+      </div>
+      <div class="finding">
+        <strong>Most messages are friendly, not problems</strong>
+        <p>Leads mostly confirm, acknowledge or share their goals. Those calls show 77–79%, well above calls with no lead message.</p>
+      </div>
+      <div class="finding">
+        <strong>Back-and-forth varies by closer</strong>
+        <p>Adam 54%, Solomon 44%, Julien 42%, Oliver 40%, Tyler 39%, Kevin 38%, Nick 35%, Daniel 29%, Jay Z 28%, Harry 24%, VeJohn 23%, Omar 21%, Owen 14%.</p>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span class="key"><span class="sw" style="background: var(--accent)"></span>Share of the 403 calls where the lead wrote (a call can have several types)</span>
+      <span class="key"><span class="sw" style="background: var(--show)"></span>Show rate for those calls</span>
+    </div>
+    <div class="chart" id="chartTopics" role="img" aria-label="What leads wrote about before the call, with the share of calls and show rate for each type"></div>
+
+    <h3 class="sub">Smaller issues that come up</h3>
+    <div class="tablewrap">
+      <table class="small">
+        <thead><tr><th>Issue</th><th>Share of all calls</th><th>Examples</th></tr></thead>
+        <tbody>
+          <tr><td class="who">Invite missing, link broken, “please resend”</td><td class="num">4%<small>35 calls</small></td><td><q>I do not see an invite in my email. I checked the junk folder as well</q></td></tr>
+          <tr><td class="who">Price or program questions</td><td class="num">1.5%<small>13 calls</small></td><td><q>Let's not. I need that 20k for my part of an sba loan. Thanks anyway!</q></td></tr>
+          <tr><td class="who">Add a spouse, partner or investor</td><td class="num">1%<small>8 calls</small></td><td><q>May I bring a partner / investor into the call or should it just be me for now?</q></td></tr>
+          <tr><td class="who">Time zone, or phone instead of Zoom</td><td class="num">&lt;1%<small>7 calls</small></td><td><q>Harry, didn't know it was a zoom call. I'll need to reschedule.</q></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub">Where reschedule requests arrive</h3>
+    <p>Of 93 lead messages asking to reschedule or cancel, 49 came by text and 16 by other email. <strong>28 were replies to the automated “[Pro] You're confirmed… one last thing” email</strong>, which goes out under the closer's name and lands in the closer's inbox. On setter-set calls, 18% of leads also texted the setter back before the closer call, with messages like “Can we do tomorrow same time?”, “Please resend a fresh invite” and “Where is the link?”.</p>
+
+    <h3 class="sub">What this means for the setter-set workflow</h3>
+    <p>Nothing in the October messages argues against the setter doing day-before and day-of, plus the closer's day-of one-liner. The six-month data at the top of this page does, though: it points to one day-of text from one person. Whichever version runs, three things have to be true:</p>
+    <ul class="method">
+      <li><strong>Whoever confirms gets the replies.</strong> If setters confirm, reschedule and “resend the invite” requests come to them. Setters need a way to move the call on the closer's calendar and to resend the invite or add a spouse, or every reply becomes a handoff delay.</li>
+      <li><strong>Closers still get reschedule requests.</strong> Leads reply to the automated “You're confirmed” email in the closer's name. Closers need to keep watching that inbox and loop in the setter, or the setter has to see those replies too.</li>
+      <li><strong>Price, program and “can I bring my partner” questions go to the closer.</strong> The setter should pass them on rather than answer. One lead wrote “I am scheduled with VeJohn and Jose”, so the templates should say who is who: “I'm Jose, I set up your call; VeJohn is the advisor you'll meet.”</li>
+    </ul>
+    <p class="note">Messages were sorted into types by keyword, so type shares are approximate; the overall percentages are solid. Window: from booking to the call start. Texts and calls on personal phones aren't in Close and aren't counted.</p>
   </section>
 
   <section>
@@ -441,6 +582,26 @@ function splitChart(el, key) {
 splitChart(document.getElementById("chartSetter"), "s");
 splitChart(document.getElementById("chartDirect"), "d");
 
+(function topics() {
+  const t = [
+    ["Confirming or acknowledging", [259, 403], [150, 192]],
+    ["Small talk, sharing goals", [147, 403], [75, 98]],
+    ["Invite, link or time zone", [128, 403], [78, 99]],
+    ["Reschedule or cancel", [83, 403], [18, 47]],
+    ["Program, price or prep questions", [31, 403], [12, 20]],
+  ];
+  const el = document.getElementById("chartTopics");
+  el.innerHTML = t.map(([name, share, show]) => `
+    <div class="row topic"><div class="name">${esc(name)}</div>
+      <div class="bars plot">
+        <div class="bar dof" style="width:${pct(share)}%"><span>${pct(share)}% · ${share[0]} calls</span></div>
+        <div class="bar show" style="width:${pct(show)}%"><span>${pct(show)}% showed · ${show[0]}/${show[1]}</span></div>
+      </div></div>`).join("") + `
+    <div class="row topic"><div class="name">No lead message (baseline)</div>
+      <div class="bars plot"><div class="bar show" style="width:62%"><span>62% showed · 186/300</span></div></div></div>
+    <div class="axis topic"><div></div><div class="ticks" style="margin-right:160px"><span style="left:0">0%</span><span style="left:50%">50%</span><span style="left:100%">100%</span></div></div>`;
+})();
+
 document.getElementById("ledger").innerHTML = closers.map(c => `
   <tr class="${c.focus ? "focus" : ""}">
     <td class="who">${esc(c.name)}${c.note ? `<small>${esc(c.note)}</small>` : ""}</td>
@@ -451,4 +612,23 @@ document.getElementById("ledger").innerHTML = closers.map(c => `
     <td>${esc(c.what)}${c.quote ? `<q>${esc(c.quote)}</q>` : ""}</td>
     <td><span class="pill ${c.pattern[1]}">${esc(c.pattern[0])}</span></td>
   </tr>`).join("");
+
+// Six months, May-Oct 2026. Setter: sets, [showed, with Zoom result], invite accepted %, day-before %, day-of %
+const setters6 = [
+  ["Dave", 257, [174, 201], 62, 74, 4], ["Yobani", 162, [108, 127], 62, 69, 9], ["Jose", 111, [76, 94], 52, 7, 25],
+  ["Quinn", 228, [140, 181], 48, 5, 52], ["Bali", 101, [64, 84], 49, 18, 14], ["Gabriel", 237, [134, 181], 52, 14, 5],
+  ["Jordan K", 235, [136, 185], 66, 28, 9], ["Omar", 70, [34, 56], 44, 0, 0],
+];
+document.getElementById("setterTable").innerHTML = [...setters6].sort((a, b) => pct(b[2]) - pct(a[2])).map(s => `
+  <tr class="${s[4] >= 50 ? "focus" : ""}">
+    <td class="who">${esc(s[0])}</td><td class="num">${s[1]}</td>
+    <td class="num">${pct(s[2])}%<small>${s[2][0]} of ${s[2][1]}</small></td>
+    <td class="num">${s[3]}%</td><td class="num">${s[4]}%</td><td class="num">${s[5]}%</td>
+  </tr>`).join("");
+
+const dayof6 = [["No text on the day", [565, 729]], ["Setter only", [120, 150]], ["Closer only", [170, 211]], ["Setter and closer", [11, 19]]];
+document.getElementById("dayofChart").innerHTML = dayof6.map(([n, m]) => `
+  <div class="row"><div class="name">${esc(n)}</div>
+    <div class="bars plot"><div class="bar show" style="width:${pct(m)}%"><span>${pct(m)}% · ${m[0]}/${m[1]}</span></div></div></div>`).join("") + `
+  <div class="axis"><div></div><div class="ticks" style="margin-right:120px"><span style="left:0">0%</span><span style="left:50%">50%</span><span style="left:100%">100%</span></div></div>`;
 </script>
