@@ -1,0 +1,4 @@
+# Raw Close / EOD pulls contain lead PII: never commit them
+analysis/precall-confirmation/close/
+analysis/precall-confirmation/eod/
+analysis/precall-confirmation/split_rows.json
