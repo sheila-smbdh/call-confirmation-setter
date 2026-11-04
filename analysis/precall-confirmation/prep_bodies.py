@@ -72,5 +72,37 @@ def split(path):
     os.remove(path)
 
 
+def check(name):
+    """After a pull: OK if the saved result is complete; else split its body and delete the result."""
+    out, bod = os.path.join(M6, "touch", name + ".json"), os.path.join(BODY, name + ".json")
+    d = json.load(open(out))
+    if "data" not in d:
+        print("ERROR", name, str(d)[:300])
+        return
+    tot = d["count"]["total"]
+    if len(d["data"]) >= tot:
+        print("OK", name, tot)
+        return
+    os.remove(out)
+    print("TRUNCATED", name, tot, "-> split:")
+    split(bod)
+
+
+def todo():
+    """List bodies that have no complete result yet."""
+    done = {os.path.basename(f) for f in glob.glob(os.path.join(M6, "touch", "*.json"))}
+    for f in sorted(glob.glob(os.path.join(BODY, "*.json"))):
+        if os.path.basename(f) not in done:
+            print(os.path.basename(f)[:-5])
+
+
 if __name__ == "__main__":
-    split(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[1] == "split" else build()
+    a = sys.argv[1:]
+    if a[:1] == ["split"]:
+        split(a[1])
+    elif a[:1] == ["check"]:
+        check(a[1])
+    elif a[:1] == ["todo"]:
+        todo()
+    else:
+        build()
