@@ -1,0 +1,454 @@
+<title>Closer Pre-Call Confirmation Audit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: single reading column; summary findings, then a to-scale bar comparison, then the per-closer ledger, then method. */
+:root {
+  --bg: #f6f7f5;
+  --surface: #ffffff;
+  --fg: #1d2421;
+  --muted: #5d6a64;
+  --line: #d9dfdb;
+  --accent: #1f6f5c;      /* day-of */
+  --accent-2: #b7cfc6;    /* day-before */
+  --show: #3f5f86;        /* show rate */
+  --setter: #c27a2c;      /* setter confirmed */
+  --warn: #9a5a12;
+  --warn-bg: #fbf1e3;
+  --good-bg: #e3f1ec;
+  --quote-bg: #eef2f0;
+  --display: "Fraunces", Georgia, "Times New Roman", serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121715; --surface: #1a211e; --fg: #e4ebe7; --muted: #9aa8a1; --line: #2c3632;
+    --accent: #5cc3a6; --accent-2: #2f5a4e; --show: #8fb0d6; --setter: #e3a560; --warn: #e6a95c; --warn-bg: #2d2416; --good-bg: #183129; --quote-bg: #202925;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121715; --surface: #1a211e; --fg: #e4ebe7; --muted: #9aa8a1; --line: #2c3632;
+  --accent: #5cc3a6; --accent-2: #2f5a4e; --show: #8fb0d6; --setter: #e3a560; --warn: #e6a95c; --warn-bg: #2d2416; --good-bg: #183129; --quote-bg: #202925;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 40px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 44px; }
+h1, h2 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(28px, 4.5vw, 40px); line-height: 1.1; }
+h2 { font-size: 22px; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+header { display: grid; gap: 12px; }
+.lede { font-size: 17px; }
+section { display: grid; gap: 16px; }
+.findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.finding { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.finding strong { font-size: 15px; }
+.finding p { color: var(--muted); font-size: 14px; }
+.finding.flag { background: var(--warn-bg); border-color: transparent; }
+.finding.flag strong { color: var(--warn); }
+.finding.good { background: var(--good-bg); border-color: transparent; }
+
+/* chart */
+.legend { display: flex; flex-wrap: wrap; gap: 18px; font-size: 13px; color: var(--muted); }
+.key { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+.chart { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px 18px 10px; display: grid; gap: 10px; }
+.row { display: grid; grid-template-columns: 92px 1fr; gap: 12px; align-items: center; }
+.row .name { font-weight: 500; font-size: 14px; }
+.bars { display: grid; gap: 3px; position: relative; }
+.bar { height: 11px; border-radius: 0 2px 2px 0; position: relative; min-width: 2px; }
+.bar.dof { background: var(--accent); }
+.bar.dbf { background: var(--accent-2); }
+.bar span { position: absolute; left: calc(100% + 6px); top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.axis { display: grid; grid-template-columns: 92px 1fr; gap: 12px; }
+.ticks { position: relative; height: 18px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.ticks span { position: absolute; transform: translateX(-50%); }
+.ticks span:first-child { transform: none; }
+.ticks span:last-child { transform: translateX(-100%); }
+.plot { background-image: linear-gradient(to right, var(--line) 1px, transparent 1px); background-size: 25% 100%; background-position: 0 0; }
+
+/* table */
+.tablewrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; min-width: 860px; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+th { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 500; background: var(--surface); }
+tr:last-child td { border-bottom: none; }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.num small { color: var(--muted); display: block; font-size: 11px; }
+.who { font-weight: 600; white-space: nowrap; }
+.who small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+q { display: block; quotes: none; background: var(--quote-bg); padding: 8px 10px; border-radius: 4px; font-size: 13px; margin-top: 6px; color: var(--fg); }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+.p-yes { background: var(--good-bg); color: var(--accent); }
+.p-some { background: var(--quote-bg); color: var(--fg); }
+.p-rare { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+.p-flag { background: var(--warn-bg); color: var(--warn); }
+tr.focus td { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+
+h3.sub { font-family: var(--display); font-weight: 600; font-size: 17px; margin: 8px 0 0; }
+.panels { display: grid; grid-template-columns: 1fr; gap: 28px; }
+.panel { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.panel-h { font-family: var(--display); font-weight: 600; font-size: 17px; margin: 0; }
+.panel-h small { font-family: var(--mono); font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 6px; }
+.bar.show { background: var(--show); }
+.bar.stack { display: flex; background: none; overflow: visible; }
+.bar.stack i { display: block; height: 100%; min-width: 2px; }
+.bar.stack i.c { background: var(--accent); }
+.bar.stack i.s { background: var(--setter); }
+.bar.stack i.b, .sw.both { background: repeating-linear-gradient(45deg, var(--accent) 0 3px, var(--setter) 3px 6px); }
+.bar.stack.dbf i { opacity: 0.5; }
+.bar.stack i:last-of-type { border-radius: 0 2px 2px 0; }
+.legend-note { font-size: 12px; color: var(--muted); margin: 0; }
+.panel .legend { gap: 12px; font-size: 12px; }
+.row.thin .bar { opacity: 0.35; }
+.row.thin .name { color: var(--muted); }
+.row.total { padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.row.total .name { font-weight: 700; }
+.row .name small { display: block; font-family: var(--mono); font-size: 11px; color: var(--muted); font-weight: 400; }
+.row.empty .bars { font-size: 12px; color: var(--muted); }
+.sw.faint { opacity: 0.35; }
+.panel .bars { margin-right: 230px; }
+@media (max-width: 640px) { .panel .bars { margin-right: 150px; } .panel .bar span { white-space: normal; width: 145px; line-height: 1.2; } }
+@media (max-width: 520px) { .panels { grid-template-columns: 1fr; } }
+.quotes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.quotes > div { min-width: 0; }
+.quotes .who { font-weight: 600; font-size: 13px; }
+ul.method { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 72ch; }
+ul.method li { color: var(--fg); }
+.note { font-size: 13px; color: var(--muted); }
+@media (max-width: 520px) {
+  .row, .axis { grid-template-columns: 70px 1fr; }
+  .bars { margin-right: 36px; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Close CRM · 45-min closer calls · Oct 3 – Nov 2, 2026</div>
+    <h1>Do closers confirm their calls?</h1>
+    <p class="lede">Only Adam Larkins confirms consistently, with a templated text on the morning of nearly every call. Solomon and Nick rarely send a confirmation themselves. Almost all day-before contact comes from the automated pre-call email sequence, which goes out under each closer's name. Most calls (77%) go direct to the closer with no setter, and setter-set calls show at about the same rate as direct ones (66% vs 68%).</p>
+  </header>
+
+  <section>
+    <h2>Key findings</h2>
+    <div class="findings">
+      <div class="finding good">
+        <strong>Adam confirms 86% of calls on the day</strong>
+        <p>One saved text template, sent between 8am and 1pm ET, about 2 hours before the call. 51 of 59 calls got one.</p>
+      </div>
+      <div class="finding flag">
+        <strong>Nick's day-before texts never went out</strong>
+        <p>He writes a "pumped to catch up… excited to talk tomorrow" text, but 33 of 34 sit as unsent drafts in Close. He may send them from his own phone; Close can't see that.</p>
+      </div>
+      <div class="finding">
+        <strong>Solomon confirms only at-risk calls</strong>
+        <p>He texts when an invite is unaccepted or marked "maybe". 14% of calls got a day-of touch and 9% a day-before one.</p>
+      </div>
+      <div class="finding">
+        <strong>Nobody confirms by phone</strong>
+        <p>Harry made a handful of day-of calls. Every other closer is at or near zero.</p>
+      </div>
+      <div class="finding">
+        <strong>Automation does the day-before work</strong>
+        <p>The "NEW Pre-Call Workflow" sequence ("[Pro] You're confirmed [name], one last thing…") reached 33–73% of each closer's calls the day before. It is identical for everyone.</p>
+      </div>
+      <div class="finding">
+        <strong>Everyone else: rarely</strong>
+        <p>Tyler, Julien and Oliver confirm on a quarter to a third of calls. The rest sit between 8% and 20% on the day, mostly ad hoc.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Closer's own confirmation rate</h2>
+    <div class="legend">
+      <span class="key"><span class="sw" style="background: var(--accent)"></span>Day of the call (all calls)</span>
+      <span class="key"><span class="sw" style="background: var(--accent-2)"></span>Day before (calls booked 2+ days ahead)</span>
+    </div>
+    <div class="chart" id="chart" role="img" aria-label="Bar chart of each closer's day-of and day-before confirmation rates"></div>
+    <p class="note">These rates are a ceiling. They include replies to leads who texted first, so proactive confirmation is lower than shown for everyone except Adam, whose day-of texts are all proactive.</p>
+  </section>
+
+  <section>
+    <h2>Per-closer workflow</h2>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Closer</th>
+            <th>Calls</th>
+            <th>Day before</th>
+            <th>Day of</th>
+            <th>Channel</th>
+            <th>What they send</th>
+            <th>Pattern</th>
+          </tr>
+        </thead>
+        <tbody id="ledger"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Does confirming lift show rate?</h2>
+    <p>Somewhat, for day-of confirmation. Closers who confirm on the day tend to have higher October show rates, but the link is moderate and rests on 13 closers, so treat it as a signal worth testing, not proof. Day-before confirmation shows almost no link.</p>
+    <div class="findings">
+      <div class="finding good">
+        <strong>Day-of: moderate positive link</strong>
+        <p>Rank correlation 0.65 across 13 closers (unlikely to be chance, p ≈ 0.02). The straight-line correlation is weaker at 0.42 (p ≈ 0.15), because the three high show-rate closers other than Adam confirm only a quarter to a third of the time.</p>
+      </div>
+      <div class="finding">
+        <strong>Day-before: no meaningful link</strong>
+        <p>Rank correlation 0.13, straight-line 0.29. Few closers do it, so there is little to compare.</p>
+      </div>
+      <div class="finding">
+        <strong>Confirmers show 9 points higher</strong>
+        <p>Closers who confirm at least a quarter of calls on the day (Adam, Oliver, Tyler, Julien): <strong>74%</strong> show rate, 101 of 137. Everyone else: <strong>65%</strong>, 369 of 571.</p>
+      </div>
+      <div class="finding flag">
+        <strong>Adam alone doesn't prove it</strong>
+        <p>Adam confirms 86% of calls and shows 72%, above the team's 66% but below Oliver, Julien and Daniel. Daniel shows 74% while confirming only 13%. Lead mix, call volume and ramp status also move show rate.</p>
+      </div>
+      <div class="finding flag">
+        <strong>The link weakens on direct calls</strong>
+        <p>On direct calls only, where the closer is the only one confirming, the rank correlation drops to 0.49 across 12 closers (p ≈ 0.1).</p>
+      </div>
+      <div class="finding flag">
+        <strong>Call by call, confirmed calls don't show more</strong>
+        <p>Direct calls with a day-of touch showed 64% (65 of 102), against 70% (237 of 340) without one. Many day-of texts go to leads who already look shaky, so this comparison is biased against confirming. Direct calls touched the day before did better: 73% (24 of 33) against 64% (148 of 232).</p>
+      </div>
+    </div>
+    <div class="chart">
+      <svg id="scatter" viewBox="0 0 640 380" role="img" aria-label="Scatter plot of day-of confirmation rate against October show rate for each closer" style="width:100%;height:auto;display:block"></svg>
+    </div>
+    <p class="note">Show rate is from the sales tracker for October (live ÷ scheduled, using the tracker's cancel and reschedule rules). Confirmation rates are from Close for Oct 3 – Nov 2. Correlation is measured across closers, not across individual calls. A stronger test would compare confirmed and unconfirmed calls within each closer, or have one group confirm every call for two weeks and compare.</p>
+  </section>
+
+  <section>
+    <h2>Setter-set vs direct-to-closer calls</h2>
+    <p>Setter-set calls are ones a setter worked before the closer call was booked. Direct calls were booked straight onto the closer's calendar with no setter involved. Show rates here are per call, from the EOD Tracker.</p>
+    <div class="findings">
+      <div class="finding">
+        <strong>Most calls are direct: 678 of 875 (77%)</strong>
+        <p>197 calls (23%) were setter-set. Oliver had none. Tyler and Julien had six each.</p>
+      </div>
+      <div class="finding">
+        <strong>Both types show at about the same rate</strong>
+        <p>Setter-set calls showed <strong>66%</strong> (95 of 145 with a result). Direct calls showed <strong>68%</strong> (302 of 442).</p>
+      </div>
+      <div class="finding flag">
+        <strong>Setters confirm less than expected</strong>
+        <p>A setter touched only 23% of their set calls on the day and 14% the day before. Most setter reminder texts are for their own 15-minute intro calls, not the closer call.</p>
+      </div>
+      <div class="finding">
+        <strong>Setter-set calls get twice the day-of coverage</strong>
+        <p>Counting setter and closer together, 40% of setter-set calls got a day-of touch, against 22% of direct calls. That coverage hasn't produced a higher show rate.</p>
+      </div>
+    </div>
+
+    <p class="note">Both charts are ranked by show rate, highest first. Closers with fewer than 10 calls of that type are faded and listed at the bottom.</p>
+    <div class="panels">
+      <div class="panel">
+        <h3 class="panel-h">Setter-set calls <small>197 calls</small></h3>
+        <div class="legend">
+          <span class="key"><span class="sw" style="background: var(--show)"></span>Show rate</span>
+          <span class="key"><span class="sw" style="background: var(--accent)"></span>Closer confirmed</span>
+          <span class="key"><span class="sw" style="background: var(--setter)"></span>Setter confirmed</span>
+          <span class="key"><span class="sw both"></span>Both</span>
+        </div>
+        <p class="legend-note">For each closer: show rate, then a day-of bar (full color), then a day-before bar (lighter), split by who confirmed.</p>
+        <div class="chart" id="chartSetter" role="img" aria-label="Show rate and day-of and day-before confirmation for setter-set calls, split by closer and setter, ranked by show rate"></div>
+      </div>
+      <div class="panel">
+        <h3 class="panel-h">Direct-to-closer calls <small>678 calls</small></h3>
+        <div class="legend">
+          <span class="key"><span class="sw" style="background: var(--show)"></span>Show rate</span>
+          <span class="key"><span class="sw" style="background: var(--accent)"></span>Confirmed day of the call</span>
+          <span class="key"><span class="sw" style="background: var(--accent-2)"></span>Confirmed day before</span>
+        </div>
+        <p class="legend-note">No setter is involved, so every confirmation here comes from the closer.</p>
+        <div class="chart" id="chartDirect" role="img" aria-label="Show rate and confirmation rates for direct-to-closer calls, ranked by show rate"></div>
+      </div>
+    </div>
+    <p class="note">Show rate counts calls marked showed in the EOD Tracker against showed, no-showed and same-day cancelled, the same rule the tracker uses. 587 of 875 calls had an EOD result; the rest are left out of show rates. Confirmation counts a setter's or the closer's own text, email or dial to the lead.</p>
+
+    <h3 class="sub">What the setters send</h3>
+    <div class="quotes">
+      <div><span class="who">Jordan K</span><q>Hi Harry, Jordan from SMB Deal Hunter. Just wanted to remind you and confirm your call today with Kevin Manuel. Please let us know if anything has changed on your end! Kevin is looking forward to meeting you! Here's the zoom link in case you haven't seen it yet…</q></div>
+      <div><span class="who">Jose</span><q>Hey Vivek, this is Jose with SMB Deal Hunter. Had a great chat with you the other day. I scheduled you with Nick Vaughan today at 8:00 AM PDT. Just checking that you got the calendar invite and Zoom link and are all set for today's call…</q></div>
+      <div><span class="who">Bali</span><q>Hey Lyndon, this is the team at SMB Deal Hunter just sending you a final reminder. We'll see you on the zoom call tomorrow at 10am PST!</q></div>
+    </div>
+    <p class="note">Jordan K, Jose and Bali send closer-call reminders by text, on the day or the day before. Quinn and Yobani's reminders in October were for their own intro calls. Dave and Gabriel had no October activity in Close.</p>
+  </section>
+
+  <section>
+    <h2>How this was measured</h2>
+    <ul class="method">
+      <li><strong>Calls:</strong> every 45-minute meeting on an active closer's calendar in Close that started between Oct 3 and Nov 2 (ET), one per lead and start time.</li>
+      <li><strong>Touches counted:</strong> texts and emails the closer actually sent, and calls they dialed, after the booking and before the call. Times are converted to Eastern.</li>
+      <li><strong>Day before</strong> is measured only on calls booked at least 2 days ahead, so there was a real day before to confirm in.</li>
+      <li><strong>Excluded:</strong> anything sent within an hour of booking; the standard welcome texts ("Just reading through your app…", "Please accept the calendar invite…", "you'll see a few emails come through…"); the automated pre-call email sequence (counted separately); bulk campaign blasts; drafts and failed sends; and messages in the last 10 minutes before the call ("I'm on the Zoom now").</li>
+      <li><strong>Setter-set vs direct:</strong> a call counts as setter-set when, in the 21 days before it was booked, a setter held a meeting with the lead, logged a "Conversation: set to closer" call, or had a phone conversation of 2+ minutes with them. Everything else is direct. Setters covered: Bali, Jose, Jordan K, Yobani, Quinn, Dave and Gabriel.</li>
+      <li><strong>Setter confirmations:</strong> setter texts (sent only, bulk blasts removed) and dials to the lead the day before or the day of the closer call, using the same timing rules as the closers. Setter emails were not pulled.</li>
+      <li><strong>Per-call show results:</strong> from the EOD Tracker's showed, no-showed and cancelled lead lists, matched on closer, date and Close lead. Same-day cancels count as no-shows.</li>
+      <li><strong>Not visible:</strong> texts or calls from personal phones. A closer who confirms outside Close will look like they don't.</li>
+      <li><strong>Assumption:</strong> the tracker roster's "Jay Z" is Jordan Zadrozny in Close.</li>
+      <li>All data was read from Close; nothing was changed there.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const closers = [
+  { name: "Adam L", note: "", calls: 59, db: [3, 27], dof: [51, 59], channel: "Text (a few emails)", pattern: ["Yes, day-of every time", "p-yes"], focus: true,
+    what: "One saved template each morning, about 2 hours before the call (8am–1pm ET). Also a few emails titled “SMB Call Reminder” and “SMB Deal Hunter Confirmation”.",
+    quote: "Hey Nick - Hope the week has been good for you. Just shooting you over a text for our call today at 1pm ET - If you need to reschedule or are not able to make it just let me know. If not see you soon!" },
+  { name: "Nick", note: "", calls: 79, db: [8, 58], dof: [4, 79], channel: "Text", pattern: ["Drafted, not sent", "p-flag"], focus: true,
+    what: "Writes a day-before text, but 33 of 34 are unsent drafts in Close. Otherwise texts only when a lead goes quiet near or after the start.",
+    quote: "Hey [name], pumped to catch up! Been looking through your app, excited to talk tomorrow at 12pm PT." },
+  { name: "Solomon", note: "", calls: 79, db: [4, 45], dof: [11, 79], channel: "Text, the odd email", pattern: ["Only at-risk calls", "p-some"], focus: true,
+    what: "Case by case, mostly when an invite isn't accepted or comes back as “maybe”.",
+    quote: "Hey Corey I haven't seen you confirm our call for tomorrow. Still good for 3 pm pst? Let me know and enjoy your Sunday" },
+  { name: "Tyler", note: "ramping", calls: 59, db: [8, 29], dof: [15, 59], channel: "Text and email", pattern: ["Sometimes", "p-some"],
+    what: "Short check-in texts plus “Pre Call Resources” emails.",
+    quote: "All set to connect on zoom tomorrow at 5pm CST?" },
+  { name: "Julien", note: "small sample", calls: 12, db: [3, 9], dof: [3, 12], channel: "Text", pattern: ["Sometimes", "p-some"],
+    what: "Morning-of and day-before confirmation texts.",
+    quote: "Morning Craig, Julien here with SMB Deal Hunter. Just confirming we're still good for our 9am eastern call this morning?" },
+  { name: "Oliver", note: "ramping", calls: 30, db: [1, 11], dof: [10, 30], channel: "Text", pattern: ["Sometimes, day-of", "p-some"],
+    what: "Day-of check-in texts, sometimes resending the invite and Zoom link.",
+    quote: "Hey James, could you confirm if we're still good to chat at 1 pm Eastern today?" },
+  { name: "Kevin", note: "", calls: 80, db: [2, 45], dof: [16, 80], channel: "Text and email", pattern: ["Rarely", "p-rare"],
+    what: "Occasional day-of confirmation texts and email replies.",
+    quote: "Hi Terry, this is Kevin with SMB Deal Hunter. I am confirming our call coming up at 3pm." },
+  { name: "Harry", note: "", calls: 116, db: [4, 77], dof: [22, 116], channel: "Text and phone call", pattern: ["Rarely", "p-rare"],
+    what: "No standard message. A few day-of phone calls about 1.5 hours out; the only closer who calls.", quote: "" },
+  { name: "Daniel", note: "", calls: 68, db: [1, 25], dof: [9, 68], channel: "Text", pattern: ["Rarely", "p-rare"],
+    what: "Occasional day-of confirmation or Zoom-link texts.",
+    quote: "Hi Shadman, confirming our call today at 12:30pm CDT. Does this time still work for you?" },
+  { name: "Jay Z", note: "Jordan Zadrozny", calls: 47, db: [3, 30], dof: [5, 47], channel: "Text", pattern: ["Rarely", "p-rare"],
+    what: "A firm check-in text with a release-the-slot warning, used a few times.",
+    quote: "…Just checking in on our call tomorrow at 4PM EST. Can you confirm that still works? If I do not hear back I will free up the slot as we are getting booked up pretty quickly!" },
+  { name: "Omar", note: "", calls: 90, db: [6, 62], dof: [9, 90], channel: "Email and text", pattern: ["Rarely", "p-rare"],
+    what: "Case by case.", quote: "" },
+  { name: "Owen", note: "", calls: 90, db: [4, 73], dof: [8, 90], channel: "Email", pattern: ["Rarely", "p-rare"],
+    what: "Case by case.", quote: "" },
+  { name: "VeJohn", note: "", calls: 66, db: [4, 52], dof: [5, 66], channel: "Email", pattern: ["Rarely", "p-rare"],
+    what: "Case by case.", quote: "" },
+];
+
+const pct = ([n, d]) => d ? Math.round(100 * n / d) : 0;
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const chart = document.getElementById("chart");
+const sorted = [...closers].sort((a, b) => pct(b.dof) - pct(a.dof));
+chart.innerHTML = sorted.map(c => `
+  <div class="row">
+    <div class="name">${esc(c.name)}</div>
+    <div class="bars plot">
+      <div class="bar dof" style="width:${pct(c.dof)}%"><span>${pct(c.dof)}% · ${c.dof[0]}/${c.dof[1]}</span></div>
+      <div class="bar dbf" style="width:${pct(c.db)}%"><span>${pct(c.db)}% · ${c.db[0]}/${c.db[1]}</span></div>
+    </div>
+  </div>`).join("") + `
+  <div class="axis"><div></div><div class="ticks"><span style="left:0">0%</span><span style="left:25%">25%</span><span style="left:50%">50%</span><span style="left:75%">75%</span><span style="left:100%">100%</span></div></div>`;
+
+const showRates = { "Adam L": [39, 54], "Nick": [41, 65], "Solomon": [46, 69], "Tyler": [25, 36], "Julien": [13, 17], "Oliver": [24, 30], "Kevin": [45, 74], "Harry": [59, 82], "Daniel": [32, 43], "Jay Z": [22, 43], "Omar": [52, 79], "Owen": [37, 63], "VeJohn": [35, 53] };
+(function drawScatter() {
+  const svg = document.getElementById("scatter");
+  const L = 58, R = 600, T = 20, B = 320; // plot box
+  const x = v => L + (v / 100) * (R - L);
+  const yMin = 45, yMax = 85;
+  const y = v => B - ((v - yMin) / (yMax - yMin)) * (B - T);
+  let s = "";
+  for (let g = 0; g <= 100; g += 25) s += `<line x1="${x(g)}" x2="${x(g)}" y1="${T}" y2="${B}" stroke="var(--line)"/><text x="${x(g)}" y="${B + 18}" text-anchor="middle" font-size="11" font-family="var(--mono)" fill="var(--muted)">${g}%</text>`;
+  for (let g = 45; g <= 85; g += 10) s += `<line x1="${L}" x2="${R}" y1="${y(g)}" y2="${y(g)}" stroke="var(--line)"/><text x="${L - 8}" y="${y(g) + 4}" text-anchor="end" font-size="11" font-family="var(--mono)" fill="var(--muted)">${g}%</text>`;
+  const team = 100 * 470 / 708;
+  s += `<line x1="${L}" x2="${R}" y1="${y(team)}" y2="${y(team)}" stroke="var(--muted)" stroke-dasharray="4 4"/><text x="${R}" y="${y(team) - 6}" text-anchor="end" font-size="11" font-family="var(--body)" fill="var(--muted)">Team show rate ${team.toFixed(0)}%</text>`;
+  s += `<text x="${(L + R) / 2}" y="${B + 44}" text-anchor="middle" font-size="12" font-family="var(--body)" fill="var(--fg)">Day-of confirmation rate (Close)</text>`;
+  s += `<text transform="translate(16 ${(T + B) / 2}) rotate(-90)" text-anchor="middle" font-size="12" font-family="var(--body)" fill="var(--fg)">October show rate (tracker)</text>`;
+  const offsets = { "Julien": [8, -8], "Tyler": [8, 14], "Kevin": [8, 14], "Harry": [8, -6], "Solomon": [8, 4], "Omar": [-8, -8, "end"], "VeJohn": [-8, 12, "end"], "Nick": [-8, -6, "end"], "Owen": [8, 12], "Jay Z": [8, 4], "Daniel": [8, -6], "Oliver": [8, 4], "Adam L": [-8, -8, "end"] };
+  closers.forEach(c => {
+    const sr = showRates[c.name]; if (!sr) return;
+    const px = x(pct(c.dof)), py = y(100 * sr[0] / sr[1]);
+    const r = 4 + Math.sqrt(sr[1]) * 0.6;
+    const o = offsets[c.name] || [8, 4];
+    s += `<circle cx="${px}" cy="${py}" r="${r.toFixed(1)}" fill="var(--accent)" fill-opacity="${c.focus ? 0.9 : 0.45}" stroke="var(--accent)"/>`;
+    s += `<text x="${px + o[0]}" y="${py + o[1]}" text-anchor="${o[2] || "start"}" font-size="12" font-family="var(--body)" fill="var(--fg)">${esc(c.name)} · ${Math.round(100 * sr[0] / sr[1])}%</text>`;
+  });
+  svg.innerHTML = s;
+})();
+
+// per closer and call type: [show, confirmed day-of (setter or closer), confirmed day-before (setter or closer)], each [n, d]
+const split = [
+  ["Adam L",  { s: [[7, 9],   [12, 14], [2, 8]],  d: [[26, 37], [39, 45], [2, 19]] }],
+  ["Nick",    { s: [[9, 17],  [8, 21],  [3, 17]], d: [[26, 39], [1, 58],  [7, 41]] }],
+  ["Solomon", { s: [[16, 21], [7, 24],  [3, 12]], d: [[32, 47], [11, 55], [4, 33]] }],
+  ["Tyler",   { s: [[3, 3],   [2, 6],   [1, 2]],  d: [[19, 25], [16, 53], [10, 27]] }],
+  ["Julien",  { s: [[4, 6],   [4, 6],   [2, 5]],  d: [[3, 4],   [1, 6],   [1, 4]] }],
+  ["Oliver",  { s: [[0, 0],   [0, 0],   [0, 0]],  d: [[17, 20], [10, 30], [1, 11]] }],
+  ["Kevin",   { s: [[11, 18], [7, 19],  [3, 14]], d: [[30, 44], [16, 61], [3, 31]] }],
+  ["Harry",   { s: [[9, 13],  [6, 21],  [2, 15]], d: [[35, 49], [19, 95], [3, 62]] }],
+  ["Daniel",  { s: [[5, 9],   [9, 18],  [0, 5]],  d: [[24, 31], [11, 50], [1, 20]] }],
+  ["Jay Z",   { s: [[5, 8],   [4, 11],  [2, 7]],  d: [[12, 22], [4, 36],  [3, 23]] }],
+  ["Omar",    { s: [[12, 19], [5, 23],  [5, 17]], d: [[31, 51], [8, 67],  [3, 45]] }],
+  ["Owen",    { s: [[9, 15],  [7, 19],  [4, 16]], d: [[26, 47], [8, 71],  [5, 57]] }],
+  ["VeJohn",  { s: [[5, 7],   [7, 15],  [1, 15]], d: [[21, 26], [4, 51],  [6, 37]] }],
+];
+// setter-set calls: who confirmed. [closer only, setter only, both, calls] for day-of (all calls) and day-before (calls booked 2+ days ahead)
+const setterWho = {
+  "Adam L": [[10, 0, 2, 14], [1, 1, 0, 8]],  "Nick": [[2, 5, 1, 21], [1, 1, 1, 17]],   "Solomon": [[2, 5, 0, 24], [1, 2, 0, 12]],
+  "Tyler": [[1, 1, 0, 6], [1, 0, 0, 2]],     "Julien": [[2, 2, 0, 6], [1, 0, 1, 5]],   "Oliver": [[0, 0, 0, 0], [0, 0, 0, 0]],
+  "Kevin": [[5, 2, 0, 19], [0, 3, 0, 14]],   "Harry": [[2, 3, 1, 21], [0, 1, 1, 15]],  "Daniel": [[2, 7, 0, 18], [0, 0, 0, 5]],
+  "Jay Z": [[2, 2, 0, 11], [0, 2, 0, 7]],    "Omar": [[1, 4, 0, 23], [3, 2, 0, 17]],   "Owen": [[2, 5, 0, 19], [1, 3, 0, 16]],
+  "VeJohn": [[1, 5, 1, 15], [1, 0, 0, 15]],
+};
+function splitChart(el, key) {
+  const total = [[0, 0], [0, 0], [0, 0]];
+  split.forEach(([, v]) => v[key].forEach((m, i) => { total[i][0] += m[0]; total[i][1] += m[1]; }));
+  const whoTotal = [[0, 0, 0, 0], [0, 0, 0, 0]];
+  Object.values(setterWho).forEach(w => w.forEach((a, i) => a.forEach((x, j) => { whoTotal[i][j] += x; })));
+  const bar = (cls, m) => `<div class="bar ${cls}" style="width:${pct(m)}%"><span>${m[1] ? `${pct(m)}% · ${m[0]}/${m[1]}` : "–"}</span></div>`;
+  const stack = (cls, [c, s, b, d]) => {
+    const n = c + s + b;
+    if (!d) return `<div class="bar ${cls}" style="width:0"><span>–</span></div>`;
+    const seg = (k, x) => x ? `<i class="${k}" style="flex:${x}"></i>` : "";
+    const parts = [c ? `closer ${c}` : "", s ? `setter ${s}` : "", b ? `both ${b}` : ""].filter(Boolean).join(" · ");
+    return `<div class="bar stack ${cls}" style="width:${pct([n, d])}%">${seg("c", c)}${seg("b", b)}${seg("s", s)}<span>${pct([n, d])}% · ${n}/${d}${parts ? ` (${parts})` : ""}</span></div>`;
+  };
+  const row = (name, v, extra, who) => {
+    const calls = v[1][1];
+    if (!calls) return `<div class="row empty"><div class="name">${esc(name)}</div><div class="bars">No setter-set calls</div></div>`;
+    const thin = calls < 10 ? " thin" : "";
+    const conf = key === "s" ? stack("dof", who[0]) + stack("dbf", who[1]) : bar("dof", v[1]) + bar("dbf", v[2]);
+    return `<div class="row${thin}${extra || ""}"><div class="name">${esc(name)}<small>${calls} calls</small></div>
+      <div class="bars plot">${bar("show", v[0])}${conf}</div></div>`;
+  };
+  // rank by show rate, highest first; closers with fewer than 10 calls of this type go below, also by show rate
+  const sr = v => v[0][1] ? v[0][0] / v[0][1] : -1;
+  const rows = [...split].sort((a, b) => {
+    const ta = a[1][key][1][1] < 10, tb = b[1][key][1][1] < 10;
+    return ta !== tb ? ta - tb : sr(b[1][key]) - sr(a[1][key]);
+  });
+  const rowFor = (n, v) => row(n, v, "", setterWho[n]);
+  el.innerHTML = row("All closers", total, " total", whoTotal) + rows.map(([n, v]) => rowFor(n, v[key])).join("") + `
+    <div class="axis"><div></div><div class="ticks" style="margin-right:230px"><span style="left:0">0%</span><span style="left:50%">50%</span><span style="left:100%">100%</span></div></div>`;
+}
+splitChart(document.getElementById("chartSetter"), "s");
+splitChart(document.getElementById("chartDirect"), "d");
+
+document.getElementById("ledger").innerHTML = closers.map(c => `
+  <tr class="${c.focus ? "focus" : ""}">
+    <td class="who">${esc(c.name)}${c.note ? `<small>${esc(c.note)}</small>` : ""}</td>
+    <td class="num">${c.calls}</td>
+    <td class="num">${pct(c.db)}%<small>${c.db[0]} of ${c.db[1]}</small></td>
+    <td class="num">${pct(c.dof)}%<small>${c.dof[0]} of ${c.dof[1]}</small></td>
+    <td>${esc(c.channel)}</td>
+    <td>${esc(c.what)}${c.quote ? `<q>${esc(c.quote)}</q>` : ""}</td>
+    <td><span class="pill ${c.pattern[1]}">${esc(c.pattern[0])}</span></td>
+  </tr>`).join("");
+</script>
