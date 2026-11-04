@@ -199,6 +199,7 @@ Setter-set calls by who touched the lead, day before or day of (145 with a show 
 | `report.html` | Copy of the published report. |
 
 - Both scripts are offline. They make no network calls; run them with `python3 -I`.
+- `FINDINGS.md` is the written summary of all results to date (six months and October).
 - Raw data is **not** committed because it contains lead PII. `.gitignore` excludes those folders.
 - To re-run, pull the data again into those folders using the recipe above.
 
