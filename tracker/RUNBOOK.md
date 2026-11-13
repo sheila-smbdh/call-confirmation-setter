@@ -8,14 +8,19 @@ It refreshes the tracker: https://docs.google.com/spreadsheets/d/1R4l1Szm7cxfu70
 May, without asking:
 - Read Close (REST API, inline `curl`, one request per command), Calendly, Slack and the tracker.
 - Write to the tracker: replace the Calls, Daily, Weekly, Definitions and Data Sources tabs; append new rows to
-  Reviews (columns A-G and L only); write Management!K5 (run time) and Management!M5 (data through).
+  Reviews (columns A-G and L); write Management!K5 (run time) and Management!M5 (data through).
+- Reviews H-J, only where Sheila or Jay already approved the item in #cc-gino (`slack_match.py` decides), and only on
+  rows whose H, I and J are all blank: H = "Excused", I = "Approved in #cc-gino: <summary> <link>", J = "<name> (Slack)".
+- Supabase setter-data (ref `suoblmuvrmyfmuvlhqce`), `cc_` tables only: insert or update (upsert) through
+  `https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/<table>`, one inline curl per file (step 12). Never delete, never
+  touch any other table, never send DDL.
 - Upload one staging .xlsx to Google Drive per run (title starts with `TEMP - tracker nightly`).
-- On Sundays only: post the weekly review reminder in #cc-gino (see step 12).
+- On Sundays only: post the weekly review reminder in #cc-gino (see step 13).
 
 Must not:
 - Write anything to Close, Calendly or Supabase. Never delete or merge anything in Close.
-- Touch Reviews columns H-K (Sheila's and Jay's decisions, and the Action formula) or any Management cell other
-  than K5 and M5 (approvals, recovered calls, inputs).
+- Touch Reviews column K (the Action formula), any Reviews H-J that already has something in it, or any Management
+  cell other than K5 and M5 (approvals, recovered calls, inputs).
 - Post anything else to Slack, or message anyone.
 - If a step fails, stop before swapping tabs. Leave the tracker as it was (Management!A5 will show STALE). Do not retry
   writes blindly: re-read the tracker first to see what already happened.
@@ -33,7 +38,8 @@ from a script. The scripts in `tracker/pipeline/` are offline: they only read an
 | Direct discovery event type | ends with `3de6762f19f4` (filtered in scope.py) |
 | #call-confirmation (Zapier alerts) | `C0CF5TGANMT` |
 | #closer-eod (Nero EOD posts) | `C06RE8S1L4V` |
-| #cc-gino (Sunday reminder) | `C0CG28G7TQT` |
+| #cc-gino (Sunday reminder; Gino's exception requests) | `C0CG28G7TQT` |
+| Supabase setter-data | ref `suoblmuvrmyfmuvlhqce`, tables `public.cc_*` (`tracker/supabase/schema.sql`) |
 | Sheila / Jay (Slack) | `U0BM6J8KM32` / `U06Q63DTS13` |
 
 Google Sheets edits go through Composio (`googlesheets` toolkit, account `googlesheets_gyte-urlar`); Drive uploads and
@@ -75,6 +81,25 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
      `{"YYYY-MM-DD|lead_FULLID": ["Showed" | "No-show" | "Cancelled" | "Rescheduled" | "Needs confirmation" | "Follow-up", "Closer name"]}`.
      Never guess attendance; unresolved = "Needs confirmation".
 
+4b. **#cc-gino: exceptions Sheila or Jay already approved** (a subagent keeps this out of your context)
+   - Read where the last scan stopped:
+     `curl -s "https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/cc_sync_state?source=eq.slack_cc_gino&select=*"`
+   - If there is no row, or `full_scans` < 2: read the WHOLE channel history. Otherwise read from `last_ts` on, AND
+     re-read every thread whose parent was posted in the 14 days before `last_ts` (approvals often come as thread
+     replies to an older post, and those don't show up in channel history after `last_ts`).
+   - Write every message and thread reply read to `$DIR/cc_gino_messages.jsonl` (`ts, thread_ts, user_id, user_name,
+     posted_at_et, text, reply_count`).
+   - Load the approvals already stored:
+     `curl -s "https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/cc_slack_approvals?select=*&limit=5000" -o $DIR/approvals_prev.json`
+   - From the new messages, list each case where Gino (or anyone) raised an exception or asked what he may do, and
+     Sheila (`U0BM6J8KM32`) or Jay (`U06Q63DTS13`) answered. Merge with `approvals_prev.json` (same `raised_ts` = same
+     case; the newer reading wins) into `$DIR/cc_gino_approvals.json`, a list of `{raised_ts, thread_ts, raised_by,
+     raised_at_et, lead_names, lead_ids, call_date_mentioned, what_gino_asked_or_reported, decision ("approved" |
+     "denied" | "unclear" | "no response"), decided_by ("Sheila"/"Jay"), decision_ts, scope ("this lead only" |
+     "general rule going forward"), decision_summary}`. Only Sheila's or Jay's own words count as approval; never infer
+     one. If unsure, use "unclear" (it then goes to review as usual).
+   - Note the newest `ts` read; step 12 saves it.
+
 5. **Scope and invitees**
    - `python3 -I $P/scope.py $DIR $TODAY` -> `scope.json`, `need_invitees.txt`.
    - For every URI in `need_invitees.txt`: `mcp__Calendly__meetings-list_event_invitees` (no status filter), append one
@@ -99,7 +124,9 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
      `$DIR/tracker_live.xlsx`.
    - `python3 -I $P/merge.py $DIR $DIR/tracker_live.xlsx` -> `calls_all.json`, `review_keys.json`, `reviews_last_row.txt`.
    - `python3 -I $P/export.py $DIR $DIR/tracker_out.xlsx $TODAY`
-   - `python3 -I $P/reviews.py $DIR` -> `reviews_append.json`.
+   - `python3 -I $P/slack_match.py $DIR $DIR/tracker_live.xlsx` -> `slack_decisions.json`, `reviews_fill.json`.
+   - `python3 -I $P/reviews.py $DIR` -> `reviews_append.json` (rows Sheila or Jay already approved in Slack come
+     pre-decided).
 
 9. **Upload the new tabs**: `sha256sum $DIR/tracker_out.xlsx`, then `mcp__Google_Drive__create_file` with title
    `TEMP - tracker nightly <TODAY> (safe to delete)`, contentMimeType
@@ -124,13 +151,29 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
 
 11. **Append Reviews and stamp the time**
     - If `reviews_append.json` is non-empty: `GOOGLESHEETS_UPDATE_VALUES_BATCH` with `valueInputOption`
-      `USER_ENTERED` and `data` = that file's list. (It writes A-G and L only; H-K stay for Sheila and Jay.)
+      `USER_ENTERED` and `data` = that file's list. (A-G and L; H-J only for rows already approved in Slack.)
+    - If `reviews_fill.json` is non-empty: same call with that list (fills H-J on older blank rows that a Slack
+      approval covers). Re-check first with `GOOGLESHEETS_BATCH_GET` that each of those H:J ranges is still blank;
+      drop any that isn't.
     - `GOOGLESHEETS_UPDATE_VALUES_BATCH`: `Management!K5` = now in Pacific time as `YYYY-MM-DD HH:MM`, and
       `Management!M5` = TODAY.
     - Verify with `GOOGLESHEETS_BATCH_GET` of `Management!A1:A5`, `Management!A15:O16` and the last two rows of
-      `Daily`: no `#REF!`, `#N/A`, `#ERROR!` or `#VALUE!`; A5 starts with "Up to date". If not, report it (step 13).
+      `Daily`: no `#REF!`, `#N/A`, `#ERROR!` or `#VALUE!`; A5 starts with "Up to date". If not, report it (step 14).
 
-12. **Sundays only (TODAY is a Sunday in ET): weekly reminder in #cc-gino** (`C0CG28G7TQT`), after step 11:
+12. **Save everything to Supabase** (setter-data, `cc_` tables). `RUN_ID` = the run's start time, e.g.
+    `2026-11-13T20:00-07:00`.
+    - Download the tracker again (as in step 8) to `$DIR/tracker_after.xlsx`, so the values saved are what the sheet
+      shows after this run (Daily, Weekly, Management and Reviews, including Sheila's and Jay's decisions).
+    - `python3 -I $P/supa.py $DIR $RUN_ID $DIR/tracker_after.xlsx` -> `$DIR/supa/manifest.tsv` and upload files.
+    - For each manifest line `<table> <on_conflict> <file>`, one curl (no loops, no scripts):
+      `curl -s -o /dev/null -w "%{http_code}\n" -X POST "https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/<table>?on_conflict=<on_conflict>" -H "Content-Type: application/json" -H "Prefer: resolution=merge-duplicates,return=minimal" -d @<file>`
+      Expect 201 (or 200/204). An upsert is safe to repeat, so a failed file can be sent again once.
+    - Save where the #cc-gino scan stopped (one curl; `full_scans` + 1 only if this run read the whole history):
+      `curl -s -o /dev/null -w "%{http_code}\n" -X POST "https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/cc_sync_state?on_conflict=source" -H "Content-Type: application/json" -H "Prefer: resolution=merge-duplicates,return=minimal" -d '{"source":"slack_cc_gino","last_ts":"<newest ts>","full_scans":<n>,"last_run_id":"<RUN_ID>"}'`
+    - Last, the run record (status ok/partial/failed and a short summary of counts and warnings) in `cc_runs`, same form.
+    - If Supabase fails, still finish the run (the tracker is already updated); say so in the summary.
+
+13. **Sundays only (TODAY is a Sunday in ET): weekly reminder in #cc-gino** (`C0CG28G7TQT`), after step 12:
     read `Management!A1:A4` and the row for the week that ends today, then post one message:
     ```
     <@U0BM6J8KM32> <@U06Q63DTS13> Weekly call confirmation review, week of <Mon date>–<Sun date>.
@@ -141,7 +184,7 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
     ```
     Use the numbers exactly as the tracker shows them. No other Slack posts.
 
-13. **Finish**: print a short run summary (rows rebuilt, new Reviews rows, any warnings). Leave the TEMP file in Drive
+14. **Finish**: print a short run summary (rows rebuilt, new Reviews rows, any warnings). Leave the TEMP file in Drive
     (Sheila deletes it; nothing in Drive is deleted by this run). Do not commit anything.
 
 ## Known limits
@@ -149,5 +192,8 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
   welcome call is still checked, but only against Gino's last 4 days of activity.
 - "Invite accepted at" comes from the calendar response emails Close stores. If a closer's calendar doesn't send them,
   the time is unknown and the tracker says "Can't tell".
+- Supabase keeps everything each run read (`cc_raw_records`, as the source returned it) plus the tracker's rows and a
+  copy of every tab after each run (`cc_tab_snapshots`). Records pulled before Nov 13 are backfilled once from the
+  saved run files.
 - Show results come from #closer-eod first, then Zoom attendance. The EOD Tracker sheet, Sales Tracker and 2M tracker
   aren't checked yet.

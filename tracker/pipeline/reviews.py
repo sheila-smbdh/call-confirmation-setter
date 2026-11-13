@@ -3,7 +3,7 @@
 Usage: python3 -I reviews.py DATA_DIR
   Reads calls_all.json, review_keys.json, reviews_last_row.txt. Writes DATA_DIR/reviews_append.json: the "data" list
   for GOOGLESHEETS_UPDATE_VALUES_BATCH (valueInputOption USER_ENTERED). Columns A-G get the facts, H-J stay blank for
-  the decision, K is a formula that fills itself, L is the key. Existing rows and decisions are never touched.
+  the decision (unless Sheila or Jay already approved it in #cc-gino: then H-J say so), K is a formula that fills itself, L is the key. Existing rows and decisions are never touched.
 """
 import json, sys
 from datetime import date, datetime, timedelta
@@ -14,6 +14,10 @@ ET = ZoneInfo("America/New_York")
 rows = json.load(open(f"{D}/calls_all.json"))
 have = set(json.load(open(f"{D}/review_keys.json")))
 last = int(open(f"{D}/reviews_last_row.txt").read().strip())
+try:
+    slack = json.load(open(f"{D}/slack_decisions.json"))   # from slack_match.py; optional
+except FileNotFoundError:
+    slack = {}
 dt = lambda s: datetime.fromisoformat(s).astimezone(ET)
 wk = lambda d: d - timedelta(days=d.weekday())
 
@@ -47,5 +51,11 @@ for it in items():
     n += 1
     data.append({"range": f"Reviews!A{n}:G{n}", "values": [[it[0].isoformat(), it[1].isoformat(), it[2], it[3], it[4], it[5], it[6]]]})
     data.append({"range": f"Reviews!L{n}", "values": [[it[7]]]})
+    d = slack.get(it[7])
+    if d:   # Sheila or Jay already approved this in #cc-gino: record it so it doesn't wait for review
+        data.append({"range": f"Reviews!H{n}:J{n}", "values": [[d["decision"],
+                     f"Approved in #cc-gino: {d['summary']} {d['link']}".strip(), d["decided_by"]]]})
 json.dump(data, open(f"{D}/reviews_append.json", "w"))
-print(len(data) // 2, "new Reviews rows", f"(rows {last + 1}-{n})" if data else "")
+new = n - last
+pre = sum(1 for x in data if ":J" in x["range"])
+print(new, "new Reviews rows", f"(rows {last + 1}-{n})" if new else "", f"{pre} already decided via Slack")
