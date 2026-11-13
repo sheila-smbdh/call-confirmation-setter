@@ -122,6 +122,21 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
      to `$DIR/overrides.json` `{"<lead_id>": "Valid (verbal + tech issue): <one-sentence reason>"}`; if not,
      `{"<lead_id>": "Logging error: <one-sentence reason>"}`. Re-run build.py. Don't quote transcripts at length.
 
+7b. **Prospects who confirmed by text** (Sheila, Nov 13: a prospect's own text saying they'll be on the call counts
+   as confirmed; no day-before call or 5:45 cancel is needed after it)
+   - Start from the judgments already made:
+     `curl -s "https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/call_confirm_raw_records?source=eq.text_confirmation&select=record_id,payload" -o $DIR/text_confirms_prev.json`
+     and write them to `$DIR/text_confirms.json` as `{"<lead_id>": {"at": ..., "text": ...}}` (each payload already
+     has `at` and `text`).
+   - `python3 -I $P/text_confirms.py leads $DIR` -> `text_check_leads.txt`.
+   - For each lead in it, one curl:
+     `curl -s -u "$CLOSE_API_KEY:" "https://api.close.com/api/v1/activity/sms/?lead_id=<lead_id>&_limit=100" -o $DIR/sms_lead_<NN>.json`
+   - `python3 -I $P/text_confirms.py list $DIR` prints the prospects' texts. Add to `text_confirms.json` only texts
+     that clearly say they'll attend ("See you Friday!", "I'll be there", "Confirmed", "Yes, I'll be on"). Not a
+     confirmation: a question, a thanks on its own, a reaction ("Liked ..."), "Done" with nothing else, a reschedule
+     or cancel request. If unsure, leave it out (the item then goes to review as usual).
+   - If anything was added, run `build.py` again.
+
 8. **Merge with the live tracker**
    - `mcp__Google_Drive__download_file_content` with fileId = tracker id, exportMimeType
      `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`. The file is saved by the harness; copy it to

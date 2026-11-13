@@ -111,6 +111,14 @@ for f in ("eod_recent.json",):
             add("slack_closer_eod", k, {"day": day, "lead_id": lead, "result": v[0], "closer": v[1]}, lead, day)
 for r in jsonl(os.path.join(DIR, "cc_gino_messages.jsonl")):
     add("slack_cc_gino", r.get("ts"), r)
+for f in sorted(glob.glob(os.path.join(DIR, "sms_lead_*.json"))):
+    d = load(f)
+    for r in d.get("data", []) if isinstance(d, dict) else []:
+        add("close_sms", r.get("id"), r, r.get("lead_id"), r.get("date_created"))
+p = os.path.join(DIR, "text_confirms.json")
+if os.path.exists(p):
+    for k, v in load(p).items():
+        add("text_confirmation", k, dict(v, lead_id=k), k, v.get("at"))
 p = os.path.join(DIR, "overrides.json")
 if os.path.exists(p):
     for k, v in load(p).items():
