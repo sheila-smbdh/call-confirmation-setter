@@ -5,225 +5,134 @@
 <title>Gino's Scorecard</title>
 <style>
   :root {
-    --bg: #f6f5f1; --ink: #1d2433; --muted: #5d6676; --line: #e3e1da;
+    --bg: #f6f5f1; --ink: #1d2433; --muted: #5d6676; --line: #e6e4dd;
     --g: #1f8a4c; --g-bg: #e5f3ea; --g-bar: #2e9d5c;
-    --y: #b07d00; --y-bg: #fbf1d3; --y-bar: #e0a800;
+    --y: #a87400; --y-bg: #fbf1d3; --y-bar: #e0a800;
     --r: #c2362f; --r-bg: #fbe4e2; --r-bar: #d9483f;
     --b: #2f5fb3; --b-bg: #e6edf8;
-    --gray-bg: #eeede8;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--ink); font-family: Inter, sans-serif; width: 640px; padding: 22px 20px 20px; font-size: 13px; line-height: 1.4; }
+  body { background: var(--bg); color: var(--ink); font-family: Inter, sans-serif; width: 640px; padding: 20px; font-size: 13px; line-height: 1.4; position: relative; }
   .kicker { font-size: 10.5px; letter-spacing: .12em; font-weight: 600; color: var(--muted); text-transform: uppercase; }
-  h1 { font-family: "Inter Display", Inter, sans-serif; font-size: 27px; font-weight: 700; margin: 4px 0 4px; letter-spacing: -.01em; }
-  .sub { color: var(--muted); font-size: 13px; }
+  h1 { font-family: "Inter Display", Inter, sans-serif; font-size: 25px; font-weight: 700; margin: 3px 0 3px; letter-spacing: -.01em; }
+  .sub { color: var(--muted); font-size: 12.5px; }
   .sub b { color: var(--ink); }
+  .sample { position: absolute; top: 20px; right: 20px; font-size: 9.5px; font-weight: 700; letter-spacing: .1em; color: var(--r); border: 1.5px solid var(--r); border-radius: 4px; padding: 2px 6px; }
 
-  .top { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0 18px; }
-  .box { border-radius: 10px; padding: 12px 14px; }
-  .box h3 { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
-  .box ol { padding-left: 17px; }
-  .box li { margin-bottom: 4px; }
-  .wins { background: var(--g-bg); } .wins h3 { color: var(--g); }
-  .fixes { background: var(--r-bg); } .fixes h3 { color: var(--r); }
-  .fixes.none { background: var(--gray-bg); } .fixes.none h3 { color: var(--muted); }
+  .banner { margin: 14px 0 12px; border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; }
+  .banner.g { background: var(--g-bg); } .banner.r { background: var(--r-bg); }
+  .banner .n { font-family: "Inter Display", Inter, sans-serif; font-size: 30px; font-weight: 700; line-height: 1; }
+  .banner.g .n { color: var(--g); } .banner.r .n { color: var(--r); }
+  .banner .t { font-size: 13px; } .banner .t small { display: block; color: var(--muted); font-size: 11.5px; }
 
-  .legend { display: flex; gap: 12px; align-items: center; font-size: 11px; color: var(--muted); margin-bottom: 10px; flex-wrap: wrap; }
-  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
-
-  .sec-title { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--b); margin: 4px 0 8px; }
-
-  .card { background: #fff; border-radius: 10px; border-left: 5px solid; padding: 12px 14px 12px; margin-bottom: 10px; }
-  .card.g { border-color: var(--g-bar); background: linear-gradient(90deg, var(--g-bg), #fff 55%); }
-  .card.y { border-color: var(--y-bar); background: linear-gradient(90deg, var(--y-bg), #fff 55%); }
-  .card.r { border-color: var(--r-bar); background: linear-gradient(90deg, var(--r-bg), #fff 55%); }
-  .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-  .card-name { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-  .card-rule { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
-  .pill { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 3px 8px; border-radius: 99px; color: #fff; white-space: nowrap; }
+  .group { background: #fff; border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
+  .group-h { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--b); padding: 9px 14px 7px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+  .group-h span { color: var(--muted); font-weight: 600; letter-spacing: .04em; text-transform: none; }
+  .sec { display: grid; grid-template-columns: 6px 1fr auto; gap: 0 12px; padding: 9px 14px 9px 0; border-bottom: 1px solid var(--line); align-items: center; }
+  .sec:last-child { border-bottom: 0; }
+  .sec .edge { align-self: stretch; border-radius: 0 3px 3px 0; }
+  .sec.g .edge { background: var(--g-bar); } .sec.y .edge { background: var(--y-bar); } .sec.r .edge { background: var(--r-bar); } .sec.b .edge { background: var(--b); }
+  .sec .name { font-weight: 600; font-size: 13px; }
+  .sec .rule { color: var(--muted); font-size: 11.5px; }
+  .sec .metric { text-align: right; white-space: nowrap; }
+  .sec .metric b { font-family: "Inter Display", Inter, sans-serif; font-size: 18px; }
+  .sec.g .metric b { color: var(--g); } .sec.y .metric b { color: var(--y); } .sec.r .metric b { color: var(--r); } .sec.b .metric b { color: var(--b); }
+  .sec .metric small { display: block; font-size: 10.5px; color: var(--muted); }
+  .pill { display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: .06em; padding: 2px 7px; border-radius: 99px; color: #fff; margin-left: 6px; vertical-align: 2px; }
   .pill.g { background: var(--g); } .pill.y { background: var(--y-bar); } .pill.r { background: var(--r); } .pill.b { background: var(--b); }
 
-  .main { display: flex; align-items: baseline; gap: 10px; margin: 6px 0 2px; }
-  .big { font-family: "Inter Display", Inter, sans-serif; font-size: 34px; font-weight: 700; line-height: 1; }
-  .g .big { color: var(--g); } .y .big { color: var(--y); } .r .big { color: var(--r); }
-  .big-label { font-size: 13px; color: var(--ink); }
-  .big-label small { display: block; color: var(--muted); font-size: 11.5px; }
+  .ask { background: #fff; border-radius: 10px; border: 2px solid var(--r-bar); overflow: hidden; margin-bottom: 10px; }
+  .ask-h { background: var(--r-bg); padding: 9px 14px; }
+  .ask-h b { color: var(--r); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; }
+  .ask-h p { font-size: 12px; margin-top: 2px; }
+  .item { display: grid; grid-template-columns: 22px 1fr; gap: 8px; padding: 8px 14px; border-top: 1px solid var(--line); }
+  .item .num { width: 22px; height: 22px; border-radius: 50%; background: var(--r); color: #fff; font-weight: 700; font-size: 11.5px; display: flex; align-items: center; justify-content: center; }
+  .item .who { font-weight: 600; }
+  .item .who span { font-weight: 500; color: var(--muted); font-size: 11px; margin-left: 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .item .what { font-size: 12px; }
+  .item .why { margin-top: 4px; font-size: 11.5px; color: var(--muted); border-bottom: 1.5px dotted #bdb9ae; padding-bottom: 1px; }
+  .ask-f { padding: 8px 14px; background: #faf9f6; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--muted); }
+  .ask-f code { font-family: "JetBrains Mono", monospace; font-size: 11px; background: #efede7; padding: 1px 5px; border-radius: 4px; color: var(--ink); }
 
-  .bar { position: relative; height: 7px; background: #e9e7e1; border-radius: 4px; margin: 8px 0 3px; }
-  .bar > span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
-  .g .bar > span { background: var(--g-bar); } .y .bar > span { background: var(--y-bar); } .r .bar > span { background: var(--r-bar); }
-  .bar > em { position: absolute; top: -3px; width: 2px; height: 13px; background: var(--ink); }
-  .target { font-size: 11px; color: var(--muted); }
+  .clean { background: var(--g-bg); border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; color: var(--g); font-weight: 600; }
 
-  .dots { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 2px; }
-  .dot { min-width: 34px; height: 22px; border-radius: 5px; font-size: 10.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; padding: 0 5px; color: #fff; }
-  .dot.ok { background: var(--g-bar); } .dot.late { background: var(--r-bar); } .dot.skip { background: #d6d3cb; color: var(--muted); }
-  .dots-note { font-size: 11px; color: var(--muted); }
-
-  .rows { margin-top: 9px; border-top: 1px solid var(--line); }
-  .row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--line); }
-  .row:last-child { border-bottom: 0; }
-  .row .k { color: var(--muted); }
-  .row .v { font-weight: 600; text-align: right; }
-  .row .v.ok { color: var(--g); } .row .v.bad { color: var(--r); }
-
-  .miss { margin-top: 8px; background: #fff; border: 1px solid var(--r-bg); border-radius: 7px; padding: 7px 10px; }
-  .miss .h { font-size: 10.5px; font-weight: 700; color: var(--r); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 3px; }
-  .miss div { font-size: 12.5px; }
-  .miss div + div { margin-top: 2px; }
-  .clean { margin-top: 8px; font-size: 12px; color: var(--g); font-weight: 600; }
-
-  .weekend { background: var(--b-bg); border-radius: 10px; padding: 12px 14px; margin: 14px 0 10px; border-left: 5px solid var(--b); }
-  .weekend .card-name { color: var(--b); }
-  .wk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
-  .wk-day { background: #fff; border-radius: 8px; padding: 9px 11px; }
-  .wk-day b { font-size: 12px; }
-  .wk-num { font-family: "Inter Display", Inter, sans-serif; font-size: 22px; font-weight: 700; color: var(--b); line-height: 1.1; margin-top: 2px; }
-  .wk-day p { font-size: 11.5px; color: var(--muted); }
-  .wk-note { font-size: 11.5px; color: var(--ink); margin-top: 8px; }
-
-  .later { border: 1.5px dashed #c9c6bd; border-radius: 10px; padding: 10px 14px; color: var(--muted); font-size: 12px; margin-top: 14px; display: flex; justify-content: space-between; }
-  .later b { color: var(--ink); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
-  .foot { margin-top: 12px; font-size: 10.5px; color: var(--muted); display: flex; justify-content: space-between; }
-  .sample { position: absolute; top: 22px; right: 20px; font-size: 9.5px; font-weight: 700; letter-spacing: .1em; color: var(--r); border: 1.5px solid var(--r); border-radius: 4px; padding: 2px 6px; }
+  .foot { margin-top: 4px; font-size: 10.5px; color: var(--muted); display: flex; justify-content: space-between; }
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
-/* SAMPLE DATA ONLY. Names and numbers are made up to show the layout. */
+/* SAMPLE DATA ONLY. Names and numbers are made up to show the layout.
+   Section colours: green = target hit and nothing to explain; yellow = almost; red = missed.
+   Anything that lands on the tracker's Reviews tab for that day shows up in "Please explain". */
 const DAYS = {
   thu: {
-    kicker: "Call confirmation · daily scorecard",
     title: "Gino's Day: Thursday, Nov 12",
     sent: "Sent Fri, Nov 13",
-    summary: "You hit <b>2 of 4</b> targets · 27 bookings handled · 61 dials · 9:02am to 6:04pm MT",
-    wins: [
-      "<b>Speed to lead: 92%.</b> 11 of 12 new bookings dialed within 15 min. Average wait 6 min.",
-      "<b>Every day-before call made.</b> 3 of 5 accepted after you called."
-    ],
-    fixes: [
-      "<b>5:45 cancels:</b> Chris Morgan was still not accepted and wasn't cancelled. At 5:45, cancel every unaccepted call for tomorrow, then send the cancel text.",
-      "<b>Overnight list:</b> start it at 9:00 so every one is dialed by 9:30."
-    ],
+    summary: "27 bookings handled · 61 dials · 9:02am to 6:04pm MT",
     sections: [
-      { key: "overnight", name: "1. Overnight bookings", rule: "Booked after your shift ended. Dial each one by 9:30am MT.",
-        status: "y", done: 3, due: 4, target: 1.0, unit: "dialed by 9:30am",
-        rows: [["Booked overnight", "6"], ["Already accepted, no call needed", "2"], ["No answer: double dial + voicemail + text", "2 of 2 done"]],
-        misses: ["Dana Whitfield: first dial 9:52am (22 min late)"] },
-      { key: "stl", name: "2. New bookings during your shift", rule: "Booked between 9am and 6pm MT. Dial within 15 minutes.",
-        status: "g", done: 11, due: 12, target: 0.85, unit: "dialed within 15 min",
-        dots: [3, 5, 2, 9, 4, 24, 6, 1, 7, 3, 11, 4, "acc", "acc"],
-        rows: [["Got them on the phone", "6"], ["No answer: double dial + voicemail + text", "5 of 6 done"]],
-        misses: ["Raj Mehta: dialed 24 min after booking", "Lena Cho: no voicemail left"] },
-      { key: "dbc", name: "3. Day-before confirmation", rule: "Call everyone booked for tomorrow who hasn't accepted.",
-        status: "g", done: 5, due: 5, target: 1.0, unit: "called",
-        rows: [["Accepted after your call", "3"], ["Still not accepted at 5:45", "2"], ["No answer: double dial + voicemail + text", "3 of 3 done"]],
-        misses: [] },
-      { key: "cancel", name: "4. 5:45 day-before cancels", rule: "Still not accepted at 5:45pm MT? Cancel in Calendly and send the cancel text.",
-        status: "r", done: 1, due: 2, target: 1.0, unit: "cancelled + texted",
-        rows: [["Booked today (exempt, don't cancel)", "1"]],
-        misses: ["Chris Morgan: not cancelled (call Fri 10:00am MT)"] }
+      { s: "g", name: "Overnight bookings", rule: "Dial every one during your shift", big: "4 of 4", small: "dialed · target 100%" },
+      { s: "g", name: "Speed to lead", rule: "New bookings during your shift: dial within 15 min", big: "92%", small: "11 of 12 · target 85% · avg 6 min" },
+      { s: "r", name: "Every no-answer: double dial + voicemail + text", rule: "Overnight, new and day-before calls", big: "10 of 11", small: "done · target 100%" },
+      { s: "g", name: "Day-before confirmation", rule: "Call tomorrow's calls that aren't accepted", big: "5 of 5", small: "called · 3 accepted after · target 100%" },
+      { s: "r", name: "5:45 day-before cancels", rule: "Cancel in Calendly + send the cancel text", big: "1 of 2", small: "done · target 100%" },
+      { s: "r", name: "Logging check", rule: "Accepted in Close only when the invite really is", big: "1 error", small: "target 0" }
+    ],
+    ask: [
+      { who: "Lena Cho", sec: "New booking", what: "No answer at 2:41pm. Double dial and text done, but no voicemail." },
+      { who: "Chris Morgan", sec: "5:45 cancel", what: "Still not accepted at 5:45pm and not cancelled. Call is Fri 10:00am MT." },
+      { who: "Ana Ruiz", sec: "Logging", what: "Logged \"1. Welcome call – invite accepted\" at 2:14pm, but the invite wasn't accepted then." }
     ]
   },
   mon: {
-    noFixes: true,
-    kicker: "Call confirmation · daily scorecard",
     title: "Gino's Day: Friday, Nov 13",
     sent: "Sent Mon, Nov 16 · includes the weekend",
-    summary: "You hit <b>4 of 4</b> targets · 22 bookings handled · 54 dials · 9:00am to 6:01pm MT",
-    wins: [
-      "<b>Perfect Friday.</b> Every checkpoint done, nothing missed.",
-      "<b>Speed to lead: 100%.</b> 9 of 9 dialed within 15 min. Average wait 4 min.",
-      "<b>Weekend:</b> you confirmed 3 calls on Saturday."
-    ],
-    fixes: [
-      "Nothing to fix from Friday. Keep the same order today: overnight and weekend bookings first, soonest call first."
-    ],
+    summary: "22 bookings handled · 54 dials · 9:00am to 6:01pm MT",
     sections: [
-      { key: "overnight", name: "1. Overnight bookings", rule: "Booked after your shift ended. Dial each one by 9:30am MT.",
-        status: "g", done: 5, due: 5, target: 1.0, unit: "dialed by 9:30am",
-        rows: [["Booked overnight", "7"], ["Already accepted, no call needed", "2"], ["No answer: double dial + voicemail + text", "3 of 3 done"]],
-        misses: [] },
-      { key: "stl", name: "2. New bookings during your shift", rule: "Booked between 9am and 6pm MT. Dial within 15 minutes.",
-        status: "g", done: 9, due: 9, target: 0.85, unit: "dialed within 15 min",
-        dots: [2, 4, 1, 6, 3, 8, 5, 2, 4, "acc"],
-        rows: [["Got them on the phone", "5"], ["No answer: double dial + voicemail + text", "4 of 4 done"]],
-        misses: [] },
-      { key: "dbc", name: "3. Day-before confirmation", rule: "Fridays: Saturday calls only. Sunday and Monday calls have no day-before call.",
-        status: "g", done: 3, due: 3, target: 1.0, unit: "called",
-        rows: [["Accepted after your call", "2"], ["Still not accepted at 5:45", "1"], ["No answer: double dial + voicemail + text", "1 of 1 done"]],
-        misses: [] },
-      { key: "cancel", name: "4. 5:45 day-before cancels", rule: "Fridays: Saturday calls only. Cancel in Calendly and send the cancel text.",
-        status: "g", done: 1, due: 1, target: 1.0, unit: "cancelled + texted",
-        rows: [],
-        misses: [] }
+      { s: "g", name: "Overnight bookings", rule: "Dial every one during your shift", big: "5 of 5", small: "dialed · target 100%" },
+      { s: "g", name: "Speed to lead", rule: "New bookings during your shift: dial within 15 min", big: "100%", small: "9 of 9 · target 85% · avg 4 min" },
+      { s: "g", name: "Every no-answer: double dial + voicemail + text", rule: "Overnight, new and day-before calls", big: "8 of 8", small: "done · target 100%" },
+      { s: "g", name: "Day-before confirmation", rule: "Fridays: Saturday calls only", big: "3 of 3", small: "called · 2 accepted after · target 100%" },
+      { s: "g", name: "5:45 day-before cancels", rule: "Fridays: Saturday calls only", big: "1 of 1", small: "done · target 100%" },
+      { s: "g", name: "Logging check", rule: "Accepted in Close only when the invite really is", big: "0 errors", small: "target 0" }
     ],
-    weekend: {
-      days: [
-        { day: "Saturday, Nov 14", num: "4 of 7", label: "new bookings you called", note: "3 accepted after your call · 12 dials" },
-        { day: "Sunday, Nov 15", num: "5", label: "new bookings came in", note: "No calls needed. Weekends are off." }
-      ],
-      note: "The 5 weekend bookings still not accepted are on this morning's overnight list (scored on tomorrow's card)."
-    }
+    ask: [],
+    weekend: [
+      { name: "Saturday, Nov 14", rule: "7 new bookings · 3 accepted after your call · 12 dials", big: "4 called" },
+      { name: "Sunday, Nov 15", rule: "5 new bookings · no calls (weekends are off)", big: "0 called" }
+    ]
   }
 };
 
 const v = new URLSearchParams(location.search).get("v") || "thu";
 const d = DAYS[v];
-const pct = (a, b) => b ? Math.round(100 * a / b) : 100;
-const PILL = { g: "HIT", y: "ALMOST", r: "MISSED" };
+const PILL = { g: "HIT", y: "ALMOST", r: "MISSED", b: "NOT SCORED" };
+const hit = d.sections.filter(x => x.s === "g").length;
 
-function card(s) {
-  const p = pct(s.done, s.due);
-  const dots = s.dots ? `<div class="dots">${s.dots.map(x =>
-      x === "acc" ? `<span class="dot skip">acc.</span>` :
-      `<span class="dot ${x <= 15 ? "ok" : "late"}">${x}m</span>`).join("")}</div>
-      <div class="dots-note">Each box is one new booking: minutes until your first dial. Gray = already accepted, no call needed.</div>` : "";
-  const rows = s.rows.length ? `<div class="rows">${s.rows.map(([k, val]) => {
-      const m = /^(\d+) of (\d+)/.exec(val); const cls = m ? (m[1] === m[2] ? "ok" : "bad") : "";
-      return `<div class="row"><span class="k">${k}</span><span class="v ${cls}">${val}</span></div>`; }).join("")}</div>` : "";
-  const misses = s.misses.length
-    ? `<div class="miss"><div class="h">Missed</div>${s.misses.map(m => `<div>${m}</div>`).join("")}</div>`
-    : `<div class="clean">✓ Nothing missed</div>`;
-  return `<div class="card ${s.status}">
-    <div class="card-head"><div><div class="card-name">${s.name}</div><div class="card-rule">${s.rule}</div></div>
-      <span class="pill ${s.status}">${PILL[s.status]}</span></div>
-    <div class="main"><span class="big">${s.done} of ${s.due}</span><span class="big-label">${s.unit}<small>${p}%</small></span></div>
-    <div class="bar"><span style="width:${Math.min(p,100)}%"></span><em style="left:calc(${s.target * 100}% - 1px)"></em></div>
-    <div class="target">Target ${s.target * 100}%</div>
-    ${dots}${rows}${misses}
-  </div>`;
-}
+const row = (x, s) => `<div class="sec ${s || x.s}"><div class="edge"></div>
+  <div><div class="name">${x.name}</div><div class="rule">${x.rule}</div></div>
+  <div class="metric"><b>${x.big}</b><span class="pill ${s || x.s}">${PILL[s || x.s]}</span>${x.small ? `<small>${x.small}</small>` : ""}</div></div>`;
 
-function weekend(w) {
-  if (!w) return "";
-  return `<div class="weekend">
-    <div class="card-head"><div><div class="card-name">Weekend · not scored</div>
-      <div class="card-rule">Nothing is due on weekends. This just shows the work you did.</div></div>
-      <span class="pill b">TRACKING</span></div>
-    <div class="wk-grid">${w.days.map(x => `<div class="wk-day"><b>${x.day}</b>
-      <div class="wk-num">${x.num}</div><p>${x.label}</p><p>${x.note}</p></div>`).join("")}</div>
-    <div class="wk-note">${w.note}</div></div>`;
-}
+const ask = d.ask.length ? `<div class="ask">
+    <div class="ask-h"><b>Please explain (${d.ask.length})</b><p>Tell us what happened with each one so Sheila and Jay can decide whether it's excused.</p></div>
+    ${d.ask.map((a, i) => `<div class="item"><div class="num">${i + 1}</div><div>
+      <div class="who">${a.who}<span>${a.sec}</span></div><div class="what">${a.what}</div>
+      <div class="why">Why?</div></div></div>`).join("")}
+    <div class="ask-f">Reply in #cc-gino by noon MT, one line per number, e.g. <code>2: prospect texted at 5:30 that he'd accept tonight</code></div>
+  </div>` : ``;
 
 document.getElementById("app").innerHTML = `
   <span class="sample">SAMPLE DATA</span>
-  <div class="kicker">${d.kicker}</div>
+  <div class="kicker">Daily scorecard</div>
   <h1>${d.title}</h1>
   <div class="sub">${d.summary}</div>
-  <div class="top">
-    <div class="box wins"><h3>Wins</h3><ol>${d.wins.map(x => `<li>${x}</li>`).join("")}</ol></div>
-    <div class="box fixes ${d.noFixes ? "none" : ""}"><h3>Fix today</h3><ol>${d.fixes.map(x => `<li>${x}</li>`).join("")}</ol></div>
-  </div>
-  <div class="legend"><span><i style="background:var(--g-bar)"></i>Hit the target</span>
-    <span><i style="background:var(--y-bar)"></i>Almost (75%+ of target)</span>
-    <span><i style="background:var(--r-bar)"></i>Missed</span><span>Black line = target</span></div>
-  <div class="sec-title">Call confirmation</div>
-  ${d.sections.map(card).join("")}
-  ${weekend(d.weekend)}
-  <div class="later"><b>Call recovery</b><span>Coming soon</span></div>
-  <div class="foot"><span>${d.sent}</span><span>Times in Mountain Time · Questions? Ask Sheila or Jay in #cc-gino</span></div>`;
+  <div class="banner ${hit === d.sections.length ? "g" : "r"}"><div class="n">${hit} of ${d.sections.length}</div>
+    <div class="t">targets hit<small>${d.ask.length ? `${d.ask.length} to explain below` : "Every checkpoint done. Nothing to explain."}</small></div></div>
+  ${ask}
+  <div class="group"><div class="group-h">Call confirmation<span>Times in MT</span></div>${d.sections.map(x => row(x)).join("")}</div>
+  ${d.weekend ? `<div class="group"><div class="group-h">Weekend<span>Nothing due, just your work</span></div>${d.weekend.map(x => row(x, "b")).join("")}</div>` : ""}
+  <div class="group"><div class="group-h">Call recovery<span>Coming soon</span></div></div>
+  <div class="foot"><span>${d.sent}</span><span>Questions? Ask Sheila or Jay in #cc-gino</span></div>`;
 </script>
 </body>
 </html>
