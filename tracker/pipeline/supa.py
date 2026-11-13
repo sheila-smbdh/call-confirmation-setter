@@ -4,7 +4,7 @@ usage: python3 -I supa.py DIR RUN_ID POST_RUN_XLSX
 
 DIR            the run folder (tracker/data/<TODAY>)
 RUN_ID         e.g. 2026-11-13T20:00-07:00
-POST_RUN_XLSX  the tracker exported AFTER this run's writes (values, not formulas)
+POST_RUN_XLSX  the tracker exported AFTER this run's writes (values, not formulas); "-" = raw records only (backfill)
 
 Writes DIR/supa/NN_<table>.json (JSON arrays, at most 500 rows each) and DIR/supa/manifest.tsv with one line per file:
 <table>\t<on_conflict columns>\t<file>. The runbook uploads each file with one inline curl (upsert).
@@ -86,6 +86,11 @@ def close_files(pattern, source, at_field):
 close_files("g_call_*.json", "close_call", "date_created")
 close_files("g_sms_*.json", "close_sms", "date_created")
 close_files("g_ev_*.json", "close_event", "date_created")
+close_files("ev_*.json", "close_event", "date_created")
+for f in sorted(glob.glob(os.path.join(DIR, "act_*.json"))):
+    d = load(f)
+    for r in d.get("data", []) if isinstance(d, dict) else []:
+        add("close_" + str(r.get("_type", "activity")).lower(), r.get("id"), r, r.get("lead_id"), r.get("date_created"))
 close_files("meet_*.json", "close_meeting", "starts_at")
 close_files("lsc_*.json", "close_status_change", "date_created")
 close_files("acc_*.json", "close_calendar_response", "date_created")
@@ -118,7 +123,7 @@ emit("call_confirm_raw_records", "source,record_id", raw)
 
 # ---------------- calls (from the pipeline's merged rows) ----------------
 calls = []
-for r in load(os.path.join(DIR, "calls_all.json")):
+for r in (load(os.path.join(DIR, "calls_all.json")) if os.path.exists(os.path.join(DIR, "calls_all.json")) else []):
     calls.append({"event_uri": r["event"], "lead_id": r.get("lead_id"), "lead_name": r.get("lead_name"),
                   "email": r.get("email"), "closer": r.get("closer"), "call_date": r.get("call_date"),
                   "call_et": r.get("call_et"), "booked_date": r.get("booked_date"), "booked_et": r.get("booked_et"),
@@ -127,9 +132,9 @@ for r in load(os.path.join(DIR, "calls_all.json")):
 emit("call_confirm_calls", "event_uri", calls)
 
 # ---------------- sheet values after the run ----------------
-wb = openpyxl.load_workbook(XLSX, data_only=True)
+wb = openpyxl.load_workbook(XLSX, data_only=True) if XLSX != "-" else openpyxl.Workbook()
 snaps = []
-for ws in wb.worksheets:
+for ws in (wb.worksheets if XLSX != "-" else []):
     if ws.sheet_state != "visible":
         continue
     vals = [[jval(c) for c in row] for row in ws.iter_rows(values_only=True)]
