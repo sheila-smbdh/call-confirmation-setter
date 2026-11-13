@@ -10,6 +10,8 @@ SOPs, Close setup, automations and payout tracking for SMB Deal Hunter's Call Co
   - `tracker/supabase/call_confirmation_schema.sql`: the `call_confirm_*` tables in setter-data.
   - `tracker/data/`: each run's working files. They contain lead data, so they're gitignored and never committed.
 
+- `scorecard/`: Gino's daily scorecard, posted to #cc-gino Mon–Fri before 7am ET. `scorecard/ROUTINE.md` has the steps; `scorecard/mockup/` has the sample PNGs.
+
 Latest handoff: `handoffs/2026-11-04-precall-confirmation/README.md` (pre-call confirmation analysis and setter-set workflow proposal).
 
 Pre-call confirmation findings (six months, May–Oct 2026, plus the October deep-dive): `analysis/precall-confirmation/FINDINGS.md`.
