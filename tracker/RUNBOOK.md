@@ -11,7 +11,7 @@ May, without asking:
   Reviews (columns A-G and L); write Management!K5 (run time) and Management!M5 (data through).
 - Reviews H-J, only where Sheila or Jay already approved the item in #cc-gino (`slack_match.py` decides), and only on
   rows whose H, I and J are all blank: H = "Excused", I = "Approved in #cc-gino: <summary> <link>", J = "<name> (Slack)".
-- Supabase setter-data (ref `suoblmuvrmyfmuvlhqce`), `cc_` tables only: insert or update (upsert) through
+- Supabase setter-data (ref `suoblmuvrmyfmuvlhqce`), `call_confirm_` tables only: insert or update (upsert) through
   `https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/<table>`, one inline curl per file (step 12). Never delete, never
   touch any other table, never send DDL.
 - Upload one staging .xlsx to Google Drive per run (title starts with `TEMP - tracker nightly`).
@@ -39,7 +39,7 @@ from a script. The scripts in `tracker/pipeline/` are offline: they only read an
 | #call-confirmation (Zapier alerts) | `C0CF5TGANMT` |
 | #closer-eod (Nero EOD posts) | `C06RE8S1L4V` |
 | #cc-gino (Sunday reminder; Gino's exception requests) | `C0CG28G7TQT` |
-| Supabase setter-data | ref `suoblmuvrmyfmuvlhqce`, tables `public.cc_*` (`tracker/supabase/schema.sql`) |
+| Supabase setter-data | ref `suoblmuvrmyfmuvlhqce`, tables `public.call_confirm_*` (`tracker/supabase/call_confirmation_schema.sql`) |
 | Sheila / Jay (Slack) | `U0BM6J8KM32` / `U06Q63DTS13` |
 
 Google Sheets edits go through Composio (`googlesheets` toolkit, account `googlesheets_gyte-urlar`); Drive uploads and
@@ -83,14 +83,14 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
 
 4b. **#cc-gino: exceptions Sheila or Jay already approved** (a subagent keeps this out of your context)
    - Read where the last scan stopped:
-     `curl -s "https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/cc_sync_state?source=eq.slack_cc_gino&select=*"`
+     `curl -s "https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/call_confirm_sync_state?source=eq.slack_cc_gino&select=*"`
    - If there is no row, or `full_scans` < 2: read the WHOLE channel history. Otherwise read from `last_ts` on, AND
      re-read every thread whose parent was posted in the 14 days before `last_ts` (approvals often come as thread
      replies to an older post, and those don't show up in channel history after `last_ts`).
    - Write every message and thread reply read to `$DIR/cc_gino_messages.jsonl` (`ts, thread_ts, user_id, user_name,
      posted_at_et, text, reply_count`).
    - Load the approvals already stored:
-     `curl -s "https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/cc_slack_approvals?select=*&limit=5000" -o $DIR/approvals_prev.json`
+     `curl -s "https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/call_confirm_slack_approvals?select=*&limit=5000" -o $DIR/approvals_prev.json`
    - From the new messages, list each case where Gino (or anyone) raised an exception or asked what he may do, and
      Sheila (`U0BM6J8KM32`) or Jay (`U06Q63DTS13`) answered. Merge with `approvals_prev.json` (same `raised_ts` = same
      case; the newer reading wins) into `$DIR/cc_gino_approvals.json`, a list of `{raised_ts, thread_ts, raised_by,
@@ -168,7 +168,7 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
     - Verify with `GOOGLESHEETS_BATCH_GET` of `Management!A1:A5`, `Management!A15:O16` and the last two rows of
       `Daily`: no `#REF!`, `#N/A`, `#ERROR!` or `#VALUE!`; A5 starts with "Up to date". If not, report it (step 14).
 
-12. **Save everything to Supabase** (setter-data, `cc_` tables). `RUN_ID` = the run's start time, e.g.
+12. **Save everything to Supabase** (setter-data, `call_confirm_` tables). `RUN_ID` = the run's start time, e.g.
     `2026-11-13T20:00-07:00`.
     - Download the tracker again (as in step 8) to `$DIR/tracker_after.xlsx`, so the values saved are what the sheet
       shows after this run (Daily, Weekly, Management and Reviews, including Sheila's and Jay's decisions).
@@ -177,8 +177,8 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
       `curl -s -o /dev/null -w "%{http_code}\n" -X POST "https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/<table>?on_conflict=<on_conflict>" -H "Content-Type: application/json" -H "Prefer: resolution=merge-duplicates,return=minimal" -d @<file>`
       Expect 201 (or 200/204). An upsert is safe to repeat, so a failed file can be sent again once.
     - Save where the #cc-gino scan stopped (one curl; `full_scans` + 1 only if this run read the whole history):
-      `curl -s -o /dev/null -w "%{http_code}\n" -X POST "https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/cc_sync_state?on_conflict=source" -H "Content-Type: application/json" -H "Prefer: resolution=merge-duplicates,return=minimal" -d '{"source":"slack_cc_gino","last_ts":"<newest ts>","full_scans":<n>,"last_run_id":"<RUN_ID>"}'`
-    - Last, the run record (status ok/partial/failed and a short summary of counts and warnings) in `cc_runs`, same form.
+      `curl -s -o /dev/null -w "%{http_code}\n" -X POST "https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/call_confirm_sync_state?on_conflict=source" -H "Content-Type: application/json" -H "Prefer: resolution=merge-duplicates,return=minimal" -d '{"source":"slack_cc_gino","last_ts":"<newest ts>","full_scans":<n>,"last_run_id":"<RUN_ID>"}'`
+    - Last, the run record (status ok/partial/failed and a short summary of counts and warnings) in `call_confirm_runs`, same form.
     - If Supabase fails, still finish the run (the tracker is already updated); say so in the summary.
 
 13. **Sundays only (TODAY is a Sunday in ET): weekly reminder in #cc-gino** (`C0CG28G7TQT`), after step 12:
@@ -200,8 +200,8 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
   welcome call is still checked, but only against Gino's last 4 days of activity.
 - "Invite accepted at" comes from the calendar response emails Close stores. If a closer's calendar doesn't send them,
   the time is unknown and the tracker says "Can't tell".
-- Supabase keeps everything each run read (`cc_raw_records`, as the source returned it) plus the tracker's rows and a
-  copy of every tab after each run (`cc_tab_snapshots`). Records pulled before Nov 13 are backfilled once from the
+- Supabase keeps everything each run read (`call_confirm_raw_records`, as the source returned it) plus the tracker's rows and a
+  copy of every tab after each run (`call_confirm_tab_snapshots`). Records pulled before Nov 13 are backfilled once from the
   saved run files.
 - Show results come from #closer-eod first, then Zoom attendance. The EOD Tracker sheet, Sales Tracker and 2M tracker
   aren't checked yet.

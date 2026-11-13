@@ -114,7 +114,7 @@ p = os.path.join(DIR, "lead_fix.json")
 if os.path.exists(p):
     for k, v in load(p).items():
         add("lead_fix", k, {"event_uri": k, "lead_id": v}, v)
-emit("cc_raw_records", "source,record_id", raw)
+emit("call_confirm_raw_records", "source,record_id", raw)
 
 # ---------------- calls (from the pipeline's merged rows) ----------------
 calls = []
@@ -124,7 +124,7 @@ for r in load(os.path.join(DIR, "calls_all.json")):
                   "call_et": r.get("call_et"), "booked_date": r.get("booked_date"), "booked_et": r.get("booked_et"),
                   "booking_type": r.get("booking_type"), "logging_check": r.get("check"),
                   "happened": r.get("happened"), "row": r, "last_run_id": RUN_ID, "updated_at": NOW})
-emit("cc_calls", "event_uri", calls)
+emit("call_confirm_calls", "event_uri", calls)
 
 # ---------------- sheet values after the run ----------------
 wb = openpyxl.load_workbook(XLSX, data_only=True)
@@ -136,7 +136,7 @@ for ws in wb.worksheets:
     while vals and all(v in (None, "") for v in vals[-1]):
         vals.pop()
     snaps.append({"run_id": RUN_ID, "tab": ws.title, "rows": vals})
-emit("cc_tab_snapshots", "run_id,tab", snaps)
+emit("call_confirm_tab_snapshots", "run_id,tab", snaps)
 
 
 def headers(ws, rows):
@@ -166,16 +166,16 @@ def table_rows(ws, hdr_rows, first, key_col=1):
 
 
 if "Daily" in wb.sheetnames:
-    emit("cc_daily", "day", [{"day": k, "row": v, "last_run_id": RUN_ID, "updated_at": NOW}
+    emit("call_confirm_daily", "day", [{"day": k, "row": v, "last_run_id": RUN_ID, "updated_at": NOW}
                              for k, v in table_rows(wb["Daily"], [1, 2], 3)])
 if "Weekly" in wb.sheetnames:
-    emit("cc_weekly", "week_start", [{"week_start": k, "row": v, "last_run_id": RUN_ID, "updated_at": NOW}
+    emit("call_confirm_weekly", "week_start", [{"week_start": k, "row": v, "last_run_id": RUN_ID, "updated_at": NOW}
                                      for k, v in table_rows(wb["Weekly"], [1], 2)])
 if "Management" in wb.sheetnames:
     ws = wb["Management"]
     hr = next((r for r in range(1, 40) if ws.cell(r, 1).value == "Week starting (Mon)"), None)
     if hr:
-        emit("cc_management_weeks", "week_start",
+        emit("call_confirm_management_weeks", "week_start",
              [{"week_start": k, "row": v, "last_run_id": RUN_ID, "updated_at": NOW}
               for k, v in table_rows(ws, [hr - 1, hr], hr + 1)])
 if "Reviews" in wb.sheetnames:
@@ -196,7 +196,7 @@ if "Reviews" in wb.sheetnames:
                    "decided_via": "slack" if key in slack else ("sheet" if v[7] else None),
                    "slack_ts": (slack.get(key) or {}).get("decision_ts"),
                    "last_run_id": RUN_ID, "updated_at": NOW})
-    emit("cc_reviews", "review_key", rv)
+    emit("call_confirm_reviews", "review_key", rv)
 
 # ---------------- Slack approvals ----------------
 from zoneinfo import ZoneInfo
@@ -218,7 +218,7 @@ if os.path.exists(p):
                    "asked": a.get("what_gino_asked_or_reported"), "decision": a.get("decision"),
                    "decided_by": a.get("decided_by"), "decision_ts": a.get("decision_ts"), "scope": a.get("scope"),
                    "decision_summary": a.get("decision_summary"), "last_run_id": RUN_ID, "updated_at": NOW})
-    emit("cc_slack_approvals", "raised_ts", ap)
+    emit("call_confirm_slack_approvals", "raised_ts", ap)
 
 with open(os.path.join(OUT, "manifest.tsv"), "w") as fh:
     for t, c, f in manifest:

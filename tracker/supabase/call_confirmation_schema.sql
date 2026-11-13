@@ -1,10 +1,10 @@
 -- Call Confirmation Tracker (Gino): history store in the setter-data project (ref suoblmuvrmyfmuvlhqce).
 -- Run once in the Supabase SQL editor. Creates tables only; touches nothing that already exists.
--- All tables are in `public` (the only schema the REST API exposes) and start with `cc_`.
+-- All tables are in `public` (the only schema the REST API exposes) and start with `call_confirm_`.
 -- RLS is on with no policies: the anon key can't read or write them; the project's service key can.
 
 -- One row per nightly run.
-create table if not exists public.cc_runs (
+create table if not exists public.call_confirm_runs (
   run_id        text primary key,            -- e.g. 2026-11-13T20:00-07:00
   today         date not null,               -- run date (US Eastern)
   data_through  date,                        -- last day the tracker judged
@@ -14,7 +14,7 @@ create table if not exists public.cc_runs (
 );
 
 -- Where each incremental scan left off (e.g. the last Slack ts read in #cc-gino).
-create table if not exists public.cc_sync_state (
+create table if not exists public.call_confirm_sync_state (
   source        text primary key,            -- slack_cc_gino, slack_call_confirmation, slack_closer_eod, close_activity, calendly
   last_ts       text,                        -- Slack ts, or ISO time, of the newest item read
   full_scans    int  not null default 0,     -- how many full-history scans have run
@@ -27,7 +27,7 @@ create table if not exists public.cc_sync_state (
 -- source: close_call, close_sms, close_event, close_meeting, close_status_change, close_calendar_response,
 --         close_call_transcript, calendly_event, calendly_invitee, slack_call_confirmation, slack_closer_eod,
 --         slack_cc_gino, judgment_override, lead_fix
-create table if not exists public.cc_raw_records (
+create table if not exists public.call_confirm_raw_records (
   source        text not null,
   record_id     text not null,
   lead_id       text,
@@ -38,11 +38,11 @@ create table if not exists public.cc_raw_records (
   last_seen_at  timestamptz not null default now(),
   primary key (source, record_id)
 );
-create index if not exists cc_raw_records_lead on public.cc_raw_records (lead_id);
-create index if not exists cc_raw_records_time on public.cc_raw_records (source, occurred_at);
+create index if not exists call_confirm_raw_records_lead on public.call_confirm_raw_records (lead_id);
+create index if not exists call_confirm_raw_records_time on public.call_confirm_raw_records (source, occurred_at);
 
 -- The Calls tab: one row per booked call (Calendly event), current state.
-create table if not exists public.cc_calls (
+create table if not exists public.call_confirm_calls (
   event_uri     text primary key,
   lead_id       text,
   lead_name     text,
@@ -59,23 +59,23 @@ create table if not exists public.cc_calls (
   last_run_id   text,
   updated_at    timestamptz not null default now()
 );
-create index if not exists cc_calls_lead on public.cc_calls (lead_id);
-create index if not exists cc_calls_date on public.cc_calls (call_date);
+create index if not exists call_confirm_calls_lead on public.call_confirm_calls (lead_id);
+create index if not exists call_confirm_calls_date on public.call_confirm_calls (call_date);
 
 -- Daily, Weekly and Management tabs as the sheet computed them (values, not formulas).
-create table if not exists public.cc_daily (
+create table if not exists public.call_confirm_daily (
   day           date primary key,
   row           jsonb not null,
   last_run_id   text,
   updated_at    timestamptz not null default now()
 );
-create table if not exists public.cc_weekly (
+create table if not exists public.call_confirm_weekly (
   week_start    date primary key,
   row           jsonb not null,
   last_run_id   text,
   updated_at    timestamptz not null default now()
 );
-create table if not exists public.cc_management_weeks (
+create table if not exists public.call_confirm_management_weeks (
   week_start    date primary key,
   row           jsonb not null,              -- approvals, KPIs, bonus, as shown on Management
   last_run_id   text,
@@ -83,7 +83,7 @@ create table if not exists public.cc_management_weeks (
 );
 
 -- Reviews tab, including Sheila's and Jay's decisions.
-create table if not exists public.cc_reviews (
+create table if not exists public.call_confirm_reviews (
   review_key    text primary key,            -- <event>|welcome / daybefore / 545 / logging
   sheet_row     int,
   week_start    date,
@@ -103,7 +103,7 @@ create table if not exists public.cc_reviews (
 );
 
 -- Exceptions Gino raised in #cc-gino and what Sheila or Jay said.
-create table if not exists public.cc_slack_approvals (
+create table if not exists public.call_confirm_slack_approvals (
   raised_ts         text primary key,
   thread_ts         text,
   raised_by         text,
@@ -122,7 +122,7 @@ create table if not exists public.cc_slack_approvals (
 );
 
 -- A full copy of each tab's values after every run (history of what the sheet showed).
-create table if not exists public.cc_tab_snapshots (
+create table if not exists public.call_confirm_tab_snapshots (
   run_id        text not null,
   tab           text not null,
   rows          jsonb not null,
@@ -133,8 +133,8 @@ create table if not exists public.cc_tab_snapshots (
 do $$
 declare t text;
 begin
-  foreach t in array array['cc_runs','cc_sync_state','cc_raw_records','cc_calls','cc_daily','cc_weekly',
-                           'cc_management_weeks','cc_reviews','cc_slack_approvals','cc_tab_snapshots'] loop
+  foreach t in array array['call_confirm_runs','call_confirm_sync_state','call_confirm_raw_records','call_confirm_calls','call_confirm_daily','call_confirm_weekly',
+                           'call_confirm_management_weeks','call_confirm_reviews','call_confirm_slack_approvals','call_confirm_tab_snapshots'] loop
     execute format('alter table public.%I enable row level security', t);
   end loop;
 end $$;
