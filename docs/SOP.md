@@ -1,338 +1,217 @@
-# Call Confirmation Specialist SOP
+# Call Confirmation Quick Guide
 
-**Status:** DRAFT v0.1 for Sheila's review. Not yet shared with the specialist.
-**Last updated:** 2026-10-30
-**Source of truth for rules:** [`DECISIONS.md`](DECISIONS.md). If this SOP and the decisions log disagree, the decisions log wins.
+Nov 3, 2026 · @Jay. Updated by Sheila on Nov 13, 2026 with the rules agreed in #cc-gino.
 
-Items marked **[PENDING]** are waiting on a decision; see Open Items at the bottom.
+*This file is a copy of the live SOP. If the two differ, the live SOP wins. Rules and their history: [`DECISIONS.md`](DECISIONS.md). What changed on Nov 13: [`sop-changes-2026-11-13.md`](sop-changes-2026-11-13.md).*
 
----
+**Your job:** make sure every prospect shows up to their discovery call with an Enrollment Advisor. You confirm the call, and you win back anyone who misses it. You don't sell.
 
-## 1. Your job in one sentence
+## Priority ladder
 
-Make sure every prospect booked for a closer's first discovery call **shows up**: confirm the call as soon as it's booked, keep confirming until the calendar invite is accepted, and win back anyone who no-shows, cancels or asks to reschedule.
+You own all pre-call outreach for calls booked directly with an Enrollment Advisor. When several things need you at once, work top to bottom:
 
-### In scope
-- **Every 45-minute discovery call booked with a closer**, through any Calendly link (`calendly.com/smb-st/emorg_startnow` is the main one). That includes calls you rebooked through recovery.
-- Recovering **no-shows, cancellations and reschedule requests** on those calls.
+1. **Fresh bookings:** call the moment a call is booked.
+   1. This includes rescheduled calls: anyone who just picked a new time.
+2. **Day-before, invite not accepted:** call tomorrow's prospects who haven't accepted.
+3. **Reschedule requests:** recapture anyone who asked for a new time.
+4. **No-shows:** recover anyone who missed their call.
+5. **Cancellations:** recover anyone who cancelled.
+6. **Day-before, invite accepted:** call tomorrow's prospects who already accepted, once everything above is done.
+7. **Old backlog:** the backlog of reschedules, no-shows and cancellations.
 
-### Out of scope
-- The closers' 30-minute follow-up calls. Closers handle those.
-- Inbound setter calls (a possible later expansion).
-- Selling, pitching or qualifying. See section 9, "What you never do".
+## Your day
 
----
+Monday–Friday, 9am–6pm MT (11am–8pm ET). Every call, text and email happens in Close and gets logged there.
 
-## 2. Tools and access
+No Close phone number yet? Create one in Close. Any US area code is fine.
 
-| Tool | What you use it for |
-|---|---|
-| **Close** (your own seat) | Dial, text, email, log every attempt, work your smart views |
-| **Calendly** | See bookings; resend invites; rebook prospects onto closer calendars |
-| **Slack** | Real-time alerts; read `#closer-eod` |
-| **Zoom** (via Close) | No direct use. The system reads Zoom attendance to confirm shows. |
+*(See "How to update smart views" in the live SOP.)*
 
-**Every attempt must be done and logged in Close under your own user.** Anything done outside Close (personal phone, personal email) doesn't count toward your KPIs or your bonus, because the system can't see it.
-
----
-
-## 3. Your schedule
-
-- **Shift:** 9:00am–6:00pm MT (11:00am–8:00pm ET), Monday to Friday.
-- Most closer calls run on **Eastern Time**. Always check the time zone on the booking, and say the time in the **prospect's** time zone when you talk to them.
-
-### Daily rhythm (MT)
-
-| Time (MT) | What |
-|---|---|
-| 9:00 | **Start-of-shift sweep.** Clear everything that came in overnight: new bookings (first attempts), reschedule requests, cancels, yesterday's no-shows. Work **the soonest call first.** |
-| 9:00–9:30 | **Today's calls:** any call today whose invite still isn't accepted gets its touch now. **[PENDING]** the rule for calls before about 1pm ET (open item 5). |
-| 9:30 | **Tomorrow's calls:** run the "day-before" touch for every call tomorrow whose invite still isn't accepted. |
-| All day | **Speed to lead:** new booking → first dial within **15 minutes**. **Same-day touch:** 2–3 hours before each unconfirmed call. Reschedule-request and cancel alerts are worked **immediately**. |
-| Through the day | **No-show recovery** queue (yesterday's and older no-shows). |
-| 5:45 | **End-of-shift check:** every attempt logged, every email that's due has gone out, smart views cleared or noted. |
-
----
-
-## 4. Your queues (Close smart views)
-
-**[PENDING]** These smart views will be built once Sheila approves the Close setup. Names are proposed.
-
-| Smart view | What's in it | How fast |
+| Time (MT) | Do this | Smart view / Slack channel |
 |---|---|---|
-| **CC – New Bookings** | Closer discovery calls booked that haven't had a first attempt yet | Within 15 minutes |
-| **CC – Unconfirmed** | Upcoming calls whose invite isn't accepted yet | Per the cadence in section 6 |
-| **CC – Reschedule Requests** | Opportunities a closer moved to `Reschedule Request` | Immediately |
-| **CC – No-Shows** | Opportunities in `No Show/Cancel` that were no-shows, plus calls the system flagged as likely no-shows | Next business day |
-| **CC – Cancels** | Cancelled closer calls | **[PENDING]** cadence |
+| 9:00 | Confirm overnight bookings (step 1). Soonest call first. | Smart view |
+| Right after | Call everyone booked for tomorrow who hasn't accepted (step 2). Do this early so they have time to accept before the 5:45 cutoff. | Smart view |
+| All day | These interrupt anything else. New booking or rescheduled call → call within 15 min (step 1). Reschedule request → call right away (step 3). | Slack channel; Newest - Cancels; Newest - Reschedule Requests; Newest - Reschedules |
+| In between | Work the backlog: no-shows first (step 4), then cancels (step 5). | Newest - No Shows; Backlog - No shows/Cancels/Reschedules |
+| If time is left | Call tomorrow's prospects who already accepted (step 6). | Smart view |
+| 5:45 | Do day-before cancels, check everything is logged, and send a voice note to Sheila and Jay. | |
 
-Slack sends an alert for anything urgent. **The smart view is the list you're measured against**, not Slack.
+## Who you call
 
----
+You only call discovery calls booked directly with an Enrollment Advisor from the Typeform. Skip any event with S2C in the title (setter-booked calls) and Enrollment Advisor follow-ups.
 
-## 5. The attempt sequence (use it every time)
+If the invite isn't accepted, call them, even if they've already texted or talked with their Enrollment Advisor. Check the lead in Close before every touch. If you're unsure, ask Sheila and Jay.
 
-Every confirmation or recovery touch follows the same sequence, **always in this order**:
+- **Accepted the invite when they booked?** No welcome call needed.
+- **The closer already confirmed the call?** Don't call. Leave the prospect to the closer and log **Closer Confirmed**. If they book again later and the closer hasn't reached them, treat them as a fresh booking.
+- **A setter tried before but never reached them?** Nothing changes: confirm as normal.
+- **Automated texts went out before your call?** That's by design. Still call anyone who hasn't accepted.
 
-```
-STEP 1: DIAL (always first)
-   ├─ You have a conversation → touch complete. Log it.
-   └─ No answer → Step 2
-
-STEP 2: VOICEMAIL + TEXT (right away)
-   ├─ Prospect makes a behavior change → touch complete. Log it.
-   └─ Nothing → Step 3 after 2 hours
-
-STEP 3: EMAIL
-   └─ Send 2 hours after the voicemail + text
-      (immediately if the call is less than 2 hours away)
-      → touch complete (sequence exhausted). Log it.
-```
-
-**A behavior change** is one of these three:
-1. They **accept the calendar invite**.
-2. They **reschedule**.
-3. They **cancel**. A cancel isn't a dead end: it starts cancellation recovery (section 7D).
-
-**A text or email that just says "Yes, I'll be there" is NOT a behavior change.** Thank them, then get the invite accepted (section 6, "Getting the invite accepted"). Keep going with the sequence until it is.
-
----
-
-## 6. Confirming booked calls
-
-### When to touch each call
-
-| Touch | When | Skip if… |
+| Who | When you call | Keep going until |
 |---|---|---|
-| **1. Speed to lead** | Within **15 minutes** of the booking, during your shift. After-hours bookings: within 30 minutes of your next shift starting. | Never skipped |
-| **2. Day before** | Morning of the day before the call | Invite already accepted |
-| **3. Same day** | 2–3 hours before the call | Invite already accepted |
-| **Unconfirmed** | After touch 3, if the invite still isn't accepted | Mark it Unconfirmed in Close and alert the closer |
+| 1. New bookings (fresh Typeform bookings, plus anyone who rescheduled and just picked a new time) | Within 15 min of booking | Invite accepted, and they know the Zoom link and to join from a computer |
+| 2. Tomorrow's calls, not accepted | Morning of the day before | Invite accepted, or the 5:45pm cutoff (then do the day-before cancel) |
+| 3. Reschedule requests (asked for a new time, hasn't rebooked yet) | Right away, then once a day | They rebook, or 5 business days |
+| 4. No-shows | Next business day, then once a day | They rebook, or 5 business days |
+| 5. Cancels | Same day, then once a day | They rebook, or 5 business days |
+| 6. Tomorrow's calls, already accepted | Day before, only if time is left | One touch |
 
-If the call is booked for the same day or the next day, some touches collapse. Do touch 1, then touch 3 if there's time.
+Rebook every recovery with an Enrollment Specialist (setter), soonest open slot (see Recovery scripts). Max 2 rebooks per person.
 
-### What to say on the confirmation call
+## How to confirm
 
-Keep it under 3 minutes. You're confirming, not selling.
+**Confirmed = the invite is accepted.** Nothing else counts, not even a friendly reply to their Advisor's text.
 
-1. **Greet and introduce:** "Hi [Name], it's [Your name] from SMB Deal Hunter. I'm calling about your call with [Closer] on [day] at [time, their time zone]."
-2. **Confirm the time:** "Does that time still work for you?"
-   - If no → rebook right there (section 7C).
-3. **Get the invite accepted:** "You should have a calendar invite from us. Could you open it and click Accept while we're on the phone, so it's locked in on your calendar?"
-4. **Set up the call:** "The call is on Zoom and runs about 45 minutes. Please join **from a computer**, not your phone, because [Closer] will share their screen and walk you through deals and examples."
-5. **Lock it in:** "So we're all set for [day] at [time]. Does that 100% work for you?" Wait for a clear yes.
-6. **Log it** (section 8).
+Not sure if they accepted? If the lead in Close shows no calendar details:
+1. Look for the "Accepted" email on the lead in Close.
+2. Check for the green check mark next to the guest on the calendar invite.
+3. Check whether the person has a second lead profile.
 
-### Getting the invite accepted
+**Every touch, in this order:** double dial → no answer? voicemail + text.
 
-An invite that isn't accepted usually means **it isn't on their calendar**. Fix the cause:
+### On the call (new bookings, a welcome call)
 
-| Problem | Fix |
-|---|---|
-| They can't find it | Check spam/promotions; search for "SMB Deal Hunter" or the closer's name |
-| Wrong email on the booking | Correct the email on the Close contact, resend the invite to the right address, and note it |
-| They use a different calendar (work vs. personal) | Resend to the email they actually use |
-| They deleted it | Resend from Calendly |
-| They just haven't clicked | Ask them to click Accept while you're on the phone |
+1. **Welcome:** "Hi [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. I saw you just booked your call, so I wanted to welcome you."
+2. **Be their contact:** "If you ever need to reschedule or cancel, I'm your point of contact. Any questions about what we do, [Advisor], your Enrollment Advisor, will walk you through on the call."
+3. **Check the invite:** "You should have a calendar invite for [day] at [time] with [Advisor]. Can you see it on your calendar?"
+   - Yes → "Perfect, could you click Accept while I have you? Our system automatically cancels calls that aren't accepted, so I want to make sure you keep your spot."
+   - Can't find it → "It's probably in your spam folder. Could you check there?"
+4. **Join from a computer:** "It's about 45 minutes on Zoom. Will you be able to join from a computer?"
+5. **Close warm:** "We're excited to talk with you. See you [day]!"
 
-**A call only counts as confirmed when the invite shows as accepted.** Verbal yeses don't count toward your confirmation rate.
+For a later confirmation (not a call that was just booked), also ask: "Does that time still work for you?" If not, rebook now. If the invite isn't accepted yet, give the same reason: "Our system cancels calls that aren't accepted, so I just want to make sure you're set."
 
----
+### The day-before cancel
 
-## 7. Recovery
+Can't reach them by 5:45pm MT the day before? Cancel it yourself in Calendly, then send the day-before cancel text. The text says the system cancelled it, so the prospect isn't upset with you. Treat them as a cancel.
+- Never cancel on the day of the call.
+- Never cancel a call that was booked that same day.
+- Only cancel next-day calls that still haven't accepted after your calls, voicemails and texts.
 
-### 7A. Who owns what
+### If someone doesn't have a laptop or computer
 
-| Situation | Closer does | You do |
-|---|---|---|
-| **No-show** | Owns the first 10 minutes: text at minute 2, call at minute 4, email at minute 5, "missed each other" message at minute 10. Then moves the opportunity to **`No Show/Cancel`**. | Start recovery the **next business day** |
-| **Reschedule request before the call** | Moves the opportunity to **`Reschedule Request`** | Call **immediately** and rebook |
-| **Call rescheduled on the calendar** | — | A Slack alert fires; run the full confirmation cadence for the new time |
-| **Cancellation** | — | Start cancellation recovery (7D) |
+- Ask them if they have an iPad or tablet and can join from there.
+- If they don't, joining on phone is always better than not joining. Flag for them that the advisor will show them a demo during the call, so they should be ready to look on the phone.
+- Add a note in Close telling the closer this person doesn't have a computer and will join from phone.
 
-If a closer didn't mark a call, the system checks Zoom attendance and inbound messages about 2 hours after the call, and puts likely no-shows in your **CC – No-Shows** view. Treat those exactly like closer-marked no-shows.
+### If someone can't find the calendar invite in their email
 
-### 7B. No-show recovery
+- Ask them to check spam first, and check their email's calendar first.
+- If they still can't find it, confirm they're still good with the original time, and send them the calendar invite for the original time (you should be able to find it in Close history) to a different email address.
+- Wait for them to accept on the phone.
 
-- **Start:** next business day.
-- **Cadence:** one full attempt sequence per business day. **[PENDING]** how many days before the lead goes back to nurture (Jay).
-- **What to say:** "Hi [Name], it's [Your name] from SMB Deal Hunter. We had you down for a call with [Closer] yesterday and it looks like we missed each other. No problem at all. Let's find a time that actually works. What does your week look like?"
-- Never make them feel bad. The goal is the rebook.
-- **Repeat no-shows:** if a closer's notes say **do not rebook** (e.g. a third no-show), don't. Log it and move on.
+Typo in the prospect's email address? Ask the closer to fix the Google Calendar invite.
 
-### 7C. Rebooking (all recovery types)
+## Recovery scripts
 
-1. Find a time that works for the prospect.
-2. **[PENDING]** Book with the **same closer** if possible; otherwise per Sheila's rule (open item 8).
-3. Book through Calendly so the invite goes out automatically.
-4. **Stay on the phone until the invite arrives and they accept it.**
-5. Confirm the time in their time zone and the join-from-a-computer reminder.
-6. Log the rebook (section 8). The new call goes into your normal confirmation cadence.
+For no-shows, cancels and reschedule requests. Your goal is a booked call with an Enrollment Specialist (setter). Ask the two quick questions in the script, then book. Leave anything deeper (capital, goals, fit) for the Enrollment Specialist. Check the lead in Close before you dial.
 
-### 7D. Cancellation recovery
+- Backlog leads (Backlog smart view) → Script 1.
+- Recent leads (Newest smart views) → Script 2.
+- Every recovery books with an Enrollment Specialist, soonest open slot.
 
-- **Trigger:** a cancel during confirmation, or a calendar cancel alert.
-- **Cadence:** **[PENDING]** (Jay). Until it's set: run one full attempt sequence the same day (within 15 minutes during your shift), then follow the no-show recovery cadence.
-- **What to say:** "Hi [Name], I saw your call with [Closer] got cancelled. I wanted to check in: did the time not work, or has something changed? Happy to find a better slot."
-- If they're no longer interested, log the reason and stop. Never push.
+### Script 1: backlog leads
 
-### 7E. Reschedule requests
+"Hey [Name], it's [You] with SMB Deal Hunter. At one point, you were interested in us. It looks like you weren't able to make your call. I'm reaching out to see if buying a business was still top of mind."
 
-- **Trigger:** the opportunity moves to `Reschedule Request`.
-- Call **immediately** and rebook (7C).
+Then go to "Rest of the call".
 
----
+### Script 2: recent leads
 
-## 8. Logging in Close (your pay depends on this)
+Use the opener that matches:
+- **No-show:** "Hey [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. Looks like we missed each other for your call with [Advisor]. No worries! I wanted to get you a new time."
+- **Cancel:** "Hey [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. I saw your call with [Advisor] was cancelled. If it was just the timing, I'd love to find you a better slot."
+- **Reschedule request:** "Hey [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. I saw you asked [Advisor] for a new time, so I'm here to get that set up for you."
 
-**[PENDING]** A dedicated **"Confirmation / Recovery" custom activity** is being proposed for Sheila's approval. Until it exists, log every attempt with Close's normal call, SMS and email logging, and add a short note in this format:
+Then go to "Rest of the call".
 
-```
-CC | <Confirm / No-show / Cancel / Reschedule> | Step <1 Dial / 2 VM+Text / 3 Email> | <Outcome> | Call date: <original> | New date: <if rebooked>
-```
+### Rest of the call (both scripts)
 
-Proposed fields for the custom activity:
+1. **Still looking?** "Are you still looking to buy a business in the next 6 to 12 months?" No or not sure → handle it like "Not right now" below.
+2. **What kind?** "Have you been looking at any type of business in particular?" Note the answer in Close for the Enrollment Specialist. Any answer is fine, even "not sure yet."
+3. **Set up the next step:** "Great. The next step is a quick call with one of our Enrollment Specialists, to catch up on where you're at and what you're looking for."
+4. **Check the setter calendar for availability:** https://calendly.com/smb-st/emorg_intro?month=2026-11
+5. **Offer two times:** "I have [day] at [time] or [day] at [time]. Which works better for you?" Book it while they're on the phone.
+6. **Get it accepted:** "You'll get a calendar invite in a minute. Could you click Accept while I have you? Our system automatically cancels calls that aren't accepted, so I want to make sure you keep your spot."
+7. **Close warm:** "Perfect, you're all set with [Setter] on [day]. Talk soon!"
 
-| Field | Values |
-|---|---|
-| Type | Confirmation, No-show recovery, Cancel recovery, Reschedule |
-| Step reached | Dial – conversation, VM + text, Email |
-| Outcome | Invite accepted, Rebooked, Cancelled, Rescheduled, No response, Not interested, Do not rebook, Wrong number/email fixed |
-| Original call date/time | date-time |
-| New call date/time | date-time (if rebooked) |
-| Notes | free text |
+### If they push back
 
-**Rules**
-- **One log per attempt, at the time you make it.** Don't batch-log at the end of the day.
-- Log it **before** moving to the next prospect.
-- If it isn't logged, it didn't happen: it doesn't count for the 100% gate or the $50.
+- "What's this about?" or "How much is it?" → "That's exactly what [Setter] will walk you through. I just make sure you get the time with them." Then offer two times.
+- "Not right now" or "I'm busy" → "No problem. When's a better time for me to reach back out?" Set a task in Close for that day.
+- "Not interested anymore" or "Already bought something" → "Totally understand, thanks for letting me know." Note it in Close and move on. Don't push.
 
----
+## Never
 
-## 9. What you never do
+- Don't sell or explain the program. Say: "That's exactly what [Advisor], your Enrollment Advisor, will walk you through."
+- Don't talk price, fees or discounts.
+- Don't cancel on the day of the call.
 
-- **Don't pitch or sell.** Don't explain the program, deal sourcing, consulting or results. If they ask: "Great question. That's exactly what [Closer] will walk you through on the call."
-- **Don't discuss price, fees, payment plans, rebates or discounts.** Never mention a "$10K rebate", a discount, or rolling the fee into a loan.
-- **Don't qualify or disqualify** anyone. If something sounds like a red flag (e.g. they say they don't have the funds), note it for the closer and still confirm the call.
-- **Don't give advice** on their acquisition search.
-- **Don't rebook** a lead whose closer notes say not to.
-- **Don't contact** anyone in the `DNC – Do Not Contact` status.
-- **Don't work outside Close.** No personal phone, personal email or texts from other apps.
+## Logging
 
----
+Call confirmation and call recovery are logged differently in Close.
 
-## 10. How you're measured and paid
+### Call confirmation (after every confirmation touch)
 
-### KPIs
+Update the **Call Confirmation** custom field:
+1. Open the lead in Close.
+2. In the left panel, scroll to Custom Fields at the bottom.
+3. Click +, search "Call Confirmation", and click Call Confirmation.
+4. Pick the outcome that shows where the prospect stands now. Update it after every touch.
 
-| KPI | Target | Definition |
-|---|---|---|
-| **Attempt coverage (the gate)** | **100%** every week | Every booked closer discovery call gets its full attempt sequence at each required touch |
-| **Speed to lead** | **≤ 15 minutes** | From booking to your first dial (during your shift) |
-| **Confirmation rate** | **~80%** | Booked calls where the invite was **accepted** ÷ all booked closer discovery calls |
-| **Show rate** | Tracked | Closer discovery-call show rate, using the team's cutoff rules (below) |
-| **Recovered shows** | — | No-shows, cancels and reschedules you recovered that showed |
+Outcomes:
+1. Welcome call – invite accepted: reached right after booking
+2. Welcome call – no answer: voicemail and text sent
+3. Day-before – reached, invite accepted
+4. Day-before – no answer: voicemail and text sent
+5. Spoke – not accepted yet: you talked to them, but they haven't clicked Accept. Keep calling.
+6. Cancelled – unreachable: the 5:45pm day-before cancel
+7. Wants a new time: this becomes a reschedule request
+8. Unreachable - Cancelled before CC contact: they cancelled before you reached them. These stay in the list for recovery later.
+9. Unreachable - Confirmed before CC contact: they accepted before you reached them, including someone you couldn't reach on the day-before call who accepted afterwards.
 
-### Pay
+Only select one of these with a number in front (or Closer Confirmed / Setter Confirmed below). Don't select the other outcomes.
+- **Closer Confirmed:** the closer already confirmed them (see "Who you call").
+- **Setter Confirmed:** a setter already confirmed them.
 
-| Item | Amount |
-|---|---|
-| Base | **$2,000 / month** |
-| Recovery bonus | **$50 per recovered call that actually shows** |
+**Lead status:** every time you confirm someone, change the lead status from Needs Confirmation to Confirmed by hand. There's no automation for it.
 
-- **What counts as recovered:** a no-show, cancel or reschedule where **you made logged contact in Close** after the call was lost and before it was rebooked. It counts whoever clicked "book", even if the prospect rebooked themselves after your outreach.
-- **Any** cancel counts, however early.
-- **$50 once per lost call.** If the same lead no-shows again and you recover them again, you're still paid $50 once, when they finally show.
-- **No time limit** on when the recovered call shows.
-- **The gate is weekly (Monday–Sunday).** If even one booked call that week misses its required attempt, **you don't get that week's recovery bonuses**. Your base isn't affected.
-- **Bonuses are calculated weekly and paid monthly** with your base. Sheila and Jay approve every payout.
-- **Ramp:** during your training period, recovered shows earn $50 **without the gate**. The date the gate starts counting will be confirmed after you join.
+### Playbook outcomes logging
 
-### How a "show" is decided
+- Don't log the "welcome series" playbook; that's for something else.
 
-1. The closer's EOD report in `#closer-eod`.
-2. The EOD Tracker sheet.
-3. If those disagree or are unclear → Sheila reviews.
+### Call recovery (only when they're booked again)
 
-The system also checks Zoom: a call counts as held only if **the prospect actually joined** (not just the closer waiting in the room).
+Log a **Call Confirmation Specialist** activity:
+1. Open the lead in Close.
+2. In the rightmost panel, open the Activity dropdown and select Call Confirmation Specialist.
+3. Pick what you recovered them from: no-show, cancel or reschedule.
+4. Add notes on how you recovered them.
 
-### Show-rate counting rules (for context)
+Only log a recovery once the prospect is booked on a calendar. You earn the recovery bonus only if that booked call shows, so confirm the new call like any fresh booking (step 1).
 
-The cutoff is **12:00am on the day of the call**.
+## Templates
 
-| What happened | Counts as scheduled? | Result |
-|---|---|---|
-| Cancelled before the day of the call | No | Removed |
-| Cancelled on the day of the call | Yes | **No-show** |
-| Rescheduled before the day of the call | No | Removed |
-| Rescheduled on the day, before the call time | No | Removed |
-| Rescheduled after the call time | Yes | **No-show** |
-| Didn't show | Yes | **No-show** |
+Fill in the [brackets]. Always use the prospect's time zone. Where a template has two texts, send them back to back. *(See "How to make a template in Close" in the live SOP.)*
 
-So the **same-day touch matters**: a same-day cancel is a no-show, but a same-day reschedule made before the call isn't. If a prospect can't make it, getting them to **reschedule before the call time** protects the closer's show rate.
+**Voicemail**
+> Hi [Name], it's [You], Enrollment Coordinator at SMB Deal Hunter, confirming your call with [Advisor], your Enrollment Advisor, on [day] at [time]. I'll text you the details. Please accept the calendar invite to save your spot. Our system automatically cancels calls that aren't accepted. Talk soon.
 
----
-
-## 11. Escalation
-
-| Situation | What to do |
-|---|---|
-| Prospect angry or asks to stop contact | Apologize, stop, log "Do not contact", tell Sheila |
-| Prospect asks sales questions | Defer to the closer (section 9) and note the question for them |
-| The closer isn't available at any time that works | **[PENDING]** (open item 8) |
-| A tool isn't working (Close dialer, Calendly) | Post in **[PENDING: Slack channel]** and keep working the queue another way |
-| You can't do a required attempt (e.g. sick) | Tell Sheila **before** it's missed |
-
----
-
-## 12. Templates
-
-All templates are **drafts** for Sheila to edit. Use the prospect's time zone.
-
-**Voicemail (confirmation)**
-> Hi [Name], it's [Your name] from SMB Deal Hunter. Just confirming your call with [Closer] on [day] at [time]. I'll text you the details. Please accept the calendar invite so it's on your calendar. Talk soon.
-
-**Text (confirmation)**
-> Hi [Name], [Your name] from SMB Deal Hunter. Your call with [Closer] is [day] at [time] [TZ] on Zoom. Please accept the calendar invite so it's on your calendar, and join from a computer, since [Closer] will share their screen. Reply here if you need a different time.
-
-**Email (confirmation)**
-> Subject: Your call with [Closer] on [day]
+**Confirmation text**
+> Text 1: Hi [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. Your call with [Advisor], your Enrollment Advisor, is on [day] at [time] [TZ] on Zoom.
 >
-> Hi [Name],
+> Text 2: Please accept the calendar invite to hold your spot. Our system automatically cancels calls that aren't accepted. Join from a computer, and reply here if you need a different time.
+
+**No-show text**
+> Hi [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. Looks like we missed each other for your call with [Advisor], your Enrollment Advisor. No worries! Want me to find a new time this week?
+
+**Cancel text**
+> Hi [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. I saw your call with [Advisor], your Enrollment Advisor, was cancelled. If it was just the timing, I'm happy to find a better slot. What works for you?
+
+**Day-before cancel text**
+> Hi [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. I couldn't reach you to confirm tomorrow's call with [Advisor], your Enrollment Advisor. Our automated system just cancelled the call. Want me to find a time that works better?
+
+**Day-before confirmation text**
+> Text 1: Hi [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. Your call with [Advisor], your Enrollment Advisor, is tomorrow at [time] [TZ]. You'll talk through your goals and the kinds of businesses you could realistically buy with your capital.
 >
-> Just confirming your call with [Closer] on **[day] at [time] [TZ]** (about 45 minutes, on Zoom).
->
-> Two quick things:
-> 1. **Please accept the calendar invite** so it's on your calendar. Can't find it? Check spam, or reply and I'll resend it.
-> 2. **Join from a computer**, since [Closer] will share their screen.
->
-> Need a different time? Just reply and I'll find one that works.
->
-> [Your name]
-> SMB Deal Hunter
-
-**Text (no-show recovery)**
-> Hi [Name], [Your name] from SMB Deal Hunter. Looks like we missed each other for your call with [Closer]. No worries! Want me to find a new time this week? Reply with a day that works.
-
-**Text (cancel recovery)**
-> Hi [Name], [Your name] from SMB Deal Hunter. I saw your call with [Closer] was cancelled. If it was just the timing, I'm happy to find a better slot. What works for you?
-
----
-
-## Open items for Sheila
-
-| # | Item | Owner | Blocks |
-|---|---|---|---|
-| 1 | **Cancellation recovery cadence** | Sheila → Jay | Section 7D (an interim rule is in place) |
-| 2 | **How long no-show recovery runs** before the lead goes back to nurture | Sheila → Jay | Section 7B |
-| 3 | **Date the weekly gate starts counting fully** | Sheila, after he joins | Section 10 |
-| 4 | **Approve the Close setup:** the "Confirmation / Recovery" custom activity, 5 smart views, and his Close seat | Sheila (approval) → Claude builds | Sections 4 and 8 |
-| 5 | **Early ET calls:** his shift starts at 11am ET, so the "2–3 hours before" touch is impossible for calls before about 1pm ET. Proposed: the day-before touch plus a touch first thing in his shift. | Sheila to confirm | Sections 3 and 6 |
-| 6 | **EOD discipline:** every closer submits EODs **through Nero only**. Tyler's plain-text Oct 29 EOD never reached the EOD Tracker. | Sheila → closers | Show accuracy and payout |
-| 7 | **Nero corrections to the sheet:** Slack corrections (e.g. VeJohn, Oct 29) don't update the EOD Tracker row. Can Nero write corrections back? | Sheila → Nero's owner | Show accuracy |
-| 8 | **Rebooking rules:** same closer only, or any closer if theirs is full? What if no closer has a slot that works? | Sheila | Section 7C |
-| 9 | **Texting channel:** Close SMS, or iMessage via Project Blue (there's an existing "Send IMessage" activity)? | Sheila | Sections 5 and 12 |
-| 10 | **Weekend bookings and calls:** his shift is Mon–Fri. Who confirms a call booked Friday night for Saturday, or Monday morning before 11am ET? | Sheila | Sections 3 and 6 |
-| 11 | **Slack:** which channel do his alerts post to, and where does he escalate tool problems? | Sheila | Sections 4 and 11 |
-| 12 | **Templates:** review and edit the voicemail, text and email wording | Sheila | Section 12 |
-| 13 | **Service account access** to the EOD Tracker for the automated reconciliation (the email address will come later) | Sheila (when we build it) | Payout automation |
+> Text 2: Please accept the calendar invite to hold your spot. Our system automatically cancels unaccepted calls the night before.

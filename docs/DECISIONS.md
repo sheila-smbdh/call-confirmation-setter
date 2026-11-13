@@ -2,7 +2,83 @@
 
 The source of truth for every decision about the Call Confirmation Specialist role. The SOP, the Close setup, the Zaps and the payout code all follow this file. If anything conflicts with it, this file wins until Sheila changes it.
 
-Last updated: 2026-10-30 (rev 2)
+Last updated: 2026-11-13 (rev 3). **Section 0 is the newest and overrides anything older below it.**
+
+---
+
+## 0. Updates Nov 10–13, 2026 (rev 3): live operation and the tracker
+
+Gino Binoy started as Call Confirmation Specialist on **Tue Nov 10, 2026**. These decisions came from Sheila (with Jay) in the tracker build session and in #cc-gino. Where they differ from sections 1–12, this section wins.
+
+### 0.1 Scope and cadence (replaces sections 1 and 6 where they differ)
+- **Who he calls:** only discovery calls booked directly with an Enrollment Advisor from the Typeform (the direct discovery Calendly event type). Skip S2C (setter-booked) calls and Enrollment Advisor follow-ups. See [`SOP.md`](SOP.md).
+- **Three checkpoints per call:**
+  1. **Welcome call.**
+     - Booked during his shift: first dial within 15 min.
+     - Booked overnight: first dial within 30 min of his next shift starting.
+     - Not needed if the invite was already accepted when it was due.
+  2. **Day-before call**, if the invite still isn't accepted.
+  3. **5:45pm MT day-before cancel**, if still not accepted by then.
+- **The 5:45 cancel:**
+  - Never cancel on the day of the call.
+  - Never cancel a booking made that same day.
+  - Only cancel next-day calls that are still unaccepted after his calls, voicemails and texts.
+  - Bookings made after 5:45pm MT the day before are exempt.
+- **Fridays:** the day-before call and 5:45 cancel cover **Saturday calls only**. Sunday and Monday calls have no day-before call or 5:45 cancel.
+- **No touch 2–3 hours before the call.** The SOP doesn't include one, which closes open item 4.
+- **Closer or setter already confirmed:** he doesn't call, and logs Closer Confirmed / Setter Confirmed. If they book again and the closer didn't reach them, it's a fresh booking.
+- **Every touch:** double dial → no answer → voicemail + text. Email is no longer part of the sequence (section 3).
+- **Steps he can't do aren't misses:** no voicemail option, a full mailbox, a text that won't send.
+- **Only what was in his queue counts.** A call counts if it reached him through the #call-confirmation Slack alert or the Close smart views. Calls that never reached him don't count against him.
+
+### 0.2 Confirmed and logging
+- **Confirmed = invite accepted.** This hasn't changed.
+  - Exceptions are approved case by case by Sheila or Jay, in #cc-gino or directly. Examples so far: a spoken confirmation when the prospect's calendar couldn't accept (Outlook), a same-day booking confirmed by text, and the Nov 12 calendar outage.
+- **Call Confirmation field:** options 1–9, plus Closer Confirmed and Setter Confirmed. The new options are:
+  - 8 = cancelled before he reached them;
+  - 9 = accepted before he reached them.
+- **Lead status:** he changes Needs Confirmation → Confirmed by hand. There's no automation (Jay, Nov 13).
+- **Logging check:** whenever he records an invite as accepted, the tracker checks it against Close's calendar response emails at that moment.
+  - What counts as recording it accepted: field 1, 3 or 9; the "Confirmed and Accepted" outcome; or moving the lead to Confirmed.
+  - If the invite wasn't accepted at that moment, his call transcript is read. A prospect who confirmed and had a technical problem accepting is a valid exception.
+  - Anything else is a logging error, and Sheila and Jay judge it.
+
+### 0.3 Weekly KPIs and bonus (replaces the gate in sections 2–3)
+**Not in the SOP yet; Sheila is keeping them out until they're final.** The tracker uses these for now:
+- **Week:** Monday to Sunday. The KPIs count from the **week of Nov 23**. Earlier weeks are ramp: recovered shows pay $50 with no KPI check.
+- **KPI 1:** 100% of checkpoints finished, after excused misses.
+- **KPI 2:** at least 85% of during-shift welcome calls first dialed within 15 minutes. The margin allows for meetings.
+- **KPI 3:** zero logging errors that Sheila or Jay count as a miss. Every logging error is flagged for their decision.
+- **Bonus** = recovered calls that showed × $50. Sheila and Jay both sign off each week on the tracker's Management tab.
+
+### 0.4 Who decides what counts
+- **Reviews tab:** every miss and logging error is listed for Sheila or Jay to mark "Counts as a miss" or "Excused". A blank decision on a miss counts as a miss; a blank on a logging error holds the week at "Waiting on review".
+- **Approvals in #cc-gino count.** If Sheila or Jay already approved a specific lead there, the tracker marks that lead's rows Excused, with a link, and never overwrites a decision.
+- **General rules from #cc-gino are hints only.** They're noted on the row, and Sheila and Jay still decide.
+
+### 0.5 Tracker and data
+- **Tracker:** the Google Sheet "Call Confirmation Tracker (Gino)" (`1R4l1Szm7cxfu70sBxGpWsJncsu0mlyFPiwatJg6Kdsk`).
+  - Tabs: Management, Reviews, Calls, Daily, Weekly, Definitions, Data Sources.
+  - Sheila also keeps two tabs of her own, "Call Confirmation>>" and "Call Recovery" (for later).
+- **Nightly update:** 8:00pm MT every day, weekends included. Nothing is due on weekends, but his activity is recorded.
+  - It runs as an unattended scheduled task following [`tracker/RUNBOOK.md`](../tracker/RUNBOOK.md).
+  - On Sundays it posts a review reminder in #cc-gino for Sheila and Jay.
+  - Management!A5 shows when the tracker was last updated, so stale data is obvious.
+- **Where the data comes from:** the #call-confirmation Slack alerts and Close smart views first; Calendly and Close fill the gaps.
+- **"Showed":** #closer-eod first, then Zoom attendance (section 9 still applies). In 3–5 days Sheila will confirm whether this is the right source.
+- **History:** everything each run reads is kept in Supabase setter-data, in the `call_confirm_*` tables (schema: [`tracker/supabase/call_confirmation_schema.sql`](../tracker/supabase/call_confirmation_schema.sql)).
+  - That covers Close, Calendly, Slack, the tracker's rows, Sheila's and Jay's decisions, and a copy of every tab after each run.
+  - The nightly run only adds or updates rows; it never deletes.
+- **Standing approvals** for the unattended run are listed at the top of the runbook.
+
+### 0.6 Still open
+| # | Item | Owner |
+|---|---|---|
+| A | KPIs and bonus wording for the SOP | Sheila |
+| B | Lead status rule: does "unreachable, then accepted before contact" also go to Confirmed? (Gino's restatement only got a ✓ reaction) | Jay |
+| C | Invites that arrive late: whether to widen the 15-minute speed-to-lead window | Sheila |
+| D | Confirm the "showed" source (#closer-eod vs. the EOD Tracker vs. the Sales Tracker) | Sheila, around Nov 16–18 |
+| E | The Call Recovery tab and recovery tracking; the daily scorecard | Later |
 
 ---
 

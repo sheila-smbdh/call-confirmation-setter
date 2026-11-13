@@ -195,6 +195,9 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
 14. **Finish**: print a short run summary (rows rebuilt, new Reviews rows, any warnings). Leave the TEMP file in Drive
     (Sheila deletes it; nothing in Drive is deleted by this run). Do not commit anything.
 
+## Rules the tracker follows
+The tracker applies [`docs/SOP.md`](../docs/SOP.md) and [`docs/DECISIONS.md`](../docs/DECISIONS.md) section 0. If either changes, update `tracker/pipeline/build.py` (what is required) and the Definitions text in `tracker/pipeline/export.py` to match.
+
 ## Known limits
 - Bookings made more than 14 days ahead are first picked up when their call date comes within 14 days. Their
   welcome call is still checked, but only against Gino's last 4 days of activity.

@@ -145,10 +145,10 @@ def first_accept(lead, lo, hi):
     return next((ts for ts, k in resp.get(lead, []) if lo <= ts <= hi and k == "A"), None)
 
 def gino_claims(lead, lo, hi):
-    """Times Gino recorded the invite as accepted: field 1/3, outcome Confirmed and Accepted, status -> Confirmed."""
+    """Times Gino recorded the invite as accepted: field 1/3/9, outcome Confirmed and Accepted, status -> Confirmed."""
     out = []
     for e in fev:
-        if e["lead_id"] == lead and lo <= p(e["date_updated"]) <= hi and fval(e).startswith(("1.", "3.")):
+        if e["lead_id"] == lead and lo <= p(e["date_updated"]) <= hi and fval(e).startswith(("1.", "3.", "9.")):
             out.append((p(e["date_updated"]), "field " + fval(e)[:2]))
     for c in calls:
         if c["lead_id"] == lead and lo <= p(c["date_created"]) <= hi and OUT.get(c.get("outcome_id")) == "Conversation: Confirmed and Accepted":
@@ -196,10 +196,16 @@ def checkpoint(lead, lo, hi, due):
     r["on_time"] = bool(cs) and r["first_dial"] <= due
     return r
 
+def other_confirmed(lead, t):
+    """SOP (Nov 13): the closer or a setter already confirmed the call, so Gino doesn't call. True if he logged
+    Closer Confirmed or Setter Confirmed on the lead at or before t."""
+    return any(e["lead_id"] == lead and p(e["date_updated"]) <= t
+               and fval(e).lower().startswith(("closer confirmed", "setter confirmed")) for e in fev)
+
 def queue_check(lead, t):
     """Was this call in Gino's day-before / 5:45 view at time t? Returns (counts, label)."""
     st, uid = status_at(lead, t)
-    gino_acc = any(e["lead_id"] == lead and p(e["date_updated"]) <= t and fval(e).startswith(("1.", "3.")) for e in fev)
+    gino_acc = any(e["lead_id"] == lead and p(e["date_updated"]) <= t and fval(e).startswith(("1.", "3.", "9.")) for e in fev)
     if st in NC and not gino_acc:
         return True, "In his smart view"
     if (st == "Confirmed" and uid == GINO) or gino_acc:
@@ -265,7 +271,7 @@ for ev in scope:
     if booked < START:
         row["w_required"], row["w_reason"] = "No", "Booked before his first shift"
     elif booked >= LAST_SHIFT_END:
-        row["w_required"], row["w_reason"] = "No", "Booked after the Nov 11 shift"
+        row["w_required"], row["w_reason"] = "No", "Booked after the last shift tracked so far"
     else:
         if row["booking_type"] == "During shift":
             due, base = booked + timedelta(minutes=15), booked
@@ -278,7 +284,7 @@ for ev in scope:
         acc_t = first_accept(lead, lo_resp, s)
         claims = gino_claims(lead, booked, hi)
         if due.astimezone(ET).date() not in DAYS:
-            row["w_required"], row["w_reason"] = "No", "Due after Nov 11"
+            row["w_required"], row["w_reason"] = "No", "Not due yet"
         elif alive_until <= base:
             row["w_required"], row["w_reason"] = "No", "Call or cancel happened before his shift"
         elif acc_t and acc_t <= due and (not cp["first_dial"] or acc_t <= cp["first_dial"]):
@@ -286,6 +292,8 @@ for ev in scope:
         elif (not rs_window and acc_now and claims and not cp["touched"]
               and any(c[1] == "status Confirmed" for c in claims)):
             row["w_required"], row["w_reason"] = "Accepted at booking", "Marked Confirmed by Gino, calendar shows accepted (time not recorded)"
+        elif other_confirmed(lead, hi):
+            row["w_required"], row["w_reason"] = "No", "Closer or setter already confirmed it (he logged Closer/Setter Confirmed)"
         elif row["queue"] == "Not in his queue":
             row["w_required"], row["w_reason"] = "Not in his queue", "No Slack alert and never reached a confirmation smart view"
         else:
@@ -296,23 +304,26 @@ for ev in scope:
             row["w_speed_min"] = round((cp["first_dial"] - base).total_seconds() / 60) if cp["first_dial"] else None
 
     # ---- day-before call ----
-    db = cd - timedelta(days=1)
-    while not workday(db):          # weekend calls: the day-before work happens on the last weekday before them
-        db -= timedelta(days=1)
+    db = cd - timedelta(days=1)     # SOP (Nov 13): Friday covers Saturday calls only; Sunday and Monday calls get none
     row["db_date"] = db.isoformat()
     row["db"] = None
     def need(t):
         if str(overrides.get(lead, "")).startswith("Valid"):
             return "No", "Confirmed by phone; invite couldn't be accepted (valid exception)"
+        if other_confirmed(lead, t):
+            return "No", "Closer or setter already confirmed it (he logged Closer/Setter Confirmed)"
         a = accepted_by(lead, t, lo_resp)
         if a is True:
             return "No", "Invite already accepted"
         if a is None and acc_now:
             return "Can't tell", "Accepted now, no calendar response email to show when"
         return "Yes", "Invite not accepted"
-    if db not in DAYS:
+    if not workday(db):
         row["db_required"] = row["r_required"] = "No"
-        row["db_reason"] = row["r_reason"] = "Day before is not Nov 10 or 11"
+        row["db_reason"] = row["r_reason"] = "No shift the day before (weekend): no day-before call or 5:45 cancel"
+    elif db not in DAYS:
+        row["db_required"] = row["r_required"] = "No"
+        row["db_reason"] = row["r_reason"] = "Day before is outside the days tracked so far"
     else:
         if booked >= shift_start(db):
             row["db_required"], row["db_reason"] = "No", "Booked on the day before: welcome call covers it"
