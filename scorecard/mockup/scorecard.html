@@ -6,133 +6,104 @@
 <style>
   :root {
     --bg: #f6f5f1; --ink: #1d2433; --muted: #5d6676; --line: #e6e4dd;
-    --g: #1f8a4c; --g-bg: #e5f3ea; --g-bar: #2e9d5c;
-    --y: #a87400; --y-bg: #fbf1d3; --y-bar: #e0a800;
-    --r: #c2362f; --r-bg: #fbe4e2; --r-bar: #d9483f;
+    --g: #1f8a4c; --g-bg: #e2f2e8;
+    --r: #c2362f; --r-bg: #fbe1df;
     --b: #2f5fb3; --b-bg: #e6edf8;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--ink); font-family: Inter, sans-serif; width: 640px; padding: 20px; font-size: 13px; line-height: 1.4; position: relative; }
-  .kicker { font-size: 10.5px; letter-spacing: .12em; font-weight: 600; color: var(--muted); text-transform: uppercase; }
-  h1 { font-family: "Inter Display", Inter, sans-serif; font-size: 25px; font-weight: 700; margin: 3px 0 3px; letter-spacing: -.01em; }
-  .sub { color: var(--muted); font-size: 12.5px; }
-  .sub b { color: var(--ink); }
-  .sample { position: absolute; top: 20px; right: 20px; font-size: 9.5px; font-weight: 700; letter-spacing: .1em; color: var(--r); border: 1.5px solid var(--r); border-radius: 4px; padding: 2px 6px; }
+  body { background: var(--bg); color: var(--ink); font-family: Inter, sans-serif; width: 640px; padding: 16px 18px 14px; font-size: 12.5px; line-height: 1.35; }
 
-  .banner { margin: 14px 0 12px; border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; }
-  .banner.g { background: var(--g-bg); } .banner.r { background: var(--r-bg); }
-  .banner .n { font-family: "Inter Display", Inter, sans-serif; font-size: 30px; font-weight: 700; line-height: 1; }
-  .banner.g .n { color: var(--g); } .banner.r .n { color: var(--r); }
-  .banner .t { font-size: 13px; } .banner .t small { display: block; color: var(--muted); font-size: 11.5px; }
+  .head { display: flex; justify-content: space-between; align-items: center; }
+  h1 { font-family: "Inter Display", Inter, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
+  h1 span { color: var(--muted); font-weight: 500; }
+  .score { font-weight: 700; font-size: 13px; padding: 4px 11px; border-radius: 99px; color: #fff; }
+  .score.g { background: var(--g); } .score.r { background: var(--r); }
+  .sub { color: var(--muted); font-size: 11.5px; margin: 2px 0 10px; }
+  .sub .sample { color: var(--r); font-weight: 700; letter-spacing: .06em; margin-left: 6px; }
 
-  .group { background: #fff; border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
-  .group-h { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--b); padding: 9px 14px 7px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
-  .group-h span { color: var(--muted); font-weight: 600; letter-spacing: .04em; text-transform: none; }
-  .sec { display: grid; grid-template-columns: 6px 1fr auto; gap: 0 12px; padding: 9px 14px 9px 0; border-bottom: 1px solid var(--line); align-items: center; }
-  .sec:last-child { border-bottom: 0; }
-  .sec .edge { align-self: stretch; border-radius: 0 3px 3px 0; }
-  .sec.g .edge { background: var(--g-bar); } .sec.y .edge { background: var(--y-bar); } .sec.r .edge { background: var(--r-bar); } .sec.b .edge { background: var(--b); }
-  .sec .name { font-weight: 600; font-size: 13px; }
-  .sec .rule { color: var(--muted); font-size: 11.5px; }
-  .sec .metric { text-align: right; white-space: nowrap; }
-  .sec .metric b { font-family: "Inter Display", Inter, sans-serif; font-size: 18px; }
-  .sec.g .metric b { color: var(--g); } .sec.y .metric b { color: var(--y); } .sec.r .metric b { color: var(--r); } .sec.b .metric b { color: var(--b); }
-  .sec .metric small { display: block; font-size: 10.5px; color: var(--muted); }
-  .pill { display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: .06em; padding: 2px 7px; border-radius: 99px; color: #fff; margin-left: 6px; vertical-align: 2px; }
-  .pill.g { background: var(--g); } .pill.y { background: var(--y-bar); } .pill.r { background: var(--r); } .pill.b { background: var(--b); }
+  .lbl { font-size: 9.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--b); margin: 0 0 4px; display: flex; justify-content: space-between; }
+  .lbl span { color: var(--muted); font-weight: 500; letter-spacing: .02em; text-transform: none; }
+  .tiles { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-bottom: 10px; }
+  .tile { border-radius: 7px; padding: 6px 7px 5px; }
+  .tile.g { background: var(--g-bg); } .tile.r { background: var(--r-bg); }
+  .tile .n { font-size: 10px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+  .tile .v { font-family: "Inter Display", Inter, sans-serif; font-size: 19px; font-weight: 700; line-height: 1.15; }
+  .tile.g .v { color: var(--g); } .tile.r .v { color: var(--r); }
+  .tile .t { font-size: 9.5px; color: var(--muted); }
+  .tiles.soon .tile { border: 1.5px dashed #cbc8bf; background: transparent; }
+  .tiles.soon .v { color: #c4c1b8; }
 
-  .ask { background: #fff; border-radius: 10px; border: 2px solid var(--r-bar); overflow: hidden; margin-bottom: 10px; }
-  .ask-h { background: var(--r-bg); padding: 9px 14px; }
-  .ask-h b { color: var(--r); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; }
-  .ask-h p { font-size: 12px; margin-top: 2px; }
-  .item { display: grid; grid-template-columns: 22px 1fr; gap: 8px; padding: 8px 14px; border-top: 1px solid var(--line); }
-  .item .num { width: 22px; height: 22px; border-radius: 50%; background: var(--r); color: #fff; font-weight: 700; font-size: 11.5px; display: flex; align-items: center; justify-content: center; }
-  .item .who { font-weight: 600; }
-  .item .who span { font-weight: 500; color: var(--muted); font-size: 11px; margin-left: 4px; text-transform: uppercase; letter-spacing: .05em; }
-  .item .what { font-size: 12px; }
-  .item .why { margin-top: 4px; font-size: 11.5px; color: var(--muted); border-bottom: 1.5px dotted #bdb9ae; padding-bottom: 1px; }
-  .ask-f { padding: 8px 14px; background: #faf9f6; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--muted); }
-  .ask-f code { font-family: "JetBrains Mono", monospace; font-size: 11px; background: #efede7; padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+  .ask { background: #fff; border: 1.5px solid var(--r); border-radius: 8px; padding: 7px 10px 6px; margin-bottom: 10px; }
+  .ask-h { font-size: 11.5px; margin-bottom: 4px; }
+  .ask-h b { color: var(--r); }
+  .it { display: grid; grid-template-columns: 18px 1fr; gap: 6px; padding: 3px 0; border-top: 1px solid var(--line); }
+  .it .k { width: 17px; height: 17px; border-radius: 50%; background: var(--r); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .it b { font-weight: 600; }
+  .it em { font-style: normal; color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; margin: 0 4px; }
 
-  .clean { background: var(--g-bg); border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; color: var(--g); font-weight: 600; }
-
-  .foot { margin-top: 4px; font-size: 10.5px; color: var(--muted); display: flex; justify-content: space-between; }
+  .wk { background: var(--b-bg); border-radius: 7px; padding: 6px 10px; margin-bottom: 10px; font-size: 11.5px; }
+  .wk b { color: var(--b); }
+  .foot { font-size: 10px; color: var(--muted); display: flex; justify-content: space-between; }
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
-/* SAMPLE DATA ONLY. Names and numbers are made up to show the layout.
-   Section colours: green = target hit and nothing to explain; yellow = almost; red = missed.
-   Anything that lands on the tracker's Reviews tab for that day shows up in "Please explain". */
+/* SAMPLE DATA ONLY. Green tile = target hit, red = missed. The "Reply with why" list is
+   the day's items from the tracker's Reviews tab. */
 const DAYS = {
   thu: {
-    title: "Gino's Day: Thursday, Nov 12",
-    sent: "Sent Fri, Nov 13",
-    summary: "27 bookings handled · 61 dials · 9:02am to 6:04pm MT",
-    sections: [
-      { s: "g", name: "Overnight bookings", rule: "Dial every one during your shift", big: "4 of 4", small: "dialed · target 100%" },
-      { s: "g", name: "Speed to lead", rule: "New bookings during your shift: dial within 15 min", big: "92%", small: "11 of 12 · target 85% · avg 6 min" },
-      { s: "r", name: "Every no-answer: double dial + voicemail + text", rule: "Overnight, new and day-before calls", big: "10 of 11", small: "done · target 100%" },
-      { s: "g", name: "Day-before confirmation", rule: "Call tomorrow's calls that aren't accepted", big: "5 of 5", small: "called · 3 accepted after · target 100%" },
-      { s: "r", name: "5:45 day-before cancels", rule: "Cancel in Calendly + send the cancel text", big: "1 of 2", small: "done · target 100%" },
-      { s: "r", name: "Logging check", rule: "Accepted in Close only when the invite really is", big: "1 error", small: "target 0" }
+    day: "Thu, Nov 12", sent: "Sent Fri, Nov 13",
+    stats: "27 bookings · 61 dials · 9:02am–6:04pm MT",
+    tiles: [
+      ["Overnight", "4/4", "all dialed", "g"],
+      ["Speed to lead", "92%", "target 85%", "g"],
+      ["VM + text", "10/11", "every no-answer", "r"],
+      ["Day-before", "5/5", "called", "g"],
+      ["5:45 cancels", "1/2", "done", "r"],
+      ["Logging", "1", "error", "r"]
     ],
     ask: [
-      { who: "Lena Cho", sec: "New booking", what: "No answer at 2:41pm. Double dial and text done, but no voicemail." },
-      { who: "Chris Morgan", sec: "5:45 cancel", what: "Still not accepted at 5:45pm and not cancelled. Call is Fri 10:00am MT." },
-      { who: "Ana Ruiz", sec: "Logging", what: "Logged \"1. Welcome call – invite accepted\" at 2:14pm, but the invite wasn't accepted then." }
+      ["Lena Cho", "VM + text", "no voicemail after the 2:41pm no-answer"],
+      ["Chris Morgan", "5:45 cancel", "not accepted, not cancelled (call Fri 10am)"],
+      ["Ana Ruiz", "Logging", "logged accepted at 2:14pm, invite wasn't accepted"]
     ]
   },
   mon: {
-    title: "Gino's Day: Friday, Nov 13",
-    sent: "Sent Mon, Nov 16 · includes the weekend",
-    summary: "22 bookings handled · 54 dials · 9:00am to 6:01pm MT",
-    sections: [
-      { s: "g", name: "Overnight bookings", rule: "Dial every one during your shift", big: "5 of 5", small: "dialed · target 100%" },
-      { s: "g", name: "Speed to lead", rule: "New bookings during your shift: dial within 15 min", big: "100%", small: "9 of 9 · target 85% · avg 4 min" },
-      { s: "g", name: "Every no-answer: double dial + voicemail + text", rule: "Overnight, new and day-before calls", big: "8 of 8", small: "done · target 100%" },
-      { s: "g", name: "Day-before confirmation", rule: "Fridays: Saturday calls only", big: "3 of 3", small: "called · 2 accepted after · target 100%" },
-      { s: "g", name: "5:45 day-before cancels", rule: "Fridays: Saturday calls only", big: "1 of 1", small: "done · target 100%" },
-      { s: "g", name: "Logging check", rule: "Accepted in Close only when the invite really is", big: "0 errors", small: "target 0" }
+    day: "Fri, Nov 13", sent: "Sent Mon, Nov 16",
+    stats: "22 bookings · 54 dials · 9:00am–6:01pm MT · day-before and 5:45 = Saturday calls only",
+    tiles: [
+      ["Overnight", "5/5", "all dialed", "g"],
+      ["Speed to lead", "100%", "target 85%", "g"],
+      ["VM + text", "8/8", "every no-answer", "g"],
+      ["Day-before", "3/3", "called", "g"],
+      ["5:45 cancels", "1/1", "done", "g"],
+      ["Logging", "0", "errors", "g"]
     ],
     ask: [],
-    weekend: [
-      { name: "Saturday, Nov 14", rule: "7 new bookings · 3 accepted after your call · 12 dials", big: "4 called" },
-      { name: "Sunday, Nov 15", rule: "5 new bookings · no calls (weekends are off)", big: "0 called" }
-    ]
+    weekend: "<b>Weekend (not scored):</b> Sat 4 of 7 new bookings called, 3 accepted · Sun no calls"
   }
 };
 
-const v = new URLSearchParams(location.search).get("v") || "thu";
-const d = DAYS[v];
-const PILL = { g: "HIT", y: "ALMOST", r: "MISSED", b: "NOT SCORED" };
-const hit = d.sections.filter(x => x.s === "g").length;
-
-const row = (x, s) => `<div class="sec ${s || x.s}"><div class="edge"></div>
-  <div><div class="name">${x.name}</div><div class="rule">${x.rule}</div></div>
-  <div class="metric"><b>${x.big}</b><span class="pill ${s || x.s}">${PILL[s || x.s]}</span>${x.small ? `<small>${x.small}</small>` : ""}</div></div>`;
-
-const ask = d.ask.length ? `<div class="ask">
-    <div class="ask-h"><b>Please explain (${d.ask.length})</b><p>Tell us what happened with each one so Sheila and Jay can decide whether it's excused.</p></div>
-    ${d.ask.map((a, i) => `<div class="item"><div class="num">${i + 1}</div><div>
-      <div class="who">${a.who}<span>${a.sec}</span></div><div class="what">${a.what}</div>
-      <div class="why">Why?</div></div></div>`).join("")}
-    <div class="ask-f">Reply in #cc-gino by noon MT, one line per number, e.g. <code>2: prospect texted at 5:30 that he'd accept tonight</code></div>
-  </div>` : ``;
+const d = DAYS[new URLSearchParams(location.search).get("v") || "thu"];
+const hit = d.tiles.filter(t => t[3] === "g").length;
+const tiles = ts => ts.map(([n, v, t, s]) => `<div class="tile ${s}"><div class="n">${n}</div><div class="v">${v}</div><div class="t">${t}</div></div>`).join("");
 
 document.getElementById("app").innerHTML = `
-  <span class="sample">SAMPLE DATA</span>
-  <div class="kicker">Daily scorecard</div>
-  <h1>${d.title}</h1>
-  <div class="sub">${d.summary}</div>
-  <div class="banner ${hit === d.sections.length ? "g" : "r"}"><div class="n">${hit} of ${d.sections.length}</div>
-    <div class="t">targets hit<small>${d.ask.length ? `${d.ask.length} to explain below` : "Every checkpoint done. Nothing to explain."}</small></div></div>
-  ${ask}
-  <div class="group"><div class="group-h">Call confirmation<span>Times in MT</span></div>${d.sections.map(x => row(x)).join("")}</div>
-  ${d.weekend ? `<div class="group"><div class="group-h">Weekend<span>Nothing due, just your work</span></div>${d.weekend.map(x => row(x, "b")).join("")}</div>` : ""}
-  <div class="group"><div class="group-h">Call recovery<span>Coming soon</span></div></div>
-  <div class="foot"><span>${d.sent}</span><span>Questions? Ask Sheila or Jay in #cc-gino</span></div>`;
+  <div class="head"><h1>Gino's scorecard <span>· ${d.day}</span></h1>
+    <span class="score ${hit === d.tiles.length ? "g" : "r"}">${hit} of ${d.tiles.length} hit</span></div>
+  <div class="sub">${d.stats}<span class="sample">SAMPLE</span></div>
+
+  <div class="lbl">Call confirmation<span>green = hit · red = missed</span></div>
+  <div class="tiles">${tiles(d.tiles)}</div>
+
+  <div class="lbl">Call recovery<span>coming soon</span></div>
+  <div class="tiles soon">${tiles([["No-shows", "–", ""], ["Cancels", "–", ""], ["Reschedules", "–", ""], ["Rebooked", "–", ""], ["Showed", "–", ""], ["Logging", "–", ""]].map(x => [...x, ""]))}</div>
+
+  ${d.ask.length ? `<div class="ask"><div class="ask-h"><b>Reply with why (${d.ask.length}):</b> in #cc-gino by noon MT, e.g. "2: he asked me to wait"</div>
+    ${d.ask.map(([who, sec, what], i) => `<div class="it"><span class="k">${i + 1}</span><span><b>${who}</b><em>${sec}</em>${what}</span></div>`).join("")}</div>` : ""}
+  ${d.weekend ? `<div class="wk">${d.weekend}</div>` : ""}
+  <div class="foot"><span>${d.sent}</span><span>Questions? Sheila or Jay in #cc-gino</span></div>`;
 </script>
 </body>
 </html>
