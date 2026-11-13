@@ -4,3 +4,6 @@ analysis/precall-confirmation/eod/
 analysis/precall-confirmation/split_rows.json
 analysis/precall-confirmation/rows6.json
 __pycache__/
+
+# Nightly tracker run data (lead PII): never commit
+tracker/data/
