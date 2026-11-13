@@ -38,6 +38,9 @@ shift_start = lambda d: et(d, 11)
 shift_end = lambda d: et(d, 20)
 cutoff = lambda d: et(d, 19, 45)
 workday = lambda d: d.weekday() < 5
+# Never judge a day before its 5:45 MT cutoff has passed (e.g. a run during Gino's shift): evaluate through yesterday.
+if datetime.now(timezone.utc) < cutoff(TODAY) + timedelta(minutes=15):
+    DAYS = [d for d in DAYS if d < TODAY]
 fmt = lambda t: t.astimezone(ET).strftime("%b %-d %-I:%M %p") if t else ""
 
 def in_shift(t):
@@ -223,7 +226,9 @@ for ev in scope:
             or next((l for l in cands if l in alert_leads), None)
             or (next(iter(cands)) if len(cands) == 1 else None)
             or next((l for l in cands if l in gino_leads), None)
-            or (mail_alert[0]["lead_id"] if mail_alert else None))
+            or (mail_alert[0]["lead_id"] if mail_alert else None)
+            or next((m["lead_id"] for m in sorted(M.values(), key=lambda m: m.get("date_created") or "", reverse=True)
+                     if email and any((a_.get("email") or "").lower() == email for a_ in m.get("attendees") or [])), None))
     meet = M.get(cands.get(lead)) if lead in cands else None
     host = by_email.get(ev["host"], {})
     closer = f"{host.get('first_name', '')} {host.get('last_name', '')}".strip() or ev["host"]
@@ -297,6 +302,8 @@ for ev in scope:
     row["db_date"] = db.isoformat()
     row["db"] = None
     def need(t):
+        if str(overrides.get(lead, "")).startswith("Valid"):
+            return "No", "Confirmed by phone; invite couldn't be accepted (valid exception)"
         a = accepted_by(lead, t, lo_resp)
         if a is True:
             return "No", "Invite already accepted"
@@ -373,7 +380,7 @@ for ev in scope:
         if later_d:
             row["check"] += f". Prospect later declined the invite ({fmt(later_d[0])})"
     # ---- did the call happen ----
-    if cd > DAYS[-1]:
+    if cd > DAYS[-1] or s > datetime.now(timezone.utc):
         row["happened"], row["happened_src"] = "Upcoming", ""
     elif cancel_at and cancel_at < s:
         row["happened"], row["happened_src"] = ("Rescheduled" if resched else "Cancelled"), "Calendly"

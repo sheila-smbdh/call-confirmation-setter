@@ -113,9 +113,14 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
     1. `GOOGLESHEETS_UPDATE_SHEET_PROPERTIES`: rename the current tab to `<name> (old)`.
     2. `GOOGLESHEETS_SPREADSHEETS_SHEETS_COPY_TO`: copy the tab from the TEMP file into the tracker.
     3. `GOOGLESHEETS_UPDATE_SHEET_PROPERTIES`: rename the copy (`Copy of <name>`) to `<name>`.
-    After all five: `GOOGLESHEETS_DELETE_SHEET` each `(old)` tab, then set indexes so the order is Management (0),
-    Reviews (1), Calls (2), Daily (3), Weekly (4), Definitions (5), Data Sources (6). Management uses INDIRECT for
-    Calls and Daily, so it keeps working through the swap.
+    After all five: `GOOGLESHEETS_DELETE_SHEET` each `<name> (old)` tab created by THIS run (only those five; match
+    by the sheet ids you renamed, never by title alone; leave every other hidden or "old ..." tab alone), then set
+    indexes so the order is Management (0), Reviews (1), Call Confirmation>> (2), Calls (3), Daily (4), Weekly (5),
+    Call Recovery (6), Definitions (7), Data Sources (8). "Call Confirmation>>" and "Call Recovery" are Sheila's tabs:
+    never edit, rename or delete them. Management uses INDIRECT for Calls and Daily, so it keeps working through the
+    swap.
+    Google Sheets allows about 60 reads per minute. If a call returns 429 (quota), wait 60 seconds and retry that
+    one call; it did not go through.
 
 11. **Append Reviews and stamp the time**
     - If `reviews_append.json` is non-empty: `GOOGLESHEETS_UPDATE_VALUES_BATCH` with `valueInputOption`

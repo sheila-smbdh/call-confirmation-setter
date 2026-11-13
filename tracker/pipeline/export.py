@@ -12,9 +12,12 @@ from openpyxl.comments import Comment
 D, OUTF, TODAY_S = sys.argv[1], sys.argv[2], sys.argv[3]
 from datetime import timedelta as _td
 TODAY = date.fromisoformat(TODAY_S)
-RUN_AT = datetime.now(ET).strftime("%b %-d, %Y, %-I:%M %p ET")
+from datetime import time as _tm
+if datetime.now(ZoneInfo("America/New_York")) < datetime.combine(TODAY, _tm(20, 0), ZoneInfo("America/New_York")):   # mid-shift run: today isn't over yet
+    TODAY = TODAY - _td(days=1)
 ALL_DAYS = [date(2026, 11, 10) + _td(days=i) for i in range((TODAY - date(2026, 11, 10)).days + 1)]
 ET = ZoneInfo("America/New_York")
+RUN_AT = datetime.now(ET).strftime("%b %-d, %Y, %-I:%M %p ET")
 rows = json.load(open(f"{D}/calls_all.json"))
 FONT = "Arial"
 HDR = PatternFill("solid", fgColor="1F3864")
