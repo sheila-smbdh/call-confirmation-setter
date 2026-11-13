@@ -7,3 +7,4 @@ __pycache__/
 
 # Nightly tracker run data (lead PII): never commit
 tracker/data/
+scorecard/data/

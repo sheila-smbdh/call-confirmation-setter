@@ -85,14 +85,14 @@ const DAYS = {
   }
 };
 
-const d = DAYS[new URLSearchParams(location.search).get("v") || "thu"];
+const d = window.CARD || DAYS[new URLSearchParams(location.search).get("v") || "thu"];
 const hit = d.tiles.filter(t => t[3] === "g").length;
 const tiles = ts => ts.map(([n, v, t, s]) => `<div class="tile ${s}"><div class="n">${n}</div><div class="v">${v}</div><div class="t">${t}</div></div>`).join("");
 
 document.getElementById("app").innerHTML = `
   <div class="head"><h1>Gino's scorecard <span>· ${d.day}</span></h1>
     <span class="score ${hit === d.tiles.length ? "g" : "r"}">${hit} of ${d.tiles.length} hit</span></div>
-  <div class="sub">${d.stats}<span class="sample">SAMPLE</span></div>
+  <div class="sub">${d.stats}${window.CARD ? "" : `<span class="sample">SAMPLE</span>`}</div>
 
   <div class="lbl">Call confirmation<span>green = hit · red = missed</span></div>
   <div class="tiles">${tiles(d.tiles)}</div>
@@ -100,10 +100,10 @@ document.getElementById("app").innerHTML = `
   <div class="lbl">Call recovery<span>coming soon</span></div>
   <div class="tiles soon">${tiles([["No-shows", "–", ""], ["Cancels", "–", ""], ["Reschedules", "–", ""], ["Rebooked", "–", ""], ["Showed", "–", ""], ["Logging", "–", ""]].map(x => [...x, ""]))}</div>
 
-  ${d.ask.length ? `<div class="ask"><div class="ask-h"><b>Reply with why (${d.ask.length}):</b> in #cc-gino by noon MT, e.g. "2: he asked me to wait"</div>
+  ${d.ask.length ? `<div class="ask"><div class="ask-h"><b>Reply with why (${d.ask.length}):</b> in this post's thread by noon MT, one line per number, e.g. "2: he asked me to wait"</div>
     ${d.ask.map(([who, sec, what], i) => `<div class="it"><span class="k">${i + 1}</span><span><b>${who}</b><em>${sec}</em>${what}</span></div>`).join("")}</div>` : ""}
   ${d.weekend ? `<div class="wk">${d.weekend}</div>` : ""}
-  <div class="foot"><span>${d.sent}</span><span>Questions? Sheila or Jay in #cc-gino</span></div>`;
+  <div class="foot"><span>${d.sent}</span><span>${d.note || "Call times in ET"} · Questions? Sheila or Jay in #cc-gino</span></div>`;
 </script>
 </body>
 </html>
