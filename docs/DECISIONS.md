@@ -34,6 +34,10 @@ Gino Binoy started as Call Confirmation Specialist on **Tue Nov 10, 2026**. Thes
 ### 0.2 Confirmed and logging
 - **Confirmed = invite accepted.** This hasn't changed.
   - Exceptions are approved case by case by Sheila or Jay, in #cc-gino or directly. Examples so far: a spoken confirmation when the prospect's calendar couldn't accept (Outlook), a same-day booking confirmed by text, and the Nov 12 calendar outage.
+- **Confirmed by text (Sheila, Nov 13):** if the prospect texts that they'll be on the call (e.g. "See you Friday!"), that counts as confirmed from then on.
+  - No day-before call or 5:45 cancel is needed after it.
+  - A question, a thanks on its own, a reaction or a reschedule request doesn't count.
+  - The SOP still says "Nothing else counts, not even a friendly reply to their Advisor's text"; that line needs updating to match.
 - **Call Confirmation field:** options 1–9, plus Closer Confirmed and Setter Confirmed. The new options are:
   - 8 = cancelled before he reached them;
   - 9 = accepted before he reached them.

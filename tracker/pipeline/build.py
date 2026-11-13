@@ -87,6 +87,7 @@ for f in sorted(glob.glob(f"{D}/eod*.json")):
 optional = lambda name: json.load(open(f"{D}/{name}")) if os.path.exists(f"{D}/{name}") else {}
 lead_fix = optional("lead_fix.json")
 overrides = optional("overrides.json")
+text_conf = optional("text_confirms.json")   # prospects who confirmed by text (Sheila, Nov 13); see text_confirms.py
 alerts = [json.loads(l) for l in open(f"{D}/slack_alerts.jsonl")]
 booked_alerts = [a for a in alerts if a["type"] == "NEW CALL BOOKED"]
 for a in booked_alerts:
@@ -312,6 +313,9 @@ for ev in scope:
             return "No", "Confirmed by phone; invite couldn't be accepted (valid exception)"
         if other_confirmed(lead, t):
             return "No", "Closer or setter already confirmed it (he logged Closer/Setter Confirmed)"
+        tc = text_conf.get(lead)
+        if tc and p(tc["at"]) <= t:
+            return "No", f'Confirmed by text before then ("{tc.get("text", "")[:60]}")'
         a = accepted_by(lead, t, lo_resp)
         if a is True:
             return "No", "Invite already accepted"
