@@ -331,12 +331,15 @@ for ev in scope:
         # ---- 5:45 resolution ----
         if booked >= cutoff(db):
             row["r_required"], row["r_reason"] = "No", "Booked after 5:45 MT"
+        elif booked >= et(db, 0):
+            # Sheila, #cc-gino Nov 12 (confirmed Nov 13): never cancel a booking made that same day
+            row["r_required"], row["r_reason"] = "No", "Booked that same day (never cancelled, per Sheila)"
         elif cancel_at and cancel_at < cutoff(db):
             row["r_required"], row["r_reason"] = "No", "Cancelled or rescheduled before 5:45 MT"
         else:
             row["r_required"], row["r_reason"] = need(cutoff(db))
             if row["r_required"] == "Yes":
-                row["r_reason"] = "Not accepted at 5:45 MT" + (" (booked that same day)" if booked >= shift_start(db) else "")
+                row["r_reason"] = "Not accepted at 5:45 MT"
                 ok, lab = queue_check(lead, cutoff(db))
                 if not ok:
                     row["r_required"], row["r_reason"] = "Not in his queue", lab

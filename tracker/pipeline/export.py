@@ -277,7 +277,7 @@ defs = [
     ("Voicemail / Text sent", "Counted only when he didn't connect. Texts must be sent or delivered; drafts don't count."),
     ("Finished", "Connected, or double dial plus voicemail plus text. Drop-off names the missing steps."),
     ("Day-before call", "Required when the invite isn't accepted at the start of his shift the day before the call and the lead is in his 'Meeting Tomorrow' view (status 'Needs Confirmation'). If Gino removed it from his view by wrongly logging it accepted, it still counts. If he logged it correctly and the prospect declined later, it doesn't."),
-    ("5:45 resolution", "Required when the invite still isn't accepted at 5:45pm MT the day before. Done = he cancels it in Calendly that day (or sets Call Confirmation to '6. Cancelled – unreachable'). Bookings made earlier that same day are included for now."),
+    ("5:45 resolution", "Required when the invite still isn't accepted at 5:45pm MT the day before. Done = he cancels it in Calendly that day (or sets Call Confirmation to '6. Cancelled – unreachable'). Bookings made that same day are never cancelled, so they don't need it (Sheila, #cc-gino, confirmed Nov 13)."),
     ("Can't tell", "The invite is accepted now but there is no calendar response email to show when. These don't count toward the gate."),
     ("Counts toward gate", "Nov 10 day-before calls and 5:45 cancels don't count: Jay told Gino to do welcome calls only on his first day."),
     ("Weekends", "No shift on Saturday or Sunday, so nothing is due. Weekend bookings are overnight bookings, due at the start of Monday's shift. Day-before calls and 5:45 cancels for Saturday, Sunday and Monday calls happen on Friday. The update still runs every day so anything Gino does on a weekend is captured."),

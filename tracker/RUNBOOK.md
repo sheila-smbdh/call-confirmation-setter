@@ -98,6 +98,10 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
      "denied" | "unclear" | "no response"), decided_by ("Sheila"/"Jay"), decision_ts, scope ("this lead only" |
      "general rule going forward"), decision_summary}`. Only Sheila's or Jay's own words count as approval; never infer
      one. If unsure, use "unclear" (it then goes to review as usual).
+   - Gino often shows the lead only in a screenshot. For a lead-specific case with no name, find the lead from Gino's
+     Close activity right around the post or the answer (e.g. the Call Confirmation field he set minutes after
+     Sheila's reply, `g_ev_*.json`) and record how in `lead_identified_by`. If it isn't clear, leave the names empty
+     (the case then matches nothing and the item goes to review as usual).
    - Note the newest `ts` read; step 12 saves it.
 
 5. **Scope and invitees**
@@ -127,6 +131,10 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
    - `python3 -I $P/slack_match.py $DIR $DIR/tracker_live.xlsx` -> `slack_decisions.json`, `reviews_fill.json`.
    - `python3 -I $P/reviews.py $DIR` -> `reviews_append.json` (rows Sheila or Jay already approved in Slack come
      pre-decided).
+   - General rules (approvals with scope "general rule going forward") are hints only (Sheila, Nov 13): read the new
+     rows in `reviews_append.json`; for any that a general rule plausibly covers, write `$DIR/rule_hints.json`
+     `{"<review key>": "Possibly covered by #cc-gino rule: <rule in a few words> <link>"}` and run reviews.py again.
+     The hint goes in the note (G); the decision stays blank for Sheila and Jay.
 
 9. **Upload the new tabs**: `sha256sum $DIR/tracker_out.xlsx`, then `mcp__Google_Drive__create_file` with title
    `TEMP - tracker nightly <TODAY> (safe to delete)`, contentMimeType

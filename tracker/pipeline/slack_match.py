@@ -24,7 +24,7 @@ import openpyxl
 
 DIR, XLSX = sys.argv[1], sys.argv[2]
 CHANNEL = "C0CG28G7TQT"
-KINDS = {"Logging error"}          # Sheila, Nov 13: logging errors. Add "Miss" here if she extends it to misses.
+KINDS = {"Logging error", "Miss"}  # Sheila, Nov 13: a lead-specific approval clears that lead's misses and logging errors
 norm = lambda s: re.sub(r"[^a-z]", "", (s or "").lower())
 
 

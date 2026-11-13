@@ -18,6 +18,10 @@ try:
     slack = json.load(open(f"{D}/slack_decisions.json"))   # from slack_match.py; optional
 except FileNotFoundError:
     slack = {}
+try:
+    hints = json.load(open(f"{D}/rule_hints.json"))       # {review_key: "Possibly covered by ... <link>"}; optional
+except FileNotFoundError:
+    hints = {}
 dt = lambda s: datetime.fromisoformat(s).astimezone(ET)
 wk = lambda d: d - timedelta(days=d.weekday())
 
@@ -49,7 +53,8 @@ for it in items():
     if it[7] in have:
         continue
     n += 1
-    data.append({"range": f"Reviews!A{n}:G{n}", "values": [[it[0].isoformat(), it[1].isoformat(), it[2], it[3], it[4], it[5], it[6]]]})
+    note = "; ".join(x for x in (it[6], hints.get(it[7], "")) if x)
+    data.append({"range": f"Reviews!A{n}:G{n}", "values": [[it[0].isoformat(), it[1].isoformat(), it[2], it[3], it[4], it[5], note]]})
     data.append({"range": f"Reviews!L{n}", "values": [[it[7]]]})
     d = slack.get(it[7])
     if d:   # Sheila or Jay already approved this in #cc-gino: record it so it doesn't wait for review
