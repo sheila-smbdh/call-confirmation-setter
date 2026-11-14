@@ -28,6 +28,20 @@ Must not:
 Follow `/root/.claude/CLAUDE.md` (Close and Supabase rules). Close calls are inline `curl` only, one per command, never
 from a script. The scripts in `tracker/pipeline/` are offline: they only read and write local files.
 
+## Commands must pass the Close guard without a prompt (this run is unattended)
+
+The Close safety hook (`~/.claude/hooks/close-guard.py`) lets a Bash command that mentions Close run without asking
+only if EVERY part of it is on its safe list. Nobody is there to approve a prompt, so one prompt stalls the whole run.
+- A Bash command that calls Close may contain only: the `curl` itself, `for NAME in <plain values>; do ...; done`,
+  `NAME=<plain value>`, `cd`, `ls`, `head`, `tail`, `jq`, `cat`, `wc`, `grep`, `echo`, and `python3 -c "<code>"` (no
+  network or subprocess in the code). Use paths relative to the repo (`tracker/data/...`), or `cd` first.
+- Everything else goes in its OWN Bash command with no Close in it: `python3 -I tracker/pipeline/<script>.py ...`,
+  `rm`, `cp`, `mv`, `sha256sum`, `date`. Never chain those onto a Close `curl` with `;`, `&&` or `|`.
+- No `$( )`, `$(( ))`, backticks, `eval`, `xargs`, heredocs or subshells in a Close command. Page with literal values:
+  `for k in 0 100 200 300; do curl ... "&_skip=$k" -o g_call_$k.json; done`.
+- Event-log paging (`_cursor`) can't be looped: send one curl per page and type the cursor value from the last page.
+- If a command is ever stopped for approval anyway, don't wait: rewrite it in the allowed form and send it again.
+
 ## Fixed IDs
 
 | What | Value |
@@ -55,16 +69,19 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
    - `python3 -I $P/bodies.py meetings $DIR $TODAY`, then one curl per body:
      `curl -s -u "$CLOSE_API_KEY:" -X POST "https://api.close.com/api/v1/data/search/" -H "Content-Type: application/json" -d @$DIR/body_meet_created.json -o $DIR/meet_created.json`
      (same for `body_meet_starts.json` -> `meet_starts.json`).
-   - After each: `python3 -I $P/bodies.py check RESULT`. If TRUNCATED: delete the result, `bodies.py split BODY`, and
+   - After each, as a separate command: `python3 -I $P/bodies.py check RESULT`. If TRUNCATED: delete the result (`rm`,
+     its own command), `bodies.py split BODY`, and
      pull both halves (`..._a.json`, `..._b.json`, saving results as `meet_starts_a.json` etc.; every result file name
      must start with `meet_`).
 
 2. **Close: Gino's activity since T-4 (05:00 UTC)**
-   - Calls: `.../activity/call/?user_id=GINO&date_created__gt=<T-4>T05:00:00&_limit=100&_skip=N` -> `g_call_<k>.json`;
-     repeat with `_skip` +100 while `has_more` is true.
-   - Texts: same with `/activity/sms/` -> `g_sms_<k>.json`.
+   - Calls: `.../activity/call/?user_id=GINO&date_created__gt=<T-4>T05:00:00&_limit=100&_skip=$k` -> `g_call_$k.json`,
+     in one command: `for k in 0 100 200 300; do curl ...; done` (literal skips, never `$((...))`). Check `has_more` on
+     the last page with `python3 -c`; if still true, run again with `400 500 600 700`. Empty extra pages are harmless.
+   - Texts: same with `/activity/sms/` -> `g_sms_$k.json`.
    - Call Confirmation field history: `.../event/?user_id=GINO&object_type=lead&action=updated&date_updated__gte=<T-4>T05:00:00Z&_limit=50`
-     -> `g_ev_<k>.json`; repeat with `&_cursor=<cursor_next>` until `cursor_next` is null.
+     -> `g_ev_<k>.json`; repeat with `&_cursor=<cursor_next>` until `cursor_next` is null (one curl per page, the
+     cursor typed in literally; no `$( )`).
 
 3. **Calendly events** starting from T-3 to T+14:
    `mcp__Calendly__meetings-list_events` with organization above, `min_start_time` = T-3 05:00Z,
