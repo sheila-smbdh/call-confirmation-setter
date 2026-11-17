@@ -8,6 +8,20 @@ v2 rules (Sheila, Nov 12):
 - A booking whose invite was accepted before the welcome call was due needs no welcome call.
 - Invite accepted/declined times come from the calendar response emails ("Accepted:" / "Declined:") synced to Close.
 
+Rules from Gino's Nov 13 scorecard thread (Sheila, #cc-gino Nov 16: all 8 explanations accepted, keep doing it):
+- Hung up or dropped before voicemail: if a no-answer dial is picked up and ends before a voicemail can be left
+  (answered, no voicemail, under 30 seconds, or logged "No answer / hung up"), the voicemail step is excused like
+  "No VM option". The double dial and the text are still required.
+- The day-before checkpoint runs to the end of his shift (6pm MT), not just to 5:45: the calls he makes right before
+  the 5:45 cancel, and a prospect calling him back, count. One voicemail anywhere in the checkpoint is enough; the
+  last call right before the cancel needs no second voicemail.
+- One shift, one checkpoint: when the welcome call falls on the day-before shift (e.g. booked overnight for the next
+  day), the welcome call covers the day-before call. It is not scored twice.
+- Spoke and confirmed by phone: if he talked to the prospect on the day before (through 6pm MT) and logged the outcome
+  "Conversation: Confirmed not Accepted" (or "Confirmed and Accepted"), no 5:45 cancel is needed.
+- Any cancel on the day before after 5:45 counts as the 5:45 cancel, whoever Calendly names as the canceller (cancelling
+  through the prospect's own link records the prospect's name).
+
 Usage: python3 -I build.py DATA_DIR TODAY(YYYY-MM-DD, ET run date)  -> DATA_DIR/calls_new.json
 Only the calls in DATA_DIR/scope.json are built (scope.py picks the run window); merge.py combines them with the rows
 already in the tracker.
@@ -162,6 +176,21 @@ def gino_claims(lead, lo, hi):
 def is_vm(c):
     return OUT.get(c.get("outcome_id")) == "No Answer – Left Voicemail" or c.get("disposition") == "vm-left" or bool(c.get("voicemail_url"))
 
+def is_hangup(c):
+    """Picked up and ended before a voicemail could be left: answered, no voicemail, not a conversation, and either
+    under 30 seconds or logged 'No answer / hung up'."""
+    if c.get("disposition") != "answered" or is_vm(c) or is_conn(c):
+        return False
+    return (c.get("duration") or 0) < 30 or OUT.get(c.get("outcome_id")) == "No answer / hung up"
+
+def phone_confirmed(lead, lo, hi):
+    """Sheila, Nov 16: he spoke to the prospect and they confirmed by phone (outcome 'Confirmed not Accepted' or
+    'Confirmed and Accepted' on any call he made or took between lo and hi). Returns the time, or None."""
+    ok = ("Conversation: Confirmed not Accepted", "Conversation: Confirmed and Accepted")
+    ts = [p(c["date_created"]) for c in allcalls
+          if c["lead_id"] == lead and lo <= p(c["date_created"]) < hi and OUT.get(c.get("outcome_id")) in ok]
+    return min(ts) if ts else None
+
 def is_conn(c):
     o = OUT.get(c.get("outcome_id"), "")
     if o.startswith("Conversation") or o == "Call screener: got through":
@@ -181,6 +210,8 @@ def checkpoint(lead, lo, hi, due):
     r["text"] = bool(sent)
     # Can't-do exceptions: no voicemail box (or full) logged as the "No VM Option" outcome; a text Close couldn't send.
     vm_x = not r["voicemail"] and any(OUT.get(c.get("outcome_id")) == "No Answer – No VM Option" for c in cs)
+    # Sheila, Nov 16: the prospect picked up and hung up, or the call dropped, before a voicemail could be left.
+    vm_h = not r["voicemail"] and not vm_x and any(is_hangup(c) for c in cs)
     tx_x = not r["text"] and any(s["lead_id"] == lead and lo <= p(s["date_created"]) < hi and s["status"] in ("error", "failed", "undelivered")
                                  for s in allsms)
     if not cs:
@@ -188,10 +219,12 @@ def checkpoint(lead, lo, hi, due):
     elif r["connected"]:
         r["finished"], r["dropoff"] = True, ""
     else:
-        miss = [n for n, ok in (("double dial", dd), ("voicemail", r["voicemail"] or vm_x), ("text", r["text"] or tx_x)) if not ok]
+        miss = [n for n, ok in (("double dial", dd), ("voicemail", r["voicemail"] or vm_x or vm_h), ("text", r["text"] or tx_x)) if not ok]
         r["finished"], r["dropoff"] = not miss, ("Missing " + ", ".join(miss)) if miss else ""
     if vm_x:
         r["voicemail"] = "No VM option"
+    elif vm_h:
+        r["voicemail"] = "Hung up before voicemail"
     if tx_x:
         r["text"] = "Text failed to send"
     r["on_time"] = bool(cs) and r["first_dial"] <= due
@@ -331,6 +364,9 @@ for ev in scope:
     else:
         if booked >= shift_start(db):
             row["db_required"], row["db_reason"] = "No", "Booked on the day before: welcome call covers it"
+        elif (booked if in_shift(booked) else next_shift_start(booked)).astimezone(ET).date() >= db:
+            # Nov 16: booked overnight, so the welcome call is due on the day-before shift. One checkpoint, not two.
+            row["db_required"], row["db_reason"] = "No", "Welcome call is on the day-before shift: it covers the day-before call"
         elif cancel_at and cancel_at < shift_start(db):
             row["db_required"], row["db_reason"] = "No", "Cancelled or rescheduled before the day before"
         else:
@@ -342,7 +378,8 @@ for ev in scope:
                 elif lab != "In his smart view":
                     row["db_reason"] = "Invite not accepted. " + lab
         if row["db_required"] in ("Yes", "Can't tell"):
-            row["db"] = checkpoint(lead, et(db, 0), min(cutoff(db), alive_until), cutoff(db))
+            # through 6pm MT: his last calls before the 5:45 cancel and a call back from the prospect count (Nov 16)
+            row["db"] = checkpoint(lead, et(db, 0), min(shift_end(db), alive_until), cutoff(db))
         # ---- 5:45 resolution ----
         if booked >= cutoff(db):
             row["r_required"], row["r_reason"] = "No", "Booked after 5:45 MT"
@@ -353,6 +390,9 @@ for ev in scope:
             row["r_required"], row["r_reason"] = "No", "Cancelled or rescheduled before 5:45 MT"
         else:
             row["r_required"], row["r_reason"] = need(cutoff(db))
+            pc = phone_confirmed(lead, et(db, 0), shift_end(db)) if row["r_required"] == "Yes" else None
+            if pc:
+                row["r_required"], row["r_reason"] = "No", f"Spoke and confirmed by phone on the day before ({fmt(pc)}), per Sheila Nov 16"
             if row["r_required"] == "Yes":
                 row["r_reason"] = "Not accepted at 5:45 MT"
                 ok, lab = queue_check(lead, cutoff(db))
@@ -361,12 +401,11 @@ for ev in scope:
         if row["r_required"] in ("Yes", "Can't tell"):
             by_gino = bool(cancel_at) and "gino" in (ev.get("canceled_by") or "").lower()
             field6 = any(e["lead_id"] == lead and fval(e).startswith("6.") for e in fev)
-            if cancel_at and cancel_at.astimezone(ET).date() == db and (by_gino or field6):
+            # Nov 16: any cancel on the day before counts (Calendly names the prospect when he cancels through their link)
+            if cancel_at and cancel_at.astimezone(ET).date() == db:
                 row["r_result"] = "Cancelled"
             elif cancel_at and cancel_at.astimezone(ET).date() == cd and (by_gino or field6):
                 row["r_result"] = "Cancelled on the day of the call"
-            elif cancel_at and cancel_at.astimezone(ET).date() == db:
-                row["r_result"] = f"Cancelled by {ev.get('canceled_by')}"
             else:
                 row["r_result"] = "Not cancelled"
     row["db_counts"] = "Yes" if row["db_required"] == "Yes" and db not in NO_GATE_DB else "No"

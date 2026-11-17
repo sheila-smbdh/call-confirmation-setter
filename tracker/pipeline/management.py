@@ -47,7 +47,8 @@ cols_ = [
     ("due", "Supporting numbers", "Checkpoints due (all four types)", "=" + dsum(L(GT, "Checkpoints that count")), "0"),
     ("fin", "Supporting numbers", "Finished", "=" + dsum(L(GT, "Finished")), "0"),
     ("miss", "Supporting numbers", "Missed", "={due}{{r}}-{fin}{{r}}", "0"),
-    ("exc", "Supporting numbers", "Misses you excused", "=" + rvw(',Reviews!$D:$D,"Miss",Reviews!$H:$H,"Excused"'), "0"),
+    # capped at Missed: when a rule change (e.g. Nov 16) clears a miss that was already excused on Reviews, it isn't counted twice
+    ("exc", "Supporting numbers", "Misses you excused", "=MIN(" + rvw(',Reviews!$D:$D,"Miss",Reviews!$H:$H,"Excused"') + ",{miss}{{r}})", "0"),
     ("cnt", "Supporting numbers", "Misses that count", "={miss}{{r}}-{exc}{{r}}", "0"),
     ("wdue", "Supporting numbers", "During-shift welcome calls due", "=" + dsum(L(DS, "Due")), "0"),
     ("w15", "Supporting numbers", "First dialed within 15 min",

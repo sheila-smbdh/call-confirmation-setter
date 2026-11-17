@@ -14,6 +14,12 @@ How each tile is counted (the same rules as the tracker's Reviews tab, docs/DECI
 - 5:45 cancels: unaccepted next-day calls that needed the cancel, minus the ones not cancelled.
 - Logging: logging errors still open.
 The "Reply with why" list is every open (not excused) Reviews row for that day.
+
+What isn't a miss comes from tracker/pipeline/build.py, so the card follows it. Since Sheila's Nov 16 reply to the
+Nov 13 card: a dial hung up or dropped before a voicemail could be left excuses the voicemail (VM + text tile); his
+last calls before the 5:45 cancel and a prospect calling him back count toward the day-before call; a welcome call on
+the day-before shift covers the day-before call (one item, not two); a prospect who confirmed by phone on the day
+before needs no 5:45 cancel; and any cancel on the day before counts as the 5:45 cancel, whoever Calendly names.
 """
 import json, re, sys
 from datetime import date, datetime
@@ -95,6 +101,8 @@ def what(x):
         steps = re.match(r"Missing ([^(]+)", t)[1].strip()
         return f"no-answer, missing {steps}" + tail
     if c == C545:
+        if t.startswith("Cancelled on the day"):
+            return "cancelled on the day of the call, not the day before" + tail
         return "not accepted and not cancelled" + tail
     return re.sub(r"\s*\(.*\)$", "", t) + tail
 

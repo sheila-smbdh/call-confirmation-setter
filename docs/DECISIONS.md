@@ -2,7 +2,26 @@
 
 The source of truth for every decision about the Call Confirmation Specialist role. The SOP, the Close setup, the Zaps and the payout code all follow this file. If anything conflicts with it, this file wins until Sheila changes it.
 
-Last updated: 2026-11-13 (rev 3). **Section 0 is the newest and overrides anything older below it.**
+Last updated: 2026-11-17 (rev 4). **Section 0 is the newest and overrides anything older below it** (00 before 0).
+
+---
+
+## 00. Update Nov 16, 2026 (rev 4): scoring rules from the Nov 13 scorecard thread
+
+Gino explained all 8 items on his Fri Nov 13 scorecard in #cc-gino ([thread](https://dylanhelen.slack.com/archives/C0CG28G7TQT/p1794829426885189)). Sheila (Nov 16): every explanation makes sense, keep doing what he did, all eight are compliant, and the tracking rules should change to match. The tracker (`tracker/pipeline/build.py`), the scorecard and the Definitions tab now follow these rules:
+
+| # | What happened (Nov 13) | Rule from now on |
+|---|---|---|
+| 1, 2, 4, 6 | The prospect picked up and hung up, or the call dropped, before he could leave a voicemail. He sent the texts. | **Hung up or dropped before voicemail = a step he couldn't do**, like "No VM option". The double dial and the text are still required. The tracker reads it from Close: an answered dial with no voicemail, under 30 seconds or logged "No answer / hung up". |
+| 4, 6 | He left a voicemail earlier, then made one last call right before the 5:45 cancel without a second voicemail. | **One voicemail per checkpoint is enough.** The last call before the cancel needs no voicemail. The cancel text follows it. |
+| 3 | The prospect called him back right after he dialed and confirmed on the phone. | **His calls right before the 5:45 cancel, and a prospect calling him back, count toward the day-before call.** The day-before window now runs to the end of his shift (6pm MT), not 5:45. |
+| 5 | Booked overnight for the next day, so the welcome call and the day-before call were the same calls and showed up twice. | **One shift, one checkpoint.** When the welcome call falls on the day-before shift, it covers the day-before call. |
+| 7 | He reached the prospect on the day before, who said they had accepted (it didn't show in Close). He noted it in Close and didn't cancel. | **Spoke and confirmed by phone on the day before = no 5:45 cancel.** He logs the outcome "Conversation: Confirmed not Accepted" and a note. The 5:45 cancel is for prospects he couldn't reach. |
+| 8 | He cancelled at 5:45 as the process says; Calendly recorded the prospect as the canceller. | **Any cancel on the day before counts as the 5:45 cancel**, whoever Calendly names. Cancelling through the prospect's link records the prospect's name. |
+
+- The Management tab caps "Misses you excused" at "Missed", so a Reviews row excused by hand that the new rules also clear isn't counted twice.
+- Reviews rows already on the sheet are never rewritten. The eight Nov 13 rows still need "Excused" in column H (Sheila is doing this).
+- "Confirmed = invite accepted" still holds for everything else. A spoken confirmation on the day before only removes the 5:45 cancel. It isn't an accepted invite, so he logs it as 5 (Spoke – not accepted yet), not 1, 3 or 9.
 
 ---
 
@@ -28,7 +47,7 @@ Gino Binoy started as Call Confirmation Specialist on **Tue Nov 10, 2026**. Thes
 - **No touch 2–3 hours before the call.** The SOP doesn't include one, which closes open item 4.
 - **Closer or setter already confirmed:** he doesn't call, and logs Closer Confirmed / Setter Confirmed. If they book again and the closer didn't reach them, it's a fresh booking.
 - **Every touch:** double dial → no answer → voicemail + text. Email is no longer part of the sequence (section 3).
-- **Steps he can't do aren't misses:** no voicemail option, a full mailbox, a text that won't send.
+- **Steps he can't do aren't misses:** no voicemail option, a full mailbox, a text that won't send, a call hung up or dropped before the voicemail (rev 4).
 - **Only what was in his queue counts.** A call counts if it reached him through the #call-confirmation Slack alert or the Close smart views. Calls that never reached him don't count against him.
 
 ### 0.2 Confirmed and logging
