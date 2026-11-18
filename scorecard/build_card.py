@@ -151,5 +151,11 @@ hit = sum(t[3] == "g" for t in tiles)
 msg = f"<@U0CFPJZQHGQ> your scorecard for {day.strftime('%A, %b ')}{day.day}: {hit} of {len(tiles)} targets hit."
 msg += (f" {len(ask)} item{'s' if len(ask) != 1 else ''} to explain: reply in this thread by noon MT, one line per number."
         if ask else " Nothing to explain. Nice work.")
+# The numbered list goes in the post as text too, so the morning tracker run can match Sheila's and Jay's replies
+# ("3, 5, 6 excused - reason" / "7 miss") to the right Reviews rows (Nov 18).
+if ask:
+    msg += "\n" + "\n".join(f"{i}. {a[0]} · {a[1]} · {a[2]}" for i, a in enumerate(ask, 1))
+    msg += ("\n_Sheila / Jay: reply by number, e.g. `3, 5 excused - reason` or `7 miss`. "
+            "The next morning's tracker run fills the Reviews tab from your replies._")
 open(f"{D}/message.txt", "w").write(msg)
 print("OK", json.dumps({"day": plan["day"], "hit": hit, "to_explain": len(ask), "dials": len(day_ts)}))

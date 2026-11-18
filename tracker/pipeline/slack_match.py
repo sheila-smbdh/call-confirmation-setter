@@ -5,15 +5,19 @@ usage: python3 -I slack_match.py DIR LIVE_XLSX
 Reads DIR/calls_all.json, DIR/cc_gino_approvals.json (all approvals so far, from Supabase plus this run's scan) and
 the Reviews tab of LIVE_XLSX. Writes:
   DIR/slack_decisions.json  {review_key: {decision, decided_by, decision_ts, summary, link}} for every item covered
-  DIR/reviews_fill.json     GOOGLESHEETS_UPDATE_VALUES_BATCH data that fills H-J on EXISTING Reviews rows whose
-                            H, I and J are all blank and that a Slack approval covers (never overwrites a decision)
+  DIR/reviews_fill.json     GOOGLESHEETS_UPDATE_VALUES_BATCH data that fills H-J on EXISTING Reviews rows that a
+                            Slack decision covers: rows whose H, I and J are all blank, or rows this run filled from
+                            Slack earlier (J ends in "(Slack)") when the newest Slack decision now says otherwise.
+                            A decision a person typed into the sheet is never touched.
 reviews.py then pre-fills H-J on new rows from slack_decisions.json.
 
 Matching (decisions with scope "this lead only"; the newest approved/denied decision that covers a call wins, and
-only "approved" excuses):
+"approved" -> H "Excused", "denied" -> H "Counts as a miss" (Sheila, Nov 18: she and Jay decide every scorecard item in
+the thread; the run fills the Reviews tab so they don't have to)):
   the decision names the row's Close lead id, or the row's lead name (case and spacing ignored), AND it was given for
   that call: if it names a date, that date is the call's date, day-before date or booking date; if it names none, it
-  was raised within 7 days before the call.
+  was raised within 7 days before the call. If the decision lists `checkpoints` (welcome / daybefore / 545 / logging),
+  it covers only those items for that lead (a scorecard reply names items by number).
 Which review kinds a Slack approval can clear: see KINDS.
 """
 import json
@@ -70,13 +74,14 @@ def decide(key, kind):
     r = calls.get(key.split("|")[0])
     if not r:
         return None
+    suffix = key.split("|")[1]
     for a in reversed(decisions):
-        if not covers(a, r):
+        if not covers(a, r) or (a.get("checkpoints") and suffix not in a["checkpoints"]):
             continue
-        if a["decision"] != "approved":
-            return None
+        if a["decision"] == "denied" and not a.get("checkpoints"):
+            continue   # "counts as a miss" only fills the items it names; never a lead's other open items
         ts = a.get("decision_ts") or a.get("raised_ts")
-        return {"decision": "Excused", "decided_by": f"{a.get('decided_by')} (Slack)", "decision_ts": ts,
+        return {"decision": "Excused" if a["decision"] == "approved" else "Counts as a miss", "decided_by": f"{a.get('decided_by')} (Slack)", "decision_ts": ts,
                 "summary": a.get("decision_summary") or "", "link": link(a.get("thread_ts") or a.get("raised_ts"))}
     return None
 
@@ -97,11 +102,13 @@ if "Reviews" in wb.sheetnames:
         key, kind = ws.cell(i, 12).value, ws.cell(i, 4).value
         if not key or key not in out or kind not in KINDS:
             continue
-        if any(ws.cell(i, j).value not in (None, "") for j in (8, 9, 10)):
-            continue
+        h, j = ws.cell(i, 8).value, str(ws.cell(i, 10).value or "")
+        filled = any(ws.cell(i, c).value not in (None, "") for c in (8, 9, 10))
+        if filled and not (j.endswith("(Slack)") and h != out[key]["decision"]):
+            continue   # a person's decision, or already the same: leave it
         d = out[key]
         fill.append({"range": f"Reviews!H{i}:J{i}", "values": [[
-            "Excused", f"Approved in #cc-gino: {d['summary']} {d['link']}".strip(), d["decided_by"]]]})
+            d["decision"], f"{'Approved' if d['decision'] == 'Excused' else 'Decided'} in #cc-gino: {d['summary']} {d['link']}".strip(), d["decided_by"]]]})
 
 json.dump(out, open(os.path.join(DIR, "slack_decisions.json"), "w"), indent=1)
 json.dump(fill, open(os.path.join(DIR, "reviews_fill.json"), "w"))
