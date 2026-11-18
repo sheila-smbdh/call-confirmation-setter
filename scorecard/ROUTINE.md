@@ -50,6 +50,13 @@ Follow `/root/.claude/CLAUDE.md`. Supabase calls are inline curl only, never fro
    why. If the upload fails partway, read the channel before retrying.
 6. **Finish** with one line: what was posted (day, targets hit, items to explain) or why nothing was.
 
+## How decisions get back to the tracker
+
+The comment (`message.txt`) lists the numbered items as text under the image. Gino explains by number around noon
+ET; Sheila and Jay decide each item in the same thread ("3, 5 excused - reason" / "7 miss", or free text). The next
+morning's tracker run reads the thread and fills the Reviews tab (H-J) for them, so they only open the tracker for
+the weekly approval on Tuesdays (Sheila, Nov 18).
+
 ## How the card is counted
 
 See the docstring at the top of `scorecard/build_card.py`. In short, a miss is an open row on the tracker's Reviews

@@ -8,6 +8,8 @@ Last updated: 2026-11-18 (rev 6). **The newest section is first and overrides an
 
 ## 0000. Update Nov 18, 2026 (rev 6): Nov 17 scorecard review
 
+**How reviews get decided from now on (Sheila, Nov 18):** Sheila and Jay decide every scorecard item in its #cc-gino thread (by end of the workday, after Gino explains around noon ET), "excused" or "still a miss", by number. The next morning's tracker run reads the thread and fills the Reviews tab (H-J) for them, including "Counts as a miss". They no longer edit the Reviews tab by hand; they open the tracker only to approve the week on the Management tab, **on Tuesdays** (Friday's card posts Monday and is decided that day, so the week is complete after Tuesday's morning run). They aim for a reply convention (`3, 5 excused - reason` / `7 miss`), but the run also reads free text. If they ever seem to disagree, the run reads the whole thread for the final word.
+
 **From Sheila's review of Gino's Nov 17 scorecard** ([thread](https://dylanhelen.slack.com/archives/C0CG28G7TQT/p1795002144893109)):
 
 | # | What happened (Nov 17) | Decision / rule from now on |

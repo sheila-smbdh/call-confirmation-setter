@@ -12,17 +12,22 @@ May, without asking:
 - Read Close (REST API, inline `curl`, one request per command), Calendly, Slack and the tracker.
 - Write to the tracker: replace the Calls, Daily, Weekly, Definitions and Data Sources tabs; append new rows to
   Reviews (columns A-G and L); write Management!K5 (run time) and Management!M5 (data through).
-- Reviews H-J, only where Sheila or Jay already approved the item in #cc-gino (`slack_match.py` decides), and only on
-  rows whose H, I and J are all blank: H = "Excused", I = "Approved in #cc-gino: <summary> <link>", J = "<name> (Slack)".
+- Reviews H-J from Sheila's or Jay's decisions in #cc-gino (`slack_match.py` decides; Sheila, Nov 18: they decide
+  every scorecard item in its thread and no longer edit the Reviews tab by hand). On rows whose H, I and J are all
+  blank, and on rows this run filled from Slack earlier (J ends in "(Slack)") when a newer Sheila/Jay reply changes
+  the decision: H = "Excused" or "Counts as a miss", I = "Approved/Decided in #cc-gino: <summary> <link>",
+  J = "<name> (Slack)".
 - Supabase setter-data (ref `suoblmuvrmyfmuvlhqce`), `call_confirm_` tables only: insert or update (upsert) through
   `https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/<table>`, one inline curl per file (step 12). Never delete, never
   touch any other table, never send DDL.
 - Upload one staging .xlsx to Google Drive per run (title starts with `TEMP - tracker nightly`).
-- Once a week, on the Monday-morning run (TODAY = Sunday): post the weekly review reminder in #cc-gino (see step 13).
+- Once a week, on the Tuesday-morning run (TODAY = Monday): post the weekly review reminder in #cc-gino (see step 13).
+  Tuesday, not Monday (Sheila, Nov 18): Friday's scorecard posts Monday morning and its decisions come in Monday, so
+  the week is only fully decided after the Tuesday-morning run.
 
 Must not:
 - Write anything to Close, Calendly or Supabase. Never delete or merge anything in Close.
-- Touch Reviews column K (the Action formula), any Reviews H-J that already has something in it, or any Management
+- Touch Reviews column K (the Action formula), any Reviews H-J a person filled in (J not ending in "(Slack)"), or any Management
   cell other than K5 and M5 (approvals, recovered calls, inputs).
 - Post anything else to Slack, or message anyone.
 - If a step fails, stop before swapping tabs. Leave the tracker as it was (Management!A5 will show STALE). Do not retry
@@ -55,7 +60,7 @@ only if EVERY part of it is on its safe list. Nobody is there to approve a promp
 | Direct discovery event type | ends with `3de6762f19f4` (filtered in scope.py) |
 | #call-confirmation (Zapier alerts) | `C0CF5TGANMT` |
 | #closer-eod (Nero EOD posts) | `C06RE8S1L4V` |
-| #cc-gino (Sunday reminder; Gino's exception requests) | `C0CG28G7TQT` |
+| #cc-gino (scorecard threads, Tuesday reminder, Gino's exception requests) | `C0CG28G7TQT` |
 | Supabase setter-data | ref `suoblmuvrmyfmuvlhqce`, tables `public.call_confirm_*` (`tracker/supabase/call_confirmation_schema.sql`) |
 | Sheila / Jay (Slack) | `U0BM6J8KM32` / `U06Q63DTS13` |
 
@@ -104,7 +109,7 @@ day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TOD
      `{"YYYY-MM-DD|lead_FULLID": ["Showed" | "No-show" | "Cancelled" | "Rescheduled" | "Needs confirmation" | "Follow-up", "Closer name"]}`.
      Never guess attendance; unresolved = "Needs confirmation".
 
-4b. **#cc-gino: exceptions Sheila or Jay already approved** (a subagent keeps this out of your context)
+4b. **#cc-gino: decisions from Sheila or Jay (scorecard threads and exceptions)** (a subagent keeps this out of your context)
    - Read where the last scan stopped:
      `curl -s "https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/call_confirm_sync_state?source=eq.slack_cc_gino&select=*"`
    - If there is no row, or `full_scans` < 2: read the WHOLE channel history. Otherwise read from `last_ts` on, AND
@@ -125,7 +130,20 @@ day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TOD
      Close activity right around the post or the answer (e.g. the Call Confirmation field he set minutes after
      Sheila's reply, `g_ev_*.json`) and record how in `lead_identified_by`. If it isn't clear, leave the names empty
      (the case then matches nothing and the item goes to review as usual).
-   - Note the newest `ts` read; step 12 saves it.
+   - **Scorecard threads** (Sheila, Nov 18): each morning's scorecard post lists its items as numbered text
+     ("3. Neal Gustafson · New booking · no-answer, missing text (...)"). Gino explains by number around noon ET;
+     Sheila and Jay then decide each item in the same thread, usually by end of day. Record ONE case per item:
+     `raised_ts` = `<card ts>#<item number>`, `thread_ts` = the card, `lead_names` and `call_date_mentioned` from the
+     item line, `checkpoints` = the item's Reviews key suffix (New booking / Overnight -> `welcome`, Day-before ->
+     `daybefore`, 5:45 cancel -> `545`, Logging -> `logging`), `decision` "approved" for excused and "denied" for
+     still a miss, `decided_by` and `decision_ts` from their reply, and a one-line `decision_summary` in their words.
+     - They aim for a convention (`3, 5, 6 excused - reason`, `7 miss`), but read free text too: "should not be a
+       miss", "Gino is excused", "not an error", "it's confirmed" = approved; "just missing X", "still counts",
+       "should have called" = denied. A reply can cover several numbers ("3.5.6", "3, 5 and 6", "all the rest").
+     - If Sheila and Jay seem to disagree, read the whole thread for the final word (a later reply that settles it,
+       or one of them deferring to the other). Only if it's still not clear: "unclear", and list it in the run summary.
+     - Gino's replies are context only; they never decide an item. An item nobody decided stays "no response".
+     - Re-read every scorecard thread from the last 14 days each run, so a decision changed later is picked up.
 
 5. **Scope and invitees**
    - `python3 -I $P/scope.py $DIR $TODAY` -> `scope.json`, `need_invitees.txt`.
@@ -215,10 +233,12 @@ day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TOD
 
 11. **Append Reviews and stamp the time**
     - If `reviews_append.json` is non-empty: `GOOGLESHEETS_UPDATE_VALUES_BATCH` with `valueInputOption`
-      `USER_ENTERED` and `data` = that file's list. (A-G and L; H-J only for rows already approved in Slack.)
-    - If `reviews_fill.json` is non-empty: same call with that list (fills H-J on older blank rows that a Slack
-      approval covers). Re-check first with `GOOGLESHEETS_BATCH_GET` that each of those H:J ranges is still blank;
-      drop any that isn't.
+      `USER_ENTERED` and `data` = that file's list. (A-G and L; H-J only for rows already decided in Slack.)
+    - If `reviews_fill.json` is non-empty: same call with that list (fills H-J from Sheila's and Jay's #cc-gino
+      decisions: "Excused" or "Counts as a miss"). Re-check first with `GOOGLESHEETS_BATCH_GET` that each of those
+      H:J ranges is still blank, or still holds what this run wrote from Slack earlier (J ends in "(Slack)"); drop
+      any a person has filled in since.
+    - List in the run summary every Reviews row still undecided and why (no reply yet, "unclear", or no item matched).
     - `GOOGLESHEETS_UPDATE_VALUES_BATCH`: `Management!K5` = now in Pacific time as `YYYY-MM-DD HH:MM` (the real
       time, i.e. the morning after TODAY), and `Management!M5` = TODAY (the data-through day).
     - Verify with `GOOGLESHEETS_BATCH_GET` of `Management!A1:A5`, `Management!A15:O16` and the last two rows of
@@ -237,9 +257,9 @@ day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TOD
     - Last, the run record (status ok/partial/failed and a short summary of counts and warnings) in `call_confirm_runs`, same form.
     - If Supabase fails, still finish the run (the tracker is already updated); say so in the summary.
 
-13. **Weekly reminder in #cc-gino** (`C0CG28G7TQT`), only on the run where TODAY is a Sunday (it runs Monday morning,
-    once the week has closed), after step 12: read `Management!A1:A4` and the row for the week that ends on TODAY,
-    then post one message:
+13. **Weekly reminder in #cc-gino** (`C0CG28G7TQT`), only on the run where TODAY is a Monday (it runs Tuesday
+    morning, once Friday's scorecard decisions from Monday are in), after step 12: read `Management!A1:A4` and the row
+    for the week that ended the day before TODAY (Monday to Sunday), then post one message:
     ```
     <@U0BM6J8KM32> <@U06Q63DTS13> Weekly call confirmation review, week of <Mon date>–<Sun date>.
     • Compliant: <Yes/No/WAITING> (KPI 1 confirmation <x%> · KPI 2 speed to lead <y%> · KPI 3 logging <met/not met>)

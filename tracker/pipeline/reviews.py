@@ -3,7 +3,7 @@
 Usage: python3 -I reviews.py DATA_DIR
   Reads calls_all.json, review_keys.json, reviews_last_row.txt. Writes DATA_DIR/reviews_append.json: the "data" list
   for GOOGLESHEETS_UPDATE_VALUES_BATCH (valueInputOption USER_ENTERED). Columns A-G get the facts, H-J stay blank for
-  the decision (unless Sheila or Jay already approved it in #cc-gino: then H-J say so), K is a formula that fills itself, L is the key. Existing rows and decisions are never touched.
+  the decision (unless Sheila or Jay already decided it in #cc-gino: then H-J say so), K is a formula that fills itself, L is the key. Existing rows and decisions are never touched.
 """
 import json, sys
 from datetime import date, datetime, timedelta
@@ -73,7 +73,7 @@ for it in items():
     d = slack.get(it[7])
     if d:   # Sheila or Jay already approved this in #cc-gino: record it so it doesn't wait for review
         data.append({"range": f"Reviews!H{n}:J{n}", "values": [[d["decision"],
-                     f"Approved in #cc-gino: {d['summary']} {d['link']}".strip(), d["decided_by"]]]})
+                     f"{'Approved' if d['decision'] == 'Excused' else 'Decided'} in #cc-gino: {d['summary']} {d['link']}".strip(), d["decided_by"]]]})
 json.dump(data, open(f"{D}/reviews_append.json", "w"))
 new = n - last
 pre = sum(1 for x in data if ":J" in x["range"])
