@@ -335,7 +335,9 @@ for ev in scope:
             row["w_reason"] = "During shift: booking + 15 min" if row["booking_type"] == "During shift" else "Overnight: next shift start + 30 min"
         if row["w_required"] == "Yes":
             row["w"] = cp
-            row["w_speed_min"] = round((cp["first_dial"] - base).total_seconds() / 60) if cp["first_dial"] else None
+            # Nov 18: a dial before the clock starts (an overnight booking called after hours, before his next shift)
+            # is speed 0, not negative minutes. Negative values pulled Nov 17's overnight average to -211.
+            row["w_speed_min"] = max(0, round((cp["first_dial"] - base).total_seconds() / 60)) if cp["first_dial"] else None
 
     # ---- day-before call ----
     db = cd - timedelta(days=1)     # SOP (Nov 13): Friday covers Saturday calls only; Sunday and Monday calls get none

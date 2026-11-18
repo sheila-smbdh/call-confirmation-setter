@@ -270,7 +270,7 @@ defs = [
     ("Welcome call: due", "During shift: 15 minutes after booking. Overnight: 30 minutes after his next shift starts (11:30am ET)."),
     ("Accepted at booking", "The prospect accepted the calendar invite before the welcome call was due (and before Gino dialed). No welcome call is needed, so it's left out of the due count."),
     ("Invite accepted / declined at", "From the calendar response emails ('Accepted:' / 'Declined:') that the closer's calendar sends and Close stores on the lead."),
-    ("Speed to lead", "Minutes from booking (or from the start of his shift, for overnight bookings) to his first dial on that lead."),
+    ("Speed to lead", "Minutes from booking (or from the start of his shift, for overnight bookings) to his first dial on that lead. A dial before that (an overnight booking he called after hours) counts as 0."),
     ("Touched", "At least one outbound dial by Gino on that lead inside the checkpoint's window."),
     ("Double dial", "A second dial within 3 minutes of the first. 'N/A' when the first dial was answered."),
     ("Connected", "A call with a 'Conversation' outcome, a call screener he got through, an answered call of 45 seconds or more with no voicemail, or the prospect calling him back."),

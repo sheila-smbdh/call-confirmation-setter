@@ -7,8 +7,9 @@ DIR/message.txt (the Slack comment). Prints OK, or STALE / NO DATA with the reas
 How each tile is counted (the same rules as the tracker's Reviews tab, docs/DECISIONS.md section 0):
 - A miss is a Reviews row for that day. Rows Sheila or Jay marked "Excused" don't count and leave the total too.
 - Overnight: overnight bookings he had to call, minus the ones never dialed.
-- Speed to lead: share of during-shift bookings first dialed within 15 min (target 85%). Red below 85%, or if a
-  during-shift booking was never dialed.
+- Speed to lead: share of during-shift bookings first dialed within 15 min, out of all that were due (the same as
+  KPI 2 on the Management tab; a booking never dialed counts as not in 15 min). Green at 85% or more, red below
+  (Sheila, Nov 17). A booking never dialed is still listed under "Reply with why"; it is a KPI 1 miss.
 - VM + text: no-answers where he did double dial + voicemail + text.
 - Day-before: day-before calls due, minus the ones not made.
 - 5:45 cancels: unaccepted next-day calls that needed the cancel, minus the ones not cancelled.
@@ -57,11 +58,12 @@ def frac(due, excused_n, missed_n):
 ov_v, ov_s = frac(g("Welcome: overnight bookings / Due"), len(untouched(cp(excused, WO))), len(untouched(cp(open_, WO))))
 ds_due = int(g("Welcome: during-shift bookings / Due"))
 on_time = r.get("Welcome: during-shift bookings / On time %")
-sp_open = untouched(cp(open_, WS))
 if ds_due and on_time is not None:
-    sp_v = f"{round(on_time * 100)}%"
-    sp_t = f"{round(on_time * ds_due)} of {ds_due} in 15 min"
-    sp_s = "g" if on_time >= 0.85 and not sp_open else "r"
+    # Daily's "On time %" is out of the bookings he dialed; the card (like KPI 2) is out of all that were due.
+    in15 = round(on_time * g("Welcome: during-shift bookings / Touched"))
+    sp_v = f"{round(in15 / ds_due * 100)}%"
+    sp_t = f"{in15} of {ds_due} in 15 min"
+    sp_s = "g" if in15 / ds_due >= 0.85 else "r"
 else:
     sp_v, sp_t, sp_s = "–", "none booked", "g"
 na = sum(g(f"{k} / No answer") for k in ("Welcome: overnight bookings", "Welcome: during-shift bookings", "Day-before calls"))
