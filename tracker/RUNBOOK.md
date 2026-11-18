@@ -163,6 +163,21 @@ day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TOD
      or cancel request. If unsure, leave it out (the item then goes to review as usual).
    - If anything was added, run `build.py` again.
 
+7c. **Check Gino's notes before anything becomes a miss** (Sheila, Nov 18: verify his notes against Close before an
+   item goes to Reviews or the scorecard)
+   - List the leads with a miss in `calls_new.json` (a welcome or day-before checkpoint required and not finished, or a
+     5:45 cancel required and not done); `python3 -c` over the file is fine.
+   - For each, one curl:
+     `curl -s -u "$CLOSE_API_KEY:" "https://api.close.com/api/v1/activity/note/?lead_id=<lead_id>&_limit=50&_fields=id,lead_id,date_created,user_name,note" -o $DIR/note_lead_<lead_id>.json`
+     (his call notes are already in `g_call_*.json`; build.py puts them on each checkpoint as `notes`).
+   - Read each miss with its notes and Gino's Close activity in that window (dial times, disposition, duration,
+     voicemail, texts). If a note explains a step he couldn't do AND the activity backs it up (e.g. "straight
+     disconnect, didn't ring" on a busy 0-second dial; "number disconnected" with failed dials), add to
+     `$DIR/miss_overrides.json` `{"<event id>|welcome" (or "|daybefore", "|545"): "<what the note says> (<the Close
+     evidence>)"}` and run build.py again. If the activity doesn't back the note up, it stays a miss, and reviews.py
+     shows his notes on the Reviews row (column G).
+   - Busy, blocked or failed 0-second dials already excuse the voicemail step automatically (Nov 18).
+
 8. **Merge with the live tracker**
    - `mcp__Google_Drive__download_file_content` with fileId = tracker id, exportMimeType
      `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`. The file is saved by the harness; copy it to
