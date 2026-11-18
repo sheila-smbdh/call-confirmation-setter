@@ -140,8 +140,11 @@ day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TOD
 
 7. **Build**: `python3 -I $P/build.py $DIR $TODAY` -> `calls_new.json`.
    - For any row whose `check` is "Logging error: invite not accepted when he logged it (check the call transcript)",
-     read Gino's call transcript (`curl -s -u "$CLOSE_API_KEY:" ".../activity/call/<id>/?_fields=id,duration,recording_transcript"`
-     for the ids in the row's `transcript_calls`). If the prospect confirmed and had a technical problem accepting, add
+     first read the texts between Gino and the prospect and Gino's notes on the lead (Sheila, Nov 18: he often explains
+     the situation in a note): `.../activity/sms/?lead_id=<lead_id>&_limit=100` and
+     `.../activity/note/?lead_id=<lead_id>&_limit=50`, one curl each. A prospect's text saying they'll attend goes in
+     `text_confirms.json` (step 7b; build.py then marks the logging valid). Then read Gino's call transcript (`curl -s -u "$CLOSE_API_KEY:" ".../activity/call/<id>/?_fields=id,duration,recording_transcript"`
+     for the ids in the row's `transcript_calls`). If the prospect confirmed (by phone, text or as his note explains) and had a technical problem accepting, add
      to `$DIR/overrides.json` `{"<lead_id>": "Valid (verbal + tech issue): <one-sentence reason>"}`; if not,
      `{"<lead_id>": "Logging error: <one-sentence reason>"}`. Re-run build.py. Don't quote transcripts at length.
 
