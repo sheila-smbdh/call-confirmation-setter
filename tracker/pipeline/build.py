@@ -313,7 +313,9 @@ for ev in scope:
             base = next_shift_start(booked)
             due = base + timedelta(minutes=30)
         row["w_due"] = due
-        hi = min(alive_until, shift_end(due.astimezone(ET).date()))
+        # Nov 18: a booking in the last 15 min of his shift is due after the shift ends, so look until the due time
+        # (Richard Davidson, Nov 16: booked 7:53pm ET, dialed and confirmed 8:01pm ET, was shown as never dialed).
+        hi = min(alive_until, max(shift_end(due.astimezone(ET).date()), due))
         cp = checkpoint(lead, booked, hi, due)
         acc_t = first_accept(lead, lo_resp, s)
         claims = gino_claims(lead, booked, hi)
