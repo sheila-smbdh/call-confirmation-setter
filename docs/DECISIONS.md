@@ -12,7 +12,8 @@ Last updated: 2026-11-18 (rev 6). **The newest section is first and overrides an
 
 | # | What happened (Nov 17) | Decision / rule from now on |
 |---|---|---|
-| 3, 5, 6 | Jessamyn Wilkinson, Michael Nunez, Neal Gustafson: welcome call missing only the text. | Excused. **The no-text rule for welcome calls applies from Nov 17**, not Nov 18. Inderjeet Harika (#2) still misses the voicemail. |
+| 3, 5, 6 | Jessamyn Wilkinson, Michael Nunez, Neal Gustafson: welcome call missing only the text. | Excused. **The no-text rule for welcome calls applies from Nov 17**, not Nov 18. |
+| 2 | Inderjeet Harika: both dials logged busy, 0 seconds; Gino's call note says "straight disconnect, didn't even ring", so no voicemail was possible. | Excused (Sheila, in a session). **A dial that never rang (busy/blocked/failed, 0 seconds) excuses the voicemail step.** **Before anything becomes a miss, read Gino's call and lead notes and check them against the Close activity**; a note the activity backs up excuses the step, otherwise the note goes on the Reviews row. |
 | 4 | M Dwivedi was DQ'd from outbound and booked a D2C call themselves right away. | Excused (edge case). |
 | 1 | Atembeoh Anu confirmed by phone, then rescheduled with Harry; the new booking was never called. | Miss stands. **After a reschedule, treat it as a new booking and call again.** (Already how the tracker counts it.) |
 | 7, 8 | Lonnie Lockwood: no day-before call and no 5:45 cancel. | Misses stand (Gino agreed). |

@@ -39,6 +39,12 @@ Rules from Sheila's review of the Nov 17 scorecard (#cc-gino, Nov 18):
 - Before calling a logging error, read the texts between Gino and the prospect and his notes on the lead, not just the
   call transcript (Jigya Dhamija: tried to accept a few times, Calendly errored). The run records that in overrides.json.
 - After a reschedule, the new booking is a new call: it needs its own welcome call (already how the tracker counts it).
+- Didn't ring = no voicemail possible (Inderjeet Harika, Nov 17): a dial Close logs as busy/blocked/failed with 0 seconds
+  (a straight disconnect) excuses the voicemail step, like "No VM option". The double dial is still required.
+- Check his notes before calling a miss: every checkpoint carries Gino's call notes from its window, and the run reads
+  his lead notes for every miss (runbook step 7c). Where a note explains a step he couldn't do and the Close activity
+  backs it up, the run records it in miss_overrides.json and the item is not a miss; otherwise the note goes on the
+  Reviews row for Sheila and Jay.
 
 Usage: python3 -I build.py DATA_DIR TODAY(YYYY-MM-DD, ET run date)  -> DATA_DIR/calls_new.json
 Only the calls in DATA_DIR/scope.json are built (scope.py picks the run window); merge.py combines them with the rows
@@ -120,6 +126,7 @@ for f in sorted(glob.glob(f"{D}/eod*.json")):
 optional = lambda name: json.load(open(f"{D}/{name}")) if os.path.exists(f"{D}/{name}") else {}
 lead_fix = optional("lead_fix.json")
 overrides = optional("overrides.json")
+miss_overrides = optional("miss_overrides.json")   # {"<event id>|welcome|daybefore|545": "<verified reason>"} (step 7c)
 text_conf = optional("text_confirms.json")   # prospects who confirmed by text (Sheila, Nov 13); see text_confirms.py
 alerts = [json.loads(l) for l in open(f"{D}/slack_alerts.jsonl")]
 booked_alerts = [a for a in alerts if a["type"] == "NEW CALL BOOKED"]
@@ -210,6 +217,11 @@ def phone_confirmed(lead, lo, hi):
           if c["lead_id"] == lead and lo <= p(c["date_created"]) < hi and OUT.get(c.get("outcome_id")) in ok]
     return min(ts) if ts else None
 
+def no_ring(c):
+    """Nov 18 (Inderjeet Harika): the dial never rang (busy/blocked/failed, 0 seconds), so no voicemail could be left."""
+    return (c.get("disposition") in ("busy", "blocked", "error") or c.get("status") in ("busy", "failed")) \
+        and not (c.get("duration") or 0)
+
 def is_conn(c):
     o = OUT.get(c.get("outcome_id"), "")
     if o.startswith("Conversation") or o == "Call screener: got through":
@@ -231,6 +243,8 @@ def checkpoint(lead, lo, hi, due, need_text=True):
     vm_x = not r["voicemail"] and any(OUT.get(c.get("outcome_id")) == "No Answer – No VM Option" for c in cs)
     # Sheila, Nov 16: the prospect picked up and hung up, or the call dropped, before a voicemail could be left.
     vm_h = not r["voicemail"] and not vm_x and any(is_hangup(c) for c in cs)
+    vm_r = not r["voicemail"] and not vm_x and not vm_h and any(no_ring(c) for c in cs)
+    r["notes"] = "; ".join(" ".join(c["note"].split())[:120] for c in cs if (c.get("note") or "").strip())
     tx_x = not r["text"] and any(s["lead_id"] == lead and lo <= p(s["date_created"]) < hi and s["status"] in ("error", "failed", "undelivered")
                                  for s in allsms)
     if not cs:
@@ -238,13 +252,15 @@ def checkpoint(lead, lo, hi, due, need_text=True):
     elif r["connected"]:
         r["finished"], r["dropoff"] = True, ""
     else:
-        miss = [n for n, ok in (("double dial", dd), ("voicemail", r["voicemail"] or vm_x or vm_h),
+        miss = [n for n, ok in (("double dial", dd), ("voicemail", r["voicemail"] or vm_x or vm_h or vm_r),
                                 ("text", r["text"] or tx_x or not need_text)) if not ok]
         r["finished"], r["dropoff"] = not miss, ("Missing " + ", ".join(miss)) if miss else ""
     if vm_x:
         r["voicemail"] = "No VM option"
     elif vm_h:
         r["voicemail"] = "Hung up before voicemail"
+    elif vm_r:
+        r["voicemail"] = "Didn't ring (busy / straight disconnect)"
     if tx_x:
         r["text"] = "Text failed to send"
     elif not need_text and not r["text"]:
@@ -485,6 +501,14 @@ for ev in scope:
         row["happened"], row["happened_src"] = zoom(meet), "Close (Zoom)"
     else:
         row["happened"], row["happened_src"] = "Unknown", "Ask Sheila"
+    # Step 7c: a miss Gino's note explains and Close backs up (run's judgment, recorded with its evidence).
+    for kind, cpk in (("welcome", "w"), ("daybefore", "db")):
+        why = miss_overrides.get(f"{row['event']}|{kind}")
+        if why and row.get(cpk) and not row[cpk]["finished"]:
+            row[cpk].update(finished=True, dropoff="", excused=why)
+    why = miss_overrides.get(f"{row['event']}|545")
+    if why and row.get("r_required") == "Yes" and row.get("r_result") != "Cancelled":
+        row["r_required"], row["r_reason"], row["r_counts"] = "No", f"Excused from his note: {why}", "No"
     rows.append(row)
 
 json.dump(rows, open(f"{D}/calls_new.json", "w"), default=str, indent=1)
