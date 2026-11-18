@@ -1,12 +1,14 @@
 """Offline: prospects who confirmed by text (Sheila, Nov 13). No network.
 
 A prospect's own text saying they'll be on the call counts as a confirmation from the time it was sent: after it, no
-day-before call or 5:45 cancel is required. The texts are pulled per lead by the runbook (one inline curl per lead);
+day-before call or 5:45 cancel is required, and logging it accepted is valid
+(Sheila, Nov 18). The texts are pulled per lead by the runbook (one inline curl per lead);
 the run reads them and decides which ones are confirmations.
 
 usage:
   python3 -I text_confirms.py leads DIR    -> DIR/text_check_leads.txt: leads with a day-before call or 5:45 cancel
-                                              required (or can't tell), whose texts need checking
+                                              required (or can't tell), or a logging error
+                                              (Sheila, Nov 18), whose texts need checking
   python3 -I text_confirms.py list DIR     -> prints every inbound text on those leads (from DIR/sms_lead_*.json),
                                               one per line: lead_id | sent at (UTC) | text
 The run then writes DIR/text_confirms.json:
@@ -24,7 +26,8 @@ mode, DIR = sys.argv[1], sys.argv[2]
 if mode == "leads":
     rows = json.load(open(os.path.join(DIR, "calls_new.json")))
     leads = sorted({r["lead_id"] for r in rows if r.get("lead_id")
-                    and (r.get("db_required") in ("Yes", "Can't tell") or r.get("r_required") in ("Yes", "Can't tell"))})
+                    and (r.get("db_required") in ("Yes", "Can't tell") or r.get("r_required") in ("Yes", "Can't tell")
+                         or r.get("check", "").startswith("Logging error"))})
     with open(os.path.join(DIR, "text_check_leads.txt"), "w") as fh:
         fh.write("\n".join(leads) + ("\n" if leads else ""))
     print(len(leads), "leads to check")

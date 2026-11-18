@@ -2,7 +2,21 @@
 
 The source of truth for every decision about the Call Confirmation Specialist role. The SOP, the Close setup, the Zaps and the payout code all follow this file. If anything conflicts with it, this file wins until Sheila changes it.
 
-Last updated: 2026-11-18 (rev 5). **The newest section is first and overrides anything older below it** (000, then 00, then 0).
+Last updated: 2026-11-18 (rev 6). **The newest section is first and overrides anything older below it** (0000, then 000, then 00, then 0).
+
+---
+
+## 0000. Update Nov 18, 2026 (rev 6): Nov 17 scorecard review
+
+**From Sheila's review of Gino's Nov 17 scorecard** ([thread](https://dylanhelen.slack.com/archives/C0CG28G7TQT/p1795002144893109)):
+
+| # | What happened (Nov 17) | Decision / rule from now on |
+|---|---|---|
+| 3, 5, 6 | Jessamyn Wilkinson, Michael Nunez, Neal Gustafson: welcome call missing only the text. | Excused. **The no-text rule for welcome calls applies from Nov 17**, not Nov 18. Inderjeet Harika (#2) still misses the voicemail. |
+| 4 | M Dwivedi was DQ'd from outbound and booked a D2C call themselves right away. | Excused (edge case). |
+| 1 | Atembeoh Anu confirmed by phone, then rescheduled with Harry; the new booking was never called. | Miss stands. **After a reschedule, treat it as a new booking and call again.** (Already how the tracker counts it.) |
+| 7, 8 | Lonnie Lockwood: no day-before call and no 5:45 cancel. | Misses stand (Gino agreed). |
+| 9, 10, 11 | Elias Uddin texted "accept"; Franklin Steven texted "I will be there"; Jigya Dhamija tried to accept several times and Calendly errored. | Not logging errors. **A prospect's text saying they'll attend makes logging it accepted valid.** Before calling a logging error, read the texts between Gino and the prospect and his notes on the lead, not just the transcript. |
 
 ---
 
@@ -18,7 +32,7 @@ Last updated: 2026-11-18 (rev 5). **The newest section is first and overrides an
 | 1 | Dean B (call Mon 12pm ET) dropped out of his smart view at 12pm, before Gino reached him (see below). | Excused: a smart view issue. Sheila added a meeting-time column to "Call Confirmation - New Booking" so he can sort and work the soonest calls first. |
 
 **From the sales leadership call (Nov 18):**
-- **Welcome calls: no text.** For new bookings and overnight bookings, a no-answer needs double dial + voicemail only. Day-before calls still need double dial + voicemail + text. The tracker applies this to welcome calls due from Nov 18.
+- **Welcome calls: no text.** For new bookings and overnight bookings, a no-answer needs double dial + voicemail only. Day-before calls still need double dial + voicemail + text. The tracker applies this to welcome calls due from Nov 18 (moved to Nov 17 in rev 6).
 - **No 5:45 cancel for next-day bookings.** The closer's slot can't realistically be refilled that late, and a short booking window goes with higher show rates. Calls booked 2+ days out that still aren't accepted at 5:45pm MT the day before are still cancelled. Nothing wider (Sheila, Nov 18: not "within 48 hours"). In the tracker this is the same as the Nov 13 rule "never cancel a booking made that same day": a call booked for the next day is booked on the day before.
 - **Outreach to next-day bookings:** drop "Our system will cancel if not accepted". Ask them to accept the invite and to be on a laptop for Zoom. Calls booked 2+ days out keep the cancel language, because they can still be cancelled.
 

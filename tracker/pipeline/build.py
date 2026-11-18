@@ -28,10 +28,17 @@ Rules from Sheila's review of the Nov 16 scorecard and the Nov 18 sales leadersh
   within 15 min of booking (or 30 min after shift start, overnight).
 - Cancelled before he reached them: if the prospect cancelled the call or declined the invite before his first dial,
   and he logged Call Confirmation 8, no welcome call is needed (Edgar Parrado, Nov 16).
-- From Nov 18: welcome calls (new and overnight bookings) need double dial + voicemail only, no text. Day-before calls
-  still need the text.
+- From Nov 17 (Sheila, #cc-gino Nov 18, moved back a day from Nov 18): welcome calls (new and overnight bookings) need
+  double dial + voicemail only, no text. Day-before calls still need the text.
 - No 5:45 cancel for a next-day booking (Nov 18). Already the rule: a call booked for the next day is booked on the day
   before, and those were never cancelled (Nov 13). Calls booked 2+ days out still get the 5:45 cancel.
+
+Rules from Sheila's review of the Nov 17 scorecard (#cc-gino, Nov 18):
+- Confirmed by text counts for logging too: if the prospect texted that they'll attend ("accept", "I will be there")
+  before or soon after he logged the invite accepted, the logging is valid, not an error (Elias Uddin, Franklin Steven).
+- Before calling a logging error, read the texts between Gino and the prospect and his notes on the lead, not just the
+  call transcript (Jigya Dhamija: tried to accept a few times, Calendly errored). The run records that in overrides.json.
+- After a reschedule, the new booking is a new call: it needs its own welcome call (already how the tracker counts it).
 
 Usage: python3 -I build.py DATA_DIR TODAY(YYYY-MM-DD, ET run date)  -> DATA_DIR/calls_new.json
 Only the calls in DATA_DIR/scope.json are built (scope.py picks the run window); merge.py combines them with the rows
@@ -51,7 +58,7 @@ NO_GATE_DB = {date(2026, 11, 10)}          # Jay: welcome calls only on day 1
 START = datetime(2026, 11, 10, 1, 0, tzinfo=timezone.utc)   # Nov 9 8pm ET
 LAST_SHIFT_END = datetime.now(timezone.utc)  # bookings after this run are picked up by the next run
 NC = {"Needs Confirmation", "Needs Confirmation - Reschedule"}
-NOV18 = date(2026, 11, 18)   # sales leadership call: welcome calls no longer need a text
+NO_TEXT_FROM = date(2026, 11, 17)   # welcome calls need no text from this day (Nov 18 call; Sheila moved it to Nov 17)
 
 def p(s):
     if not s:
@@ -241,7 +248,7 @@ def checkpoint(lead, lo, hi, due, need_text=True):
     if tx_x:
         r["text"] = "Text failed to send"
     elif not need_text and not r["text"]:
-        r["text"] = "Not required (welcome call, from Nov 18)"
+        r["text"] = "Not required (welcome call, from Nov 17)"
     r["on_time"] = bool(cs) and r["first_dial"] <= due
     return r
 
@@ -332,7 +339,7 @@ for ev in scope:
         # 6pm MT (Richard Davidson, Nov 16: booked 7:53pm ET, dialed and confirmed 8:01pm ET, was shown never dialed).
         due_day = due.astimezone(ET).date()
         hi = min(alive_until, et(due_day + timedelta(days=1), 2))
-        cp = checkpoint(lead, booked, hi, due, need_text=due_day < NOV18)
+        cp = checkpoint(lead, booked, hi, due, need_text=due_day < NO_TEXT_FROM)
         # Sheila, Nov 18: the prospect cancelled or declined before he reached them, and he logged 8 (Edgar Parrado).
         f8 = next((p(e["date_updated"]) for e in fev if e["lead_id"] == lead and p(e["date_updated"]) >= booked
                    and fval(e).startswith("8.")), None)
@@ -457,6 +464,9 @@ for ev in scope:
                             else "Verified: invite accepted when he logged it")
         elif lead in overrides:
             row["check"] = overrides[lead]
+        elif text_conf.get(lead) and p(text_conf[lead]["at"]) <= tc + timedelta(hours=12):
+            # Sheila, Nov 18: the prospect's text saying they'll attend makes it confirmed from his point of view.
+            row["check"] = f'Valid (confirmed by text): "{text_conf[lead].get("text", "")[:60]}" ({fmt(p(text_conf[lead]["at"]))})'
         elif a is None and acc_now:
             row["check"] = "Verified: calendar shows accepted (no response email to time it)"
         else:
