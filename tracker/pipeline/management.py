@@ -168,7 +168,8 @@ mg.row_dimensions[HR].height = 75
 
 # the "last updated" line (row 5): the nightly run writes K5 (its run time, Pacific) and M5 (data through)
 mg["J5"], mg["L5"] = "Last refresh (Pacific, set by the update)", "Data through"
-DUE = 'IF(AND(WEEKDAY(NOW(),2)<=7,MOD(NOW(),1)>=21/24),INT(NOW())+19/24,INT(NOW())-1+19/24)'
+# Nov 18: the daily update runs at 5:41am ET (2:41am PT, the sheet's time zone). From 7am ET it should have run today.
+DUE = 'IF(MOD(NOW(),1)>=4/24,INT(NOW())+TIME(2,40,0),INT(NOW())-1+TIME(2,40,0))'
 mg["A5"] = ('=IF($K$5="","Last updated: never",IF($K$5<' + DUE + ',"STALE: last updated "&TEXT($K$5+3/24,"ddd mmm d, h:mm AM/PM")&" ET, data through "&TEXT($M$5,"ddd mmm d")&". The daily update should have run by "&TEXT(' + DUE + '+3/24,"ddd mmm d, h:mm AM/PM")&" ET.","Up to date: last updated "&TEXT($K$5+3/24,"ddd mmm d, h:mm AM/PM")&" ET, data through "&TEXT($M$5,"ddd mmm d")&"."))')
 mg.conditional_formatting.add("A5:I5", FormulaRule(formula=['LEFT($A$5,5)="STALE"'], fill=red, font=Font(bold=True)))
 mg.conditional_formatting.add("A5:I5", FormulaRule(formula=['LEFT($A$5,10)="Up to date"'], fill=grn))

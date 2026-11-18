@@ -1,6 +1,9 @@
-# Nightly update: Call Confirmation Tracker (Gino)
+# Daily update: Call Confirmation Tracker (Gino)
 
-Runs every day at 8:00pm Mountain (two hours after Gino's 6pm MT shift ends), as a scheduled session.
+Runs every day at 5:41am ET (3:41am MT), as a scheduled session, an hour before Gino's scorecard (6:41am ET) reads
+what it saves. It reports on the last full day (yesterday), and also picks up anything Gino or the closers logged
+overnight (late EOD posts, call outcomes, notes). Moved from 8:00pm MT on Nov 18, 2026 (Sheila). The scheduled task
+keeps its name, "Gino call confirmation tracker – nightly refresh".
 It refreshes the tracker: https://docs.google.com/spreadsheets/d/1R4l1Szm7cxfu70sBxGpWsJncsu0mlyFPiwatJg6Kdsk/edit
 
 ## What this run may and may not do (Sheila's standing approval, Nov 13, 2026)
@@ -15,7 +18,7 @@ May, without asking:
   `https://suoblmuvrmyfmuvlhqce.supabase.co/rest/v1/<table>`, one inline curl per file (step 12). Never delete, never
   touch any other table, never send DDL.
 - Upload one staging .xlsx to Google Drive per run (title starts with `TEMP - tracker nightly`).
-- On Sundays only: post the weekly review reminder in #cc-gino (see step 13).
+- Once a week, on the Monday-morning run (TODAY = Sunday): post the weekly review reminder in #cc-gino (see step 13).
 
 Must not:
 - Write anything to Close, Calendly or Supabase. Never delete or merge anything in Close.
@@ -61,7 +64,10 @@ downloads through the Google Drive connector.
 
 ## Steps
 
-Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TODAY` (gitignored; never commit it).
+Set `TODAY` = **yesterday's** date in US Eastern (YYYY-MM-DD): the last full day, the day this run reports on. The
+run starts at 5:41am ET, so the real date is one day later. Every step below uses this `TODAY` (file names, `T-4`,
+`Management!M5`, the run record's `today` and `data_through`), so the rows built are the same as an 8pm MT run on that
+day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TODAY` (gitignored; never commit it).
 `P=tracker/pipeline`. Dates below: `T-4` = TODAY minus 4 days, etc.
 
 1. **Close: users and meetings**
@@ -195,13 +201,13 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
     - If `reviews_fill.json` is non-empty: same call with that list (fills H-J on older blank rows that a Slack
       approval covers). Re-check first with `GOOGLESHEETS_BATCH_GET` that each of those H:J ranges is still blank;
       drop any that isn't.
-    - `GOOGLESHEETS_UPDATE_VALUES_BATCH`: `Management!K5` = now in Pacific time as `YYYY-MM-DD HH:MM`, and
-      `Management!M5` = TODAY.
+    - `GOOGLESHEETS_UPDATE_VALUES_BATCH`: `Management!K5` = now in Pacific time as `YYYY-MM-DD HH:MM` (the real
+      time, i.e. the morning after TODAY), and `Management!M5` = TODAY (the data-through day).
     - Verify with `GOOGLESHEETS_BATCH_GET` of `Management!A1:A5`, `Management!A15:O16` and the last two rows of
       `Daily`: no `#REF!`, `#N/A`, `#ERROR!` or `#VALUE!`; A5 starts with "Up to date". If not, report it (step 14).
 
-12. **Save everything to Supabase** (setter-data, `call_confirm_` tables). `RUN_ID` = the run's start time, e.g.
-    `2026-11-13T20:00-07:00`.
+12. **Save everything to Supabase** (setter-data, `call_confirm_` tables). `RUN_ID` = the run's real start time, e.g.
+    `2026-11-19T05:41-05:00`. In the run record, `today` and `data_through` are both TODAY (yesterday's date).
     - Download the tracker again (as in step 8) to `$DIR/tracker_after.xlsx`, so the values saved are what the sheet
       shows after this run (Daily, Weekly, Management and Reviews, including Sheila's and Jay's decisions).
     - `python3 -I $P/supa.py $DIR $RUN_ID $DIR/tracker_after.xlsx` -> `$DIR/supa/manifest.tsv` and upload files.
@@ -213,8 +219,9 @@ Set `TODAY` = today's date in US Eastern (YYYY-MM-DD) and `DIR=tracker/data/$TOD
     - Last, the run record (status ok/partial/failed and a short summary of counts and warnings) in `call_confirm_runs`, same form.
     - If Supabase fails, still finish the run (the tracker is already updated); say so in the summary.
 
-13. **Sundays only (TODAY is a Sunday in ET): weekly reminder in #cc-gino** (`C0CG28G7TQT`), after step 12:
-    read `Management!A1:A4` and the row for the week that ends today, then post one message:
+13. **Weekly reminder in #cc-gino** (`C0CG28G7TQT`), only on the run where TODAY is a Sunday (it runs Monday morning,
+    once the week has closed), after step 12: read `Management!A1:A4` and the row for the week that ends on TODAY,
+    then post one message:
     ```
     <@U0BM6J8KM32> <@U06Q63DTS13> Weekly call confirmation review, week of <Mon date>–<Sun date>.
     • Compliant: <Yes/No/WAITING> (KPI 1 confirmation <x%> · KPI 2 speed to lead <y%> · KPI 3 logging <met/not met>)

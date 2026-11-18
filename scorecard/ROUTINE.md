@@ -1,6 +1,6 @@
 # Morning scorecard: Gino's daily card in #cc-gino
 
-Runs Monday to Friday before 7am ET as a scheduled session. It reads what last night's tracker run saved in Supabase,
+Runs Monday to Friday at 6:41am ET as a scheduled session. It reads what this morning's tracker run (5:41am ET) saved in Supabase,
 draws one PNG and posts it to #cc-gino (`C0CG28G7TQT`), tagging Gino. He replies in the post's thread with why for each
 numbered item, so Sheila and Jay have his side before they decide the Reviews tab.
 
@@ -34,8 +34,8 @@ Follow `/root/.claude/CLAUDE.md`. Supabase calls are inline curl only, never fro
      error object instead, treat it as a failed step (step 5).
 2. **Build**: `python3 -I scorecard/build_card.py $DIR`.
    - `OK ...`: carry on.
-   - `STALE ...`: last night's tracker run didn't finish. Post nothing to #cc-gino. DM Sheila one line:
-     "Gino's scorecard wasn't sent: <the STALE line>. Check last night's tracker run." Then stop.
+   - `STALE ...`: this morning's tracker run didn't finish (or is still running). Post nothing to #cc-gino. DM Sheila one line:
+     "Gino's scorecard wasn't sent: <the STALE line>. Check this morning's tracker run." Then stop.
 3. **Render**: `node scorecard/render.js $DIR` -> `$DIR/scorecard.png`. Look at it once: the date in the title is the
    scored day, six tiles in the Call confirmation row, and the number of items in "Reply with why" matches the
    `to_explain` count from step 2.
