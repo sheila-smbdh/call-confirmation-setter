@@ -22,6 +22,17 @@ Rules from Gino's Nov 13 scorecard thread (Sheila, #cc-gino Nov 16: all 8 explan
 - Any cancel on the day before after 5:45 counts as the 5:45 cancel, whoever Calendly names as the canceller (cancelling
   through the prospect's own link records the prospect's name).
 
+Rules from Sheila's review of the Nov 16 scorecard and the Nov 18 sales leadership call:
+- Welcome window = the whole day it's due (to midnight MT), not just his shift: he keeps working after 6pm MT, and a
+  booking near the end of his shift can be called right after it (Richard Davidson, Nov 16). On time still means
+  within 15 min of booking (or 30 min after shift start, overnight).
+- Cancelled before he reached them: if the prospect cancelled the call or declined the invite before his first dial,
+  and he logged Call Confirmation 8, no welcome call is needed (Edgar Parrado, Nov 16).
+- From Nov 18: welcome calls (new and overnight bookings) need double dial + voicemail only, no text. Day-before calls
+  still need the text.
+- No 5:45 cancel for a next-day booking (Nov 18). Already the rule: a call booked for the next day is booked on the day
+  before, and those were never cancelled (Nov 13). Calls booked 2+ days out still get the 5:45 cancel.
+
 Usage: python3 -I build.py DATA_DIR TODAY(YYYY-MM-DD, ET run date)  -> DATA_DIR/calls_new.json
 Only the calls in DATA_DIR/scope.json are built (scope.py picks the run window); merge.py combines them with the rows
 already in the tracker.
@@ -40,6 +51,7 @@ NO_GATE_DB = {date(2026, 11, 10)}          # Jay: welcome calls only on day 1
 START = datetime(2026, 11, 10, 1, 0, tzinfo=timezone.utc)   # Nov 9 8pm ET
 LAST_SHIFT_END = datetime.now(timezone.utc)  # bookings after this run are picked up by the next run
 NC = {"Needs Confirmation", "Needs Confirmation - Reschedule"}
+NOV18 = date(2026, 11, 18)   # sales leadership call: welcome calls no longer need a text
 
 def p(s):
     if not s:
@@ -197,7 +209,7 @@ def is_conn(c):
         return True
     return not o and c.get("disposition") == "answered" and (c.get("duration") or 0) >= 45 and not is_vm(c)
 
-def checkpoint(lead, lo, hi, due):
+def checkpoint(lead, lo, hi, due, need_text=True):
     cs = [c for c in calls if c["lead_id"] == lead and lo <= p(c["date_created"]) < hi]
     sent = [s for s in sms if s["lead_id"] == lead and lo <= p(s["date_created"]) < hi and s["status"] in ("sent", "delivered")]
     cb = [c for c in inbound if c["lead_id"] == lead and lo <= p(c["date_created"]) < hi]
@@ -219,7 +231,8 @@ def checkpoint(lead, lo, hi, due):
     elif r["connected"]:
         r["finished"], r["dropoff"] = True, ""
     else:
-        miss = [n for n, ok in (("double dial", dd), ("voicemail", r["voicemail"] or vm_x or vm_h), ("text", r["text"] or tx_x)) if not ok]
+        miss = [n for n, ok in (("double dial", dd), ("voicemail", r["voicemail"] or vm_x or vm_h),
+                                ("text", r["text"] or tx_x or not need_text)) if not ok]
         r["finished"], r["dropoff"] = not miss, ("Missing " + ", ".join(miss)) if miss else ""
     if vm_x:
         r["voicemail"] = "No VM option"
@@ -227,6 +240,8 @@ def checkpoint(lead, lo, hi, due):
         r["voicemail"] = "Hung up before voicemail"
     if tx_x:
         r["text"] = "Text failed to send"
+    elif not need_text and not r["text"]:
+        r["text"] = "Not required (welcome call, from Nov 18)"
     r["on_time"] = bool(cs) and r["first_dial"] <= due
     return r
 
@@ -313,16 +328,23 @@ for ev in scope:
             base = next_shift_start(booked)
             due = base + timedelta(minutes=30)
         row["w_due"] = due
-        # Nov 18: a booking in the last 15 min of his shift is due after the shift ends, so look until the due time
-        # (Richard Davidson, Nov 16: booked 7:53pm ET, dialed and confirmed 8:01pm ET, was shown as never dialed).
-        hi = min(alive_until, max(shift_end(due.astimezone(ET).date()), due))
-        cp = checkpoint(lead, booked, hi, due)
+        # Sheila, Nov 18: look at the whole day it's due (to midnight MT), not just his shift. He keeps working after
+        # 6pm MT (Richard Davidson, Nov 16: booked 7:53pm ET, dialed and confirmed 8:01pm ET, was shown never dialed).
+        due_day = due.astimezone(ET).date()
+        hi = min(alive_until, et(due_day + timedelta(days=1), 2))
+        cp = checkpoint(lead, booked, hi, due, need_text=due_day < NOV18)
+        # Sheila, Nov 18: the prospect cancelled or declined before he reached them, and he logged 8 (Edgar Parrado).
+        f8 = next((p(e["date_updated"]) for e in fev if e["lead_id"] == lead and p(e["date_updated"]) >= booked
+                   and fval(e).startswith("8.")), None)
+        gone = min([t for t in (cancel_at, next((ts for ts, k in rs_window if k == "D"), None)) if t], default=None)
         acc_t = first_accept(lead, lo_resp, s)
         claims = gino_claims(lead, booked, hi)
         if due.astimezone(ET).date() not in DAYS:
             row["w_required"], row["w_reason"] = "No", "Not due yet"
         elif alive_until <= base:
             row["w_required"], row["w_reason"] = "No", "Call or cancel happened before his shift"
+        elif f8 and gone and (not cp["first_dial"] or gone <= cp["first_dial"]):
+            row["w_required"], row["w_reason"] = "No", f"Prospect cancelled or declined ({fmt(gone)}) before he reached them; he logged 8"
         elif acc_t and acc_t <= due and (not cp["first_dial"] or acc_t <= cp["first_dial"]):
             row["w_required"], row["w_reason"] = "Accepted at booking", "Invite accepted before the welcome call was due"
         elif (not rs_window and acc_now and claims and not cp["touched"]
@@ -388,8 +410,10 @@ for ev in scope:
         if booked >= cutoff(db):
             row["r_required"], row["r_reason"] = "No", "Booked after 5:45 MT"
         elif booked >= et(db, 0):
-            # Sheila, #cc-gino Nov 12 (confirmed Nov 13): never cancel a booking made that same day
-            row["r_required"], row["r_reason"] = "No", "Booked that same day (never cancelled, per Sheila)"
+            # Sheila, #cc-gino Nov 12 (confirmed Nov 13): never cancel a booking made that same day. Sales leadership,
+            # Nov 18: a next-day booking is never cancelled. That is the same set: a call booked for the next day is
+            # booked on the day before. Calls booked 2+ days out still get the 5:45 cancel.
+            row["r_required"], row["r_reason"] = "No", "Next-day booking (booked the day before): never cancelled"
         elif cancel_at and cancel_at < cutoff(db):
             row["r_required"], row["r_reason"] = "No", "Cancelled or rescheduled before 5:45 MT"
         else:

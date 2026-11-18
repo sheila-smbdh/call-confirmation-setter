@@ -10,7 +10,8 @@ How each tile is counted (the same rules as the tracker's Reviews tab, docs/DECI
 - Speed to lead: share of during-shift bookings first dialed within 15 min, out of all that were due (the same as
   KPI 2 on the Management tab; a booking never dialed counts as not in 15 min). Green at 85% or more, red below
   (Sheila, Nov 17). A booking never dialed is still listed under "Reply with why"; it is a KPI 1 miss.
-- VM + text: no-answers where he did double dial + voicemail + text.
+- VM + text: no-answers where he did every step: double dial + voicemail + text (welcome calls from Nov 18: double dial
+  + voicemail only; build.py decides).
 - Day-before: day-before calls due, minus the ones not made.
 - 5:45 cancels: unaccepted next-day calls that needed the cancel, minus the ones not cancelled.
 - Logging: logging errors still open.

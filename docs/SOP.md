@@ -1,6 +1,6 @@
 # Call Confirmation Quick Guide
 
-Nov 3, 2026 · @Jay. Updated by Sheila on Nov 13, 2026 with the rules agreed in #cc-gino.
+Nov 3, 2026 · @Jay. Updated by Sheila on Nov 13, 2026 with the rules agreed in #cc-gino, and on Nov 18, 2026 with the sales leadership call.
 
 *This file is a copy of the live SOP. If the two differ, the live SOP wins. Rules and their history: [`DECISIONS.md`](DECISIONS.md). What changed on Nov 13: [`sop-changes-2026-11-13.md`](sop-changes-2026-11-13.md).*
 
@@ -68,6 +68,8 @@ Not sure if they accepted? If the lead in Close shows no calendar details:
 3. Check whether the person has a second lead profile.
 
 **Every touch, in this order:** double dial → no answer? voicemail + text.
+- **Welcome calls (new and overnight bookings): double dial → no answer? voicemail.** No text needed (Nov 18).
+- Day-before calls: double dial → no answer? voicemail + text.
 
 ### On the call (new bookings, a welcome call)
 
@@ -75,18 +77,20 @@ Not sure if they accepted? If the lead in Close shows no calendar details:
 2. **Be their contact:** "If you ever need to reschedule or cancel, I'm your point of contact. Any questions about what we do, [Advisor], your Enrollment Advisor, will walk you through on the call."
 3. **Check the invite:** "You should have a calendar invite for [day] at [time] with [Advisor]. Can you see it on your calendar?"
    - Yes → "Perfect, could you click Accept while I have you? Our system automatically cancels calls that aren't accepted, so I want to make sure you keep your spot."
+   - **Call is tomorrow (a next-day booking)?** Leave out the cancel line. These calls are never cancelled. Say: "Perfect, could you click Accept while I have you? And plan to be on your laptop so you can join on Zoom."
    - Can't find it → "It's probably in your spam folder. Could you check there?"
 4. **Join from a computer:** "It's about 45 minutes on Zoom. Will you be able to join from a computer?"
 5. **Close warm:** "We're excited to talk with you. See you [day]!"
 
-For a later confirmation (not a call that was just booked), also ask: "Does that time still work for you?" If not, rebook now. If the invite isn't accepted yet, give the same reason: "Our system cancels calls that aren't accepted, so I just want to make sure you're set."
+For a later confirmation (not a call that was just booked), also ask: "Does that time still work for you?" If not, rebook now. If the invite isn't accepted yet, give the same reason: "Our system cancels calls that aren't accepted, so I just want to make sure you're set." For a next-day booking, skip the cancel line and just ask them to accept and be on their laptop for Zoom.
 
 ### The day-before cancel
 
 Can't reach them by 5:45pm MT the day before? Cancel it yourself in Calendly, then send the day-before cancel text. The text says the system cancelled it, so the prospect isn't upset with you. Treat them as a cancel.
 - Never cancel on the day of the call.
 - Never cancel a call that was booked that same day.
-- Only cancel next-day calls that still haven't accepted after your calls, voicemails and texts.
+- **Never cancel a next-day booking** (booked the day before the call), even if it isn't accepted by 5:45. The slot can't realistically be refilled, and short booking windows show up well (Nov 18).
+- Only cancel calls booked 2+ days out that still haven't accepted after your calls, voicemails and texts.
 
 ### If someone doesn't have a laptop or computer
 
@@ -167,7 +171,7 @@ Outcomes:
 5. Spoke – not accepted yet: you talked to them, but they haven't clicked Accept. Keep calling.
 6. Cancelled – unreachable: the 5:45pm day-before cancel
 7. Wants a new time: this becomes a reschedule request
-8. Unreachable - Cancelled before CC contact: they cancelled before you reached them. These stay in the list for recovery later.
+8. Unreachable - Cancelled before CC contact: they cancelled before you reached them. These stay in the list for recovery later. No welcome call is needed once they've cancelled or declined the invite (Nov 18).
 9. Unreachable - Confirmed before CC contact: they accepted before you reached them, including someone you couldn't reach on the day-before call who accepted afterwards.
 
 Only select one of these with a number in front (or Closer Confirmed / Setter Confirmed below). Don't select the other outcomes.
@@ -196,6 +200,9 @@ Fill in the [brackets]. Always use the prospect's time zone. Where a template ha
 
 **Voicemail**
 > Hi [Name], it's [You], Enrollment Coordinator at SMB Deal Hunter, confirming your call with [Advisor], your Enrollment Advisor, on [day] at [time]. I'll text you the details. Please accept the calendar invite to save your spot. Our system automatically cancels calls that aren't accepted. Talk soon.
+
+**Voicemail, next-day booking** (call is tomorrow; no cancel line, Nov 18)
+> Hi [Name], it's [You], Enrollment Coordinator at SMB Deal Hunter, confirming your call with [Advisor], your Enrollment Advisor, tomorrow at [time]. Please accept the calendar invite, and plan to be on your laptop so you can join on Zoom. Talk soon.
 
 **Confirmation text**
 > Text 1: Hi [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. Your call with [Advisor], your Enrollment Advisor, is on [day] at [time] [TZ] on Zoom.
