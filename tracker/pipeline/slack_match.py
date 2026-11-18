@@ -9,9 +9,11 @@ the Reviews tab of LIVE_XLSX. Writes:
                             H, I and J are all blank and that a Slack approval covers (never overwrites a decision)
 reviews.py then pre-fills H-J on new rows from slack_decisions.json.
 
-Matching (only approvals with decision "approved" and scope "this lead only"):
-  the approval names the row's Close lead id, or the row's lead name (case and spacing ignored), AND the approval was
-  given for that call: its call date matches, or it was raised within 7 days before the call.
+Matching (decisions with scope "this lead only"; the newest approved/denied decision that covers a call wins, and
+only "approved" excuses):
+  the decision names the row's Close lead id, or the row's lead name (case and spacing ignored), AND it was given for
+  that call: if it names a date, that date is the call's date, day-before date or booking date; if it names none, it
+  was raised within 7 days before the call.
 Which review kinds a Slack approval can clear: see KINDS.
 """
 import json
@@ -34,8 +36,12 @@ def load(p, default):
 
 
 calls = {r["event"]: r for r in load("calls_all.json", [])}
-approvals = [a for a in load("cc_gino_approvals.json", [])
-             if a.get("decision") == "approved" and a.get("scope") == "this lead only"]
+# Lead-specific decisions, approved or denied: the newest one that covers a call wins (Nov 18: Sheila denied Atembeoh
+# Anu's Nov 18 welcome call, which an older Nov 16 approval for the same lead would otherwise have excused).
+decisions = sorted((a for a in load("cc_gino_approvals.json", [])
+                    if a.get("decision") in ("approved", "denied") and a.get("scope") == "this lead only"),
+                   key=lambda a: float(str(a.get("decision_ts") or a.get("raised_ts") or "0").split("#")[0]))
+approvals = [a for a in decisions if a["decision"] == "approved"]
 
 
 def link(ts):
@@ -52,9 +58,9 @@ def covers(a, r):
         raised = datetime.strptime(a["raised_at_et"], "%Y-%m-%d %H:%M").date()
     except (KeyError, TypeError, ValueError):
         return False
-    cdm = a.get("call_date_mentioned") or ""
-    if cdm[:10] == call.isoformat():
-        return True
+    cdm = (a.get("call_date_mentioned") or "")[:10]
+    if cdm:   # a dated decision covers only that call: its call date, day-before date or booking date (Nov 18)
+        return cdm in {call.isoformat(), str(r.get("db_date") or "")[:10], str(r.get("booked_date") or "")[:10]}
     return call - timedelta(days=7) <= raised <= call + timedelta(days=1)
 
 
@@ -64,11 +70,14 @@ def decide(key, kind):
     r = calls.get(key.split("|")[0])
     if not r:
         return None
-    for a in approvals:
-        if covers(a, r):
-            ts = a.get("decision_ts") or a.get("raised_ts")
-            return {"decision": "Excused", "decided_by": f"{a.get('decided_by')} (Slack)", "decision_ts": ts,
-                    "summary": a.get("decision_summary") or "", "link": link(a.get("thread_ts") or a.get("raised_ts"))}
+    for a in reversed(decisions):
+        if not covers(a, r):
+            continue
+        if a["decision"] != "approved":
+            return None
+        ts = a.get("decision_ts") or a.get("raised_ts")
+        return {"decision": "Excused", "decided_by": f"{a.get('decided_by')} (Slack)", "decision_ts": ts,
+                "summary": a.get("decision_summary") or "", "link": link(a.get("thread_ts") or a.get("raised_ts"))}
     return None
 
 
