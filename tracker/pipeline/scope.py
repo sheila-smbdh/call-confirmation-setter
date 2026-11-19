@@ -1,7 +1,7 @@
 # Offline: pick the calls this run rebuilds, from saved Calendly + Close files. No network.
 # Usage: python3 -I scope.py DATA_DIR TODAY   (TODAY = ET run date, YYYY-MM-DD) -> DATA_DIR/scope.json
 # In scope: direct discovery bookings (Calendly event type ...3de6762f19f4) booked in the last 3 days or with a call
-# from 3 days ago to 4 days ahead.
+# from 3 days ago to 14 days ahead (Nov 19: upcoming calls are rebuilt every day for the daily follow-up calls).
 import json, sys, glob
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
@@ -18,7 +18,7 @@ from datetime import date as _d, timedelta as _td, time as _t
 TODAY = _d.fromisoformat(sys.argv[2])
 _et = lambda d: datetime.combine(d, _t(0, 0), ET)
 W0, W1 = _et(TODAY - _td(days=3)), datetime.now(timezone.utc)      # bookings made in the last 3 days, up to this run
-S0, S1 = _et(TODAY - _td(days=3)), _et(TODAY + _td(days=5))        # calls from 3 days ago to 4 days ahead
+S0, S1 = _et(TODAY - _td(days=3)), _et(TODAY + _td(days=15))       # calls from 3 days ago to 14 days ahead
 rows = []
 for e in E:
     if not e["event_type"].endswith("3de6762f19f4"):

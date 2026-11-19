@@ -2,7 +2,26 @@
 
 The source of truth for every decision about the Call Confirmation Specialist role. The SOP, the Close setup, the Zaps and the payout code all follow this file. If anything conflicts with it, this file wins until Sheila changes it.
 
-Last updated: 2026-11-18 (rev 6). **The newest section is first and overrides anything older below it** (0000, then 000, then 00, then 0).
+Last updated: 2026-11-19 (rev 7). **The newest section is first and overrides anything older below it** (00000, then 0000, then 000, then 00, then 0).
+
+---
+
+## 00000. Update Nov 19, 2026 (rev 7): SOP update for follow-ups and next-day bookings
+
+From Sheila's SOP update (written Nov 18; Gino told the night of Nov 18). Decided with Claude on Nov 19.
+
+| Topic | Rule |
+|---|---|
+| **Daily follow-up calls** | A call booked 2+ days out (booked before the day before) whose invite isn't accepted gets a call **every weekday** after the welcome call, until they accept or it's the day before. Double dial, then a voicemail if there's no answer. **No text.** Not due once they accept, confirm by text, or the closer or a setter confirmed, or if the call was cancelled. Scored from **Nov 19** (nothing earlier). **Counts toward KPI 1** like the other checkpoints. Gino works these from a new Close smart view, "Call Confirmation - Follow-up". |
+| **Texts for bookings made 2+ days out** | Only on the day before: double dial, voicemail, then the day-before confirmation text, then the 5:45 cancel if they still haven't accepted. Example: booked Wed for Sat. Wed welcome call and Thu follow-up with no text; Fri day-before call and text; not accepted by 5:45 Fri → cancel and send the day-before cancel text. |
+| **Booked the evening before the day before** (e.g. Tue 10pm for a Thu call) | Booked 2+ days out. His first call is on the day before, so it's also the day-before call: it needs the day-before text, and the 5:45 cancel still applies. The smart view shows it as an overnight booking, so Gino may treat it like one; the tracker still expects the text (from Nov 19). |
+| **Next-day bookings** (booked today for tomorrow) | The welcome call is also the day-before call: double dial, then the next-day voicemail. **No text** (the closer is texting them). **Never cancelled**, even if not accepted by 5:45. If Gino cancels one anyway, the tracker's 5:45 Result says so (not a miss). |
+| **Monday calls** | No weekend shift, so no day-before call or 5:45 cancel. Follow-ups run through Friday (no text, no cancel). Anything left for the weekend isn't a miss. |
+| **Hung up before the voicemail** | Still double dial. On a day-before call, still send the text. |
+| **Welcome call script** | The "I'm your point of contact if you need to reschedule or cancel" line is removed (Gino doesn't text the lead). |
+| **Call Confirmation outcome 2** | The Close option keeps its old name ("Welcome call – no answer: voicemail and text sent") so leads already logged with it keep their value. For welcome calls it now means voicemail left; no text is needed. |
+| **Confirmed** | The invite is accepted, or the prospect texts that they'll be on the call (already the Nov 13 rule). |
+| **Recovery booking** | Reschedule requests: book with the closers (round robin, `sdrb_c2_startnow`). No-shows and cancels: book on the setter calendar. If the closer already spoke with the lead, don't book; the closer recovers them. |
 
 ---
 

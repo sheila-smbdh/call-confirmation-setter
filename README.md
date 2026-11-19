@@ -2,8 +2,8 @@
 
 SOPs, Close setup, automations and payout tracking for SMB Deal Hunter's Call Confirmation Specialist role (Gino Binoy, since Nov 10, 2026).
 
-- `docs/SOP.md`: the Call Confirmation Quick Guide, updated Nov 13. `docs/sop-changes-2026-11-13.md` lists what changed and why.
-- `docs/DECISIONS.md`: the decisions log. Section 0 (Nov 10–13) is the newest and overrides older sections.
+- `docs/SOP.md`: the Call Confirmation Quick Guide, last updated Nov 19 (daily follow-up calls, next-day bookings). `docs/sop-changes-2026-11-13.md` lists what changed on Nov 13 and why.
+- `docs/DECISIONS.md`: the decisions log. The newest section is first (00000, Nov 19) and overrides older ones.
 - `tracker/`: the daily update (5:41am ET) for the Call Confirmation Tracker (Google Sheet) and its history in Supabase.
   - `tracker/RUNBOOK.md`: the steps the 5:41am ET scheduled task follows, and what it may and may not do.
   - `tracker/pipeline/`: offline scripts the runbook calls. They read and write local files only.

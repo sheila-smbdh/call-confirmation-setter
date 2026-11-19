@@ -54,6 +54,11 @@ def items():
         if r.get("db_counts") == "Yes" and b and not b["finished"]:
             add(r["db_date"], "Day-before call", "Miss", r, b["dropoff"] + f" (call {r['call_date'][5:]} {r['call_et']})",
                 "Out of his view because of his own logging error" if "logged it accepted when it wasn't" in r.get("db_reason", "") else "", f"{r['event']}|daybefore", b)
+        for f in r.get("fu") or []:   # Nov 19: daily follow-up calls, one item per day missed
+            c = f.get("cp")
+            if f.get("counts") == "Yes" and c and not c["finished"]:
+                add(f["date"], "Follow-up call", "Miss", r, c["dropoff"] + f" (call {r['call_date'][5:]} {r['call_et']})", "",
+                    f"{r['event']}|followup-{f['date']}", c)
         if r.get("r_counts") == "Yes" and r.get("r_result") != "Cancelled":
             add(r["db_date"], "5:45 cancel", "Miss", r, f"{r.get('r_result')} (call {r['call_date'][5:]} {r['call_et']})",
                 "Booked that same day" if r["booked_date"] == r["db_date"] else "", f"{r['event']}|545", b)

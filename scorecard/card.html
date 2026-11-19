@@ -95,7 +95,7 @@ document.getElementById("app").innerHTML = `
   <div class="sub">${d.stats}${window.CARD ? "" : `<span class="sample">SAMPLE</span>`}</div>
 
   <div class="lbl">Call confirmation<span>green = hit · red = missed</span></div>
-  <div class="tiles">${tiles(d.tiles)}</div>
+  <div class="tiles" style="grid-template-columns: repeat(${d.tiles.length}, 1fr)">${tiles(d.tiles)}</div>
 
   <div class="lbl">Call recovery<span>coming soon</span></div>
   <div class="tiles soon">${tiles([["No-shows", "–", ""], ["Cancels", "–", ""], ["Reschedules", "–", ""], ["Rebooked", "–", ""], ["Showed", "–", ""], ["Logging", "–", ""]].map(x => [...x, ""]))}</div>

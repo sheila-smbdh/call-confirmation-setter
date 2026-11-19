@@ -135,7 +135,8 @@ day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TOD
      Sheila and Jay then decide each item in the same thread, usually by end of day. Record ONE case per item:
      `raised_ts` = `<card ts>#<item number>`, `thread_ts` = the card, `lead_names` and `call_date_mentioned` from the
      item line, `checkpoints` = the item's Reviews key suffix (New booking / Overnight -> `welcome`, Day-before ->
-     `daybefore`, 5:45 cancel -> `545`, Logging -> `logging`), `decision` "approved" for excused and "denied" for
+     `daybefore`, 5:45 cancel -> `545`, Logging -> `logging`, Follow-up -> `followup-<the card's scored day,
+     YYYY-MM-DD>`, so the decision covers that one day's follow-up and not the lead's other days), `decision` "approved" for excused and "denied" for
      still a miss, `decided_by` and `decision_ts` from their reply, and a one-line `decision_summary` in their words.
      - They aim for a convention (`3, 5, 6 excused - reason`, `7 miss`), but read free text too: "should not be a
        miss", "Gino is excused", "not an error", "it's confirmed" = approved; "just missing X", "still counts",
@@ -183,16 +184,17 @@ day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TOD
 
 7c. **Check Gino's notes before anything becomes a miss** (Sheila, Nov 18: verify his notes against Close before an
    item goes to Reviews or the scorecard)
-   - List the leads with a miss in `calls_new.json` (a welcome or day-before checkpoint required and not finished, or a
-     5:45 cancel required and not done); `python3 -c` over the file is fine.
+   - List the leads with a miss in `calls_new.json` (a welcome or day-before checkpoint required and not finished, a
+     daily follow-up in `fu` with `counts` "Yes" and not finished, or a 5:45 cancel required and not done);
+     `python3 -c` over the file is fine.
    - For each, one curl:
      `curl -s -u "$CLOSE_API_KEY:" "https://api.close.com/api/v1/activity/note/?lead_id=<lead_id>&_limit=50&_fields=id,lead_id,date_created,user_name,note" -o $DIR/note_lead_<lead_id>.json`
      (his call notes are already in `g_call_*.json`; build.py puts them on each checkpoint as `notes`).
    - Read each miss with its notes and Gino's Close activity in that window (dial times, disposition, duration,
      voicemail, texts). If a note explains a step he couldn't do AND the activity backs it up (e.g. "straight
      disconnect, didn't ring" on a busy 0-second dial; "number disconnected" with failed dials), add to
-     `$DIR/miss_overrides.json` `{"<event id>|welcome" (or "|daybefore", "|545"): "<what the note says> (<the Close
-     evidence>)"}` and run build.py again. If the activity doesn't back the note up, it stays a miss, and reviews.py
+     `$DIR/miss_overrides.json` `{"<event id>|welcome" (or "|daybefore", "|545", "|followup-<YYYY-MM-DD>"): "<what the
+     note says> (<the Close evidence>)"}` and run build.py again. If the activity doesn't back the note up, it stays a miss, and reviews.py
      shows his notes on the Reviews row (column G).
    - Busy, blocked or failed 0-second dials already excuse the voicemail step automatically (Nov 18).
 
@@ -273,9 +275,18 @@ day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TOD
     (Sheila deletes it; nothing in Drive is deleted by this run). Do not commit anything.
 
 ## Rules the tracker follows
-The tracker applies [`docs/SOP.md`](../docs/SOP.md) and [`docs/DECISIONS.md`](../docs/DECISIONS.md) section 0. If either changes, update `tracker/pipeline/build.py` (what is required) and the Definitions text in `tracker/pipeline/export.py` to match.
+Daily follow-up calls (Sheila, Nov 19; scored from Nov 19, count toward KPI 1): bookings made 2+ days out whose invite
+isn't accepted need a call each weekday between the welcome call and the day before (double dial + voicemail, no
+text). They're stored per call in `fu`, shown in the Calls tab's last columns and the Daily tab's "Daily follow-up
+calls" block (both added at the end so the Management tab's fixed column references don't move), and each missed day
+is its own Reviews item (`<event>|followup-<date>`).
+
+The tracker applies [`docs/SOP.md`](../docs/SOP.md) and [`docs/DECISIONS.md`](../docs/DECISIONS.md) (sections 00000 to 0, newest first). If either changes, update `tracker/pipeline/build.py` (what is required) and the Definitions text in `tracker/pipeline/export.py` to match.
 
 ## Known limits
+- Every run rebuilds calls from 3 days ago to 14 days ahead (Nov 19, for the daily follow-up calls), so step 5 looks up
+  more Calendly invitees than before. A welcome call or follow-up day older than the 4 days of Gino's activity a run
+  pulls keeps the result an earlier run gave it (`merge.py`).
 - Bookings made more than 14 days ahead are first picked up when their call date comes within 14 days. Their
   welcome call is still checked, but only against Gino's last 4 days of activity.
 - "Invite accepted at" comes from the calendar response emails Close stores. If a closer's calendar doesn't send them,

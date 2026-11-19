@@ -4,15 +4,18 @@ Usage: python3 -I scorecard/build_card.py DIR
 Reads DIR/plan.json, runs.json, daily.json, reviews.json, dials.json. Writes DIR/card.json (for render.js) and
 DIR/message.txt (the Slack comment). Prints OK, or STALE / NO DATA with the reason (then send no card).
 
-How each tile is counted (the same rules as the tracker's Reviews tab, docs/DECISIONS.md section 0):
+How each tile is counted (the same rules as the tracker's Reviews tab, docs/DECISIONS.md, newest sections first):
 - A miss is a Reviews row for that day. Rows Sheila or Jay marked "Excused" don't count and leave the total too.
 - Overnight: overnight bookings he had to call, minus the ones never dialed.
 - Speed to lead: share of during-shift bookings first dialed within 15 min, out of all that were due (the same as
   KPI 2 on the Management tab; a booking never dialed counts as not in 15 min). Green at 85% or more, red below
   (Sheila, Nov 17). A booking never dialed is still listed under "Reply with why"; it is a KPI 1 miss.
-- VM + text: no-answers where he did every step: double dial + voicemail + text (welcome calls from Nov 18: double dial
-  + voicemail only; build.py decides).
+- VM + text: no-answers where he did every step: double dial + voicemail + text (welcome calls from Nov 17 and daily
+  follow-up calls: double dial + voicemail only; build.py decides).
 - Day-before: day-before calls due, minus the ones not made.
+- Follow-ups (from Nov 19): daily follow-up calls due (bookings 2+ days out, invite still not accepted, on the weekdays
+  between the welcome call and the day before), minus the ones not made. Their no-answers count in VM + text, where
+  double dial + voicemail is enough (no text).
 - 5:45 cancels: unaccepted next-day calls that needed the cancel, minus the ones not cancelled.
 - Logging: logging errors still open.
 The "Reply with why" list is every open (not excused) Reviews row for that day.
@@ -48,6 +51,7 @@ cp = lambda xs, name: [x for x in xs if x["checkpoint"] == name]
 untouched = lambda xs: [x for x in xs if x["what_happened"].startswith("Not touched")]
 missing = lambda xs: [x for x in xs if x["what_happened"].startswith("Missing")]
 WO, WS, DB, C545, LOG = "Welcome call (overnight)", "Welcome call (during shift)", "Day-before call", "5:45 cancel", "Logging"
+FUP = "Follow-up call"
 
 
 def frac(due, excused_n, missed_n):
@@ -67,9 +71,11 @@ if ds_due and on_time is not None:
     sp_s = "g" if in15 / ds_due >= 0.85 else "r"
 else:
     sp_v, sp_t, sp_s = "–", "none booked", "g"
-na = sum(g(f"{k} / No answer") for k in ("Welcome: overnight bookings", "Welcome: during-shift bookings", "Day-before calls"))
+na = sum(g(f"{k} / No answer") for k in ("Welcome: overnight bookings", "Welcome: during-shift bookings", "Day-before calls",
+                                         "Daily follow-up calls"))
 st_v, st_s = frac(na, len(missing(excused)), len(missing(open_)))
 db_v, db_s = frac(g("Day-before calls / Due"), len(untouched(cp(excused, DB))), len(untouched(cp(open_, DB))))
+fu_v, fu_s = frac(g("Daily follow-up calls / Due"), len(untouched(cp(excused, FUP))), len(untouched(cp(open_, FUP))))
 c_v, c_s = frac(g("5:45 resolutions / Needed a cancel"), len(cp(excused, C545)), len(cp(open_, C545)))
 lg = len(cp(open_, LOG))
 
@@ -77,6 +83,7 @@ tiles = [
     ["Overnight", ov_v, "all dialed", ov_s],
     ["Speed to lead", sp_v, sp_t, sp_s],
     ["VM + text", st_v, "every no-answer", st_s],
+    ["Follow-ups", fu_v, "called", fu_s],
     ["Day-before", db_v, "called", db_s],
     ["5:45 cancels", c_v, "done", c_s],
     ["Logging", str(lg), "error" if lg == 1 else "errors", "g" if lg == 0 else "r"],
@@ -99,7 +106,7 @@ def what(x):
     if c == LOG:
         return t
     if t.startswith("Not touched"):
-        return ("call not made" if c == DB else "never dialed") + tail
+        return ("call not made" if c in (DB, FUP) else "never dialed") + tail
     if t.startswith("Missing"):
         steps = re.match(r"Missing ([^(]+)", t)[1].strip()
         return f"no-answer, missing {steps}" + tail
@@ -110,8 +117,8 @@ def what(x):
     return re.sub(r"\s*\(.*\)$", "", t) + tail
 
 
-SEC = {WO: "Overnight", WS: "New booking", DB: "Day-before", C545: "5:45 cancel", LOG: "Logging"}
-ORDER = [WO, WS, DB, C545, LOG]
+SEC = {WO: "Overnight", WS: "New booking", FUP: "Follow-up", DB: "Day-before", C545: "5:45 cancel", LOG: "Logging"}
+ORDER = [WO, WS, FUP, DB, C545, LOG]
 open_.sort(key=lambda x: (ORDER.index(x["checkpoint"]) if x["checkpoint"] in ORDER else 9, x["lead_name"].lower()))
 name = lambda s: " ".join(w.capitalize() if w.isupper() else w for w in s.split())
 ask = [[name(x["lead_name"]), SEC.get(x["checkpoint"], x["checkpoint"]), what(x)] for x in open_]
