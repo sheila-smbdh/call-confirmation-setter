@@ -37,7 +37,7 @@ Follow `/root/.claude/CLAUDE.md`. Supabase calls are inline curl only, never fro
    - `STALE ...`: this morning's tracker run didn't finish (or is still running). Post nothing to #cc-gino. DM Sheila one line:
      "Gino's scorecard wasn't sent: <the STALE line>. Check this morning's tracker run." Then stop.
 3. **Render**: `node scorecard/render.js $DIR` -> `$DIR/scorecard.png`. Look at it once: the date in the title is the
-   scored day, six tiles in the Call confirmation row, and the number of items in "Reply with why" matches the
+   scored day, seven tiles in the Call confirmation row (Follow-ups was added Nov 19), and the number of items in "Reply with why" matches the
    `to_explain` count from step 2.
 4. **Post** (once only). First read the last few messages in `C0CG28G7TQT` (`slack_read_channel`); if a scorecard
    for this day is already there, stop, so nothing posts twice.

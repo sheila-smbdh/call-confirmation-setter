@@ -21,8 +21,9 @@ RUN_AT = datetime.now(ET).strftime("%b %-d, %Y, %-I:%M %p ET")
 rows = json.load(open(f"{D}/calls_all.json"))
 FONT = "Arial"
 HDR = PatternFill("solid", fgColor="1F3864")
-FILL = {"Call": "D9E1F2", "Welcome": "E2EFDA", "Day-before": "FFF2CC", "5:45": "FCE4D6", "Check": "EDEDED"}
-TITLE = {"Call": "Call", "Welcome": "Welcome call", "Day-before": "Day-before call", "5:45": "5:45 resolution", "Check": "Logging and outcome"}
+FILL = {"Call": "D9E1F2", "Welcome": "E2EFDA", "Day-before": "FFF2CC", "5:45": "FCE4D6", "Check": "EDEDED", "Follow-up": "DDEBF7"}
+TITLE = {"Call": "Call", "Welcome": "Welcome call", "Day-before": "Day-before call", "5:45": "5:45 resolution", "Check": "Logging and outcome",
+         "Follow-up": "Daily follow-up calls (booked 2+ days out)"}
 
 def dt(s):
     return datetime.fromisoformat(s).astimezone(ET) if s else None
@@ -63,10 +64,25 @@ cols += [("Day-before", n) for n in ("Due date (by 5:45pm MT)", "Required", "Why
 cols += [("5:45", n) for n in ("Due date (5:45pm MT)", "Required", "Why", "Counts toward gate", "Result")]
 cols += [("Check", n) for n in ("Gino's last Call Confirmation value", "Gino's last call outcome", "Gino's last status change",
                                 "Logging check", "Call happened?", "Source")]
+# Nov 19: follow-up columns go last, so the Management tab's fixed references to earlier Calls columns don't move.
+cols += [("Follow-up", n) for n in ("Days due", "Days finished", "Days missed", "Detail")]
 C = {k: get_column_letter(j) for j, k in enumerate(cols, 1)}
 headers(ws, cols, FILL, TITLE)
 rows.sort(key=lambda r: (r["booked_date"], dt(r.get("w_due")) or datetime.max.replace(tzinfo=ET), r["lead_name"]))
 dcell = lambda s: date.fromisoformat(s) if s else None
+fus = lambda r: r.get("fu") or []
+
+def fu_detail(r):
+    out = []
+    for f in fus(r):
+        d_ = date.fromisoformat(f["date"]).strftime("%a %b %-d")
+        if f.get("counts") != "Yes":
+            out.append(f"{d_}: not due ({f['reason']})")
+        elif f["cp"]["finished"]:
+            out.append(f"{d_}: done" + (" (connected)" if f["cp"]["connected"] else "") + (f" (excused: {f['cp']['excused']})" if f["cp"].get("excused") else ""))
+        else:
+            out.append(f"{d_}: {f['cp']['dropoff']}")
+    return "; ".join(out)
 for i, r in enumerate(rows, 3):
     w, b = r.get("w"), r.get("db")
     wd = dt(r.get("w_due")) if r.get("w_required") not in ("No",) and r.get("w_due") else None
@@ -102,6 +118,10 @@ for i, r in enumerate(rows, 3):
         ("Check", "Gino's last Call Confirmation value"): r["last_field"], ("Check", "Gino's last call outcome"): r["last_outcome"],
         ("Check", "Gino's last status change"): r["gino_status"], ("Check", "Logging check"): r["check"],
         ("Check", "Call happened?"): r["happened"], ("Check", "Source"): r["happened_src"],
+        ("Follow-up", "Days due"): sum(1 for f in fus(r) if f.get("counts") == "Yes") or None,
+        ("Follow-up", "Days finished"): sum(1 for f in fus(r) if f.get("counts") == "Yes" and f["cp"]["finished"]) or None,
+        ("Follow-up", "Days missed"): sum(1 for f in fus(r) if f.get("counts") == "Yes" and not f["cp"]["finished"]) or None,
+        ("Follow-up", "Detail"): fu_detail(r),
     }
     for j, k in enumerate(cols, 1):
         c = ws.cell(i, j, v.get(k))
@@ -116,7 +136,7 @@ for i, r in enumerate(rows, 3):
 ws.column_dimensions[get_column_letter(JC)].hidden = True
 LAST = len(rows) + 2
 ws.freeze_panes = "B3"
-wide = {"Lead": 22, "Why": 34, "Drop-off": 22, "Logging check": 70, "Gino's last Call Confirmation value": 40, "In his queue": 18,
+wide = {"Lead": 22, "Detail": 60, "Why": 34, "Drop-off": 22, "Logging check": 70, "Gino's last Call Confirmation value": 40, "In his queue": 18,
         "Gino's last status change": 26, "Cancelled or rescheduled at (ET)": 20, "Invite accepted at (ET)": 17, "Invite declined at (ET)": 17}
 for j, (g, n) in enumerate(cols, 1):
     ws.column_dimensions[get_column_letter(j)].width = wide.get(n, 13)
@@ -183,8 +203,10 @@ add(g, "Not cancelled (names)", '=IFERROR(TEXTJOIN("; ",TRUE,FILTER(' + rng("Cal
 add(g, "Can't tell if needed", f'=COUNTIFS({RD},$A{{r}},{RR},"Can\'t tell")')
 add(g, "Not in his queue", f'=COUNTIFS({RD},$A{{r}},{RR},"Not in his queue")')
 DS, OV, DB = "Welcome: during-shift bookings", "Welcome: overnight bookings", "Day-before calls"
-add("100% gate", "Checkpoints that count", f"={L(DS,'Due')}{{r}}+{L(OV,'Due')}{{r}}+{L(DB,'Due')}{{r}}+{L(g,'Needed a cancel')}{{r}}")
-add("100% gate", "Finished", f"={L(DS,'Finished')}{{r}}+{L(OV,'Finished')}{{r}}+{L(DB,'Finished')}{{r}}+{L(g,'Cancelled')}{{r}}")
+# Nov 19: daily follow-up calls count toward the gate (KPI 1). Their block is added at the end of the Daily tab (below),
+# so these columns keep their letters for the Management tab; FUC/FUF are filled in once those columns exist.
+add("100% gate", "Checkpoints that count", f"={L(DS,'Due')}{{r}}+{L(OV,'Due')}{{r}}+{L(DB,'Due')}{{r}}+{L(g,'Needed a cancel')}{{r}}+{{FUC}}{{r}}")
+add("100% gate", "Finished", f"={L(DS,'Finished')}{{r}}+{L(OV,'Finished')}{{r}}+{L(DB,'Finished')}{{r}}+{L(g,'Cancelled')}{{r}}+{{FUF}}{{r}}")
 add("100% gate", "Gate %", f"=IF({L('100% gate','Checkpoints that count')}{{r}}=0,0,{L('100% gate','Finished')}{{r}}/{L('100% gate','Checkpoints that count')}{{r}})", "0%")
 lc = col("Check", "Logging check"); bd = col("Call", "Booked date (ET)")
 add("Logging check", "Logged as accepted", f'=COUNTIFS({bd},$A{{r}},{lc},"?*")')
@@ -197,10 +219,35 @@ add(cg, "Showed", f'=COUNTIFS({CD},$A{{r}},{HP},"Showed*")')
 add(cg, "No-show", f'=COUNTIFS({CD},$A{{r}},{HP},"No-show*")')
 add(cg, "Cancelled or rescheduled", f'=COUNTIFS({CD},$A{{r}},{HP},"Cancelled")+COUNTIFS({CD},$A{{r}},{HP},"Rescheduled")')
 add(cg, "Unknown or needs confirmation", f'=COUNTIFS({CD},$A{{r}},{HP},"Unknown")+COUNTIFS({CD},$A{{r}},{HP},"Needs confirmation")+COUNTIFS({CD},$A{{r}},{HP},"Zoom never started")')
+# Daily follow-up calls: one call can have several follow-up days, so these are values counted here, not formulas.
+FU = "Daily follow-up calls"
+fu_by_day = {}
+for r in rows:
+    for f in fus(r):
+        if f.get("counts") == "Yes":
+            fu_by_day.setdefault(f["date"], []).append((r, f["cp"]))
+def fu_val(h):
+    def v(d):
+        xs = fu_by_day.get(d, [])
+        due = len(xs); tch = sum(1 for _, c in xs if c["touched"]); con = sum(1 for _, c in xs if c["connected"])
+        na = sum(1 for _, c in xs if c["touched"] and not c["connected"]); nad = sum(1 for _, c in xs if not c["connected"] and c["finished"])
+        fin = sum(1 for _, c in xs if c["finished"])
+        dd = [c["double_dial"] for _, c in xs if c["double_dial"] in ("Yes", "No")]
+        return {"Due": due, "Touched": tch, "Touched %": tch / due if due else 0, "Got them on the phone (done)": con, "No answer": na,
+                "No answer: all steps done (double dial + voicemail)": nad, "No answer: all steps %": nad / na if na else 0, "Finished": fin,
+                "Finished %": fin / due if due else 0, "Double dial %": dd.count("Yes") / len(dd) if dd else 0,
+                "Steps missed or not called": "; ".join(f"{r_['lead_name']} ({c['dropoff']})" for r_, c in xs if not c["finished"]) or "none"}[h]
+    return v
+for h, nf in (("Due", "0"), ("Touched", "0"), ("Touched %", "0%"), ("Got them on the phone (done)", "0"), ("No answer", "0"),
+              ("No answer: all steps done (double dial + voicemail)", "0"), ("No answer: all steps %", "0%"), ("Finished", "0"),
+              ("Finished %", "0%"), ("Double dial %", "0%"), ("Steps missed or not called", "@")):
+    add(FU, h, fu_val(h), nf)
+spec[:] = [(gg, h, (ff.replace("{FUC}", L(FU, "Due")).replace("{FUF}", L(FU, "Finished")) if isinstance(ff, str) else ff), nf)
+           for gg, h, ff, nf in spec]
 spec.append(("", "Notes", None, "@"))
 names = [(gg, h) for gg, h, ff, n in spec]
 DF = {DS: "E2EFDA", OV: "C6E0B4", "Welcome: not counted": "EDEDED", DB: "FFF2CC", "5:45 resolutions": "FCE4D6", "100% gate": "D9E1F2",
-      "Logging check": "EDEDED", cg: "EDEDED", "": "FFFFFF"}
+      "Logging check": "EDEDED", cg: "EDEDED", "Daily follow-up calls": "DDEBF7", "": "FFFFFF"}
 headers(dy, names, DF, {})
 notes = {"2026-11-10": "First day. Jay told Gino to do welcome calls only, so Nov 10 day-before calls and 5:45 cancels (for Nov 11 calls) don't count toward the gate.",
          "2026-11-11": "Day-before and 5:45 columns are for the next day's calls (Friday covers Saturday to Monday calls)."}
@@ -208,7 +255,7 @@ for d_ in ALL_DAYS:
     notes.setdefault(d_.isoformat(), "Weekend: no shift. Anything Gino did is still captured." if d_.weekday() >= 5 else "")
 for i, d in enumerate([d_.isoformat() for d_ in ALL_DAYS], 3):
     for j, (gg, h, ff, nf) in enumerate(spec, 1):
-        v = date.fromisoformat(d) if h == "Date" else (notes[d] if h == "Notes" else ff.format(r=i))
+        v = date.fromisoformat(d) if h == "Date" else (notes[d] if h == "Notes" else (ff(d) if callable(ff) else ff.format(r=i)))
         c = dy.cell(i, j, v)
         c.font = Font(name=FONT, color="0000FF" if h == "Date" else "000000")
         c.number_format = nf
@@ -216,6 +263,8 @@ for i, d in enumerate([d_.isoformat() for d_ in ALL_DAYS], 3):
             c.alignment = Alignment(wrap_text=True, vertical="top")
 for j, (gg, h, ff, nf) in enumerate(spec, 1):
     dy.column_dimensions[get_column_letter(j)].width = 45 if h in ("Steps missed or not called", "Not cancelled (names)") else 12
+for i in range(3, len(ALL_DAYS) + 3):
+    dy.cell(i, len(spec) - 1).alignment = Alignment(wrap_text=True, vertical="top")
 dy.column_dimensions["A"].width = 13
 dy.column_dimensions[get_column_letter(len(spec))].width = 70
 dy.row_dimensions[2].height = 60
@@ -234,6 +283,8 @@ wcols += [("5:45 cancels needed", "=" + inwk(L("5:45 resolutions", "Needed a can
           ("Finished", "=" + inwk(L("100% gate", "Finished")), "0"), ("Gate %", None, "0%"), ("Gate", None, "@"),
           ("Accepted at booking (no call needed)", "=" + inwk(L("Welcome: not counted", "Accepted at booking (no call needed)")), "0"),
           ("Logging errors", "=" + inwk(L("Logging check", "Logging errors")), "0"),
+          ("Follow-up: due", "=" + inwk(L(FU, "Due")), "0"), ("Follow-up: touched", "=" + inwk(L(FU, "Touched")), "0"),
+          ("Follow-up: finished", "=" + inwk(L(FU, "Finished")), "0"), ("Follow-up: finished %", None, "0%"),
           ("Notes", "Partial week: Gino started Tue Nov 10. Only Nov 10 and 11 are filled in so far. Gate week runs Monday to Sunday.", "@")]
 wl = {h: get_column_letter(j) for j, (h, v, nf) in enumerate(wcols, 1)}
 for j, (h, v, nf) in enumerate(wcols, 1):
@@ -274,19 +325,21 @@ defs = [
     ("Touched", "At least one outbound dial by Gino on that lead inside the checkpoint's window. A welcome call's window is the whole day it's due (to midnight MT), not just his shift: a booking near the end of his shift can be called right after it (Sheila, Nov 18)."),
     ("Double dial", "A second dial within 3 minutes of the first. 'N/A' when the first dial was answered."),
     ("Connected", "A call with a 'Conversation' outcome, a call screener he got through, an answered call of 45 seconds or more with no voicemail, or the prospect calling him back."),
-    ("Voicemail / Text sent", "Counted only when he didn't connect. From Nov 17, welcome calls (new and overnight bookings) need double dial + voicemail only; day-before calls still need the text (sales leadership call, Nov 18; Sheila applied it from Nov 17 in #cc-gino). Texts must be sent or delivered; drafts don't count. One voicemail anywhere in the checkpoint is enough: the last call right before the 5:45 cancel doesn't need a second one (Sheila, Nov 16)."),
+    ("Voicemail / Text sent", "Counted only when he didn't connect. From Nov 17, welcome calls (new and overnight bookings) need double dial + voicemail only (except a 2+ days out booking first called on the day before, from Nov 19), and daily follow-up calls never need a text; day-before calls still need the text (sales leadership call, Nov 18; Sheila applied it from Nov 17 in #cc-gino). Texts must be sent or delivered; drafts don't count. One voicemail anywhere in the checkpoint is enough: the last call right before the 5:45 cancel doesn't need a second one (Sheila, Nov 16)."),
     ("Steps he can't do", "Not a miss: no voicemail option or a full mailbox ('No VM option'), a text that won't send, or a call the prospect picked up and hung up, or that dropped, before a voicemail could be left ('Hung up before voicemail': answered, no voicemail, under 30 seconds or logged 'No answer / hung up'), or a dial that never rang ('Didn't ring': Close logs it busy, blocked or failed with 0 seconds, a straight disconnect; Sheila, Nov 18). Before any item becomes a miss, his call and lead notes are read and checked against the Close activity: a note the activity backs up excuses the step; otherwise the note is shown on the Reviews row (Sheila, Nov 18). The double dial and the text are still required (Sheila, Nov 16)."),
-    ("Finished", "Connected, or double dial plus voicemail plus text (welcome calls from Nov 17: double dial plus voicemail). Drop-off names the missing steps."),
+    ("Finished", "Connected, or double dial plus voicemail plus text (welcome calls from Nov 17 and daily follow-up calls: double dial plus voicemail). Drop-off names the missing steps."),
     ("Cancelled before he reached them", "If the prospect cancelled the call or declined the invite before his first dial, and he logged Call Confirmation 8, no welcome call is needed (Sheila, Nov 18)."),
     ("Day-before call", "Required when the invite isn't accepted at the start of his shift the day before the call and the lead is in his 'Meeting Tomorrow' view (status 'Needs Confirmation'). If Gino removed it from his view by wrongly logging it accepted, it still counts. If he logged it correctly and the prospect declined later, it doesn't. Not required when the welcome call falls on the day-before shift (e.g. booked overnight for the next day): that one call covers both (Nov 16). The window runs to the end of his shift (6pm MT), so his calls right before the 5:45 cancel and a prospect calling him back count."),
+    ("Daily follow-up call", "From Nov 19 (Sheila): a call booked 2+ days out (booked before the day before) whose invite still isn't accepted at the start of his shift gets one follow-up call each weekday after the welcome call and before the day before. Done = connected, or double dial + voicemail. No text: the only text for these bookings is the day-before text. Not due once the prospect accepted, confirmed by text, or the closer or a setter confirmed, or if the call was cancelled. No follow-ups on weekends (Monday calls: follow-ups run through Friday, with no day-before call or 5:45 cancel). Counts toward the 100% gate (KPI 1). One booking can have several follow-up days; each is its own Reviews item."),
+    ("Booked the evening before the day before", "E.g. booked Tuesday 10pm for a Thursday call. It's booked 2+ days out, so his first call (on Wednesday, the day before) is also the day-before call: it needs the day-before text if he doesn't connect, and the 5:45 cancel still applies, even though the smart view shows it as an overnight booking (Sheila, Nov 19)."),
     ("Confirmed by phone", "If he spoke to the prospect on the day before (through 6pm MT) and logged the outcome 'Conversation: Confirmed not Accepted' (or 'Confirmed and Accepted'), no 5:45 cancel is required, even if the invite still shows unaccepted (Sheila, #cc-gino Nov 16)."),
     ("Closer / Setter Confirmed", "If the closer or a setter already confirmed the call, he doesn't call (SOP, Nov 13). Once he logs Closer Confirmed or Setter Confirmed, no welcome, day-before call or 5:45 cancel is required."),
     ("Confirmed by text", "If the prospect texts that they'll be on the call (e.g. \"See you Friday!\"), that counts as confirmed from then on: no day-before call or 5:45 cancel is required after it (Sheila, Nov 13). A question, a thanks on its own or a reschedule request doesn't count."),
-    ("5:45 resolution", "Required when the invite still isn't accepted at 5:45pm MT the day before. Done = the call is cancelled in Calendly that day, whoever Calendly names as the canceller (cancelling through the prospect's link records the prospect's name; Nov 16). Next-day bookings (booked the day before the call) are never cancelled, so they don't need it (Sheila, #cc-gino, confirmed Nov 13 and Nov 18). Only calls booked 2+ days out get the 5:45 cancel."),
+    ("5:45 resolution", "Required when the invite still isn't accepted at 5:45pm MT the day before. Done = the call is cancelled in Calendly that day, whoever Calendly names as the canceller (cancelling through the prospect's link records the prospect's name; Nov 16). Next-day bookings (booked the day before the call) are never cancelled, so they don't need it (Sheila, #cc-gino, confirmed Nov 13 and Nov 18). Only calls booked 2+ days out get the 5:45 cancel. If Gino cancels a next-day booking anyway, the Result says so (not counted as a miss)."),
     ("Can't tell", "The invite is accepted now but there is no calendar response email to show when. These don't count toward the gate."),
     ("Counts toward gate", "Nov 10 day-before calls and 5:45 cancels don't count: Jay told Gino to do welcome calls only on his first day."),
     ("Weekends", "No shift on Saturday or Sunday, so nothing is due. Weekend bookings are overnight bookings, due at the start of Monday's shift. On Friday he does the day-before call and 5:45 cancel for Saturday calls only. Sunday and Monday calls have no day-before call or 5:45 cancel (SOP, Nov 13). The update still runs every day so anything Gino does on a weekend is captured."),
-    ("100% gate", "Every checkpoint that counts must be finished: overnight and during-shift welcome calls, day-before calls and 5:45 cancels. Weekly, Monday to Sunday."),
+    ("100% gate", "Every checkpoint that counts must be finished: overnight and during-shift welcome calls, daily follow-up calls (from Nov 19), day-before calls and 5:45 cancels. Weekly, Monday to Sunday."),
     ("Logging check", "Every time Gino recorded an invite as accepted (Call Confirmation 1, 3 or 9, the 'Confirmed and Accepted' outcome, or moving the lead to 'Confirmed'), it's checked against the calendar response emails at that moment. Not accepted then: the prospect's texts, his notes on the lead and his call transcript are read (Sheila, Nov 18). The prospect texted that they'll attend ('accept', 'I will be there') = valid (confirmed by text). Prospect confirmed and had a technical problem accepting = valid exception. Otherwise = logging error. If Sheila or Jay already approved it in #cc-gino, the Reviews row is filled in as Excused with a link."),
     ("Call happened?", "In order: #closer-eod (Nero's EOD posts), then Zoom attendance on the Close meeting. If neither settles it: Unknown, ask Sheila. The EOD Tracker sheet, Sales Tracker and 2M tracker weren't checked in this version."),
 ]
@@ -306,7 +359,7 @@ df.column_dimensions["B"].width = 110
 ds = wb.create_sheet("Data Sources")
 src = [
     (f"Calls!A2:{get_column_letter(len(cols))}{LAST}", "Slack", "#call-confirmation 'NEW CALL BOOKED' alerts", "Slack connector, run by Claude (nightly update)", "Alerts from the last 4 days, merged with earlier runs", RUN_AT),
-    (f"Calls!A2:{get_column_letter(len(cols))}{LAST}", "Calendly", "Scheduled events and invitees, organization-wide", "Calendly connector, run by Claude (nightly update)", "Direct discovery event type, booked in the last 3 days or with a call from 3 days ago to 4 days ahead; older rows kept from earlier runs", RUN_AT),
+    (f"Calls!A2:{get_column_letter(len(cols))}{LAST}", "Calendly", "Scheduled events and invitees, organization-wide", "Calendly connector, run by Claude (nightly update)", "Direct discovery event type, booked in the last 3 days or with a call from 3 days ago to 14 days ahead; older rows kept from earlier runs", RUN_AT),
     (f"Calls!A2:{get_column_letter(len(cols))}{LAST}", "Close", "Lead status changes, 45-minute meetings, Gino's calls, texts and Call Confirmation field history, calendar Accepted/Declined emails, call transcripts", "Close API, read-only, run by Claude (nightly update)", "Last 4 days of Gino's activity; last 30 days of status changes and calendar responses for those leads", RUN_AT),
     (f"Calls!{C[('Check', 'Call happened?')]}3:{C[('Check', 'Source')]}{LAST}", "Slack", "#closer-eod (Nero EOD posts)", "Slack connector, run by Claude (nightly update)", "EOD posts for the last 4 days", RUN_AT),
 ]

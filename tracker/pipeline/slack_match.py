@@ -16,7 +16,7 @@ Matching (decisions with scope "this lead only"; the newest approved/denied deci
 the thread; the run fills the Reviews tab so they don't have to)):
   the decision names the row's Close lead id, or the row's lead name (case and spacing ignored), AND it was given for
   that call: if it names a date, that date is the call's date, day-before date or booking date; if it names none, it
-  was raised within 7 days before the call. If the decision lists `checkpoints` (welcome / daybefore / 545 / logging),
+  was raised within 7 days before the call. If the decision lists `checkpoints` (welcome / daybefore / 545 / logging / followup),
   it covers only those items for that lead (a scorecard reply names items by number).
 Which review kinds a Slack approval can clear: see KINDS.
 """
@@ -76,7 +76,8 @@ def decide(key, kind):
         return None
     suffix = key.split("|")[1]
     for a in reversed(decisions):
-        if not covers(a, r) or (a.get("checkpoints") and suffix not in a["checkpoints"]):
+        # follow-up keys carry the day (followup-2026-11-19); a decision names either "followup" or that exact key
+        if not covers(a, r) or (a.get("checkpoints") and suffix not in a["checkpoints"] and suffix.split("-")[0] not in a["checkpoints"]):
             continue
         if a["decision"] == "denied" and not a.get("checkpoints"):
             continue   # "counts as a miss" only fills the items it names; never a lead's other open items
@@ -89,7 +90,9 @@ def decide(key, kind):
 # every possible key for every call, so reviews.py can look up new rows
 out = {}
 for ev, r in calls.items():
-    for suffix, kind in (("welcome", "Miss"), ("daybefore", "Miss"), ("545", "Miss"), ("logging", "Logging error")):
+    sfx = [("welcome", "Miss"), ("daybefore", "Miss"), ("545", "Miss"), ("logging", "Logging error")]
+    sfx += [(f"followup-{f['date']}", "Miss") for f in r.get("fu") or []]
+    for suffix, kind in sfx:
         d = decide(f"{ev}|{suffix}", kind)
         if d:
             out[f"{ev}|{suffix}"] = d

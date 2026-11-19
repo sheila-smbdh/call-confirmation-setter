@@ -43,7 +43,7 @@ def main():
         D, today = sys.argv[2], date.fromisoformat(sys.argv[3])
     if mode == "meetings":
         json.dump(meet("date_created", utc(today - timedelta(days=4)), NOW), open(f"{D}/body_meet_created.json", "w"))
-        json.dump(meet("starts_at", utc(today - timedelta(days=3)), utc(today + timedelta(days=5))), open(f"{D}/body_meet_starts.json", "w"))
+        json.dump(meet("starts_at", utc(today - timedelta(days=3)), utc(today + timedelta(days=15))), open(f"{D}/body_meet_starts.json", "w"))
         print("wrote body_meet_created.json, body_meet_starts.json")
     elif mode == "leads":
         scope = json.load(open(f"{D}/scope.json"))

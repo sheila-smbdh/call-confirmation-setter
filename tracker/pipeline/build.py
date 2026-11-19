@@ -46,6 +46,17 @@ Rules from Sheila's review of the Nov 17 scorecard (#cc-gino, Nov 18):
   backs it up, the run records it in miss_overrides.json and the item is not a miss; otherwise the note goes on the
   Reviews row for Sheila and Jay.
 
+Rules from the Nov 18 SOP update (Sheila, approved in Claude Code Nov 19):
+- Daily follow-up calls: a call booked 2+ days out (booked before the day before) whose invite still isn't accepted at
+  the start of his shift gets one checkpoint per weekday after the welcome call and before the day before: double
+  dial + voicemail, no text. Not due once the prospect accepted, confirmed by text, the closer or a setter confirmed,
+  or the call was cancelled. Weekends have none. Scored from Nov 19 (FU_FROM); counts toward KPI 1 like the others.
+  Stored per call as row["fu"], a list of {date, required, reason, counts, cp}; Reviews key <event>|followup-<date>.
+- Booked the evening before the day before (e.g. Tue 10pm for a Thu call): booked 2+ days out, so his one call on the
+  day-before shift needs the day-before text, and the 5:45 cancel still applies, even though the smart view shows it
+  as an overnight booking (from Nov 19). A next-day booking (booked on the day before) needs no text and is never
+  cancelled.
+
 Usage: python3 -I build.py DATA_DIR TODAY(YYYY-MM-DD, ET run date)  -> DATA_DIR/calls_new.json
 Only the calls in DATA_DIR/scope.json are built (scope.py picks the run window); merge.py combines them with the rows
 already in the tracker.
@@ -64,6 +75,7 @@ NO_GATE_DB = {date(2026, 11, 10)}          # Jay: welcome calls only on day 1
 START = datetime(2026, 11, 10, 1, 0, tzinfo=timezone.utc)   # Nov 9 8pm ET
 LAST_SHIFT_END = datetime.now(timezone.utc)  # bookings after this run are picked up by the next run
 NC = {"Needs Confirmation", "Needs Confirmation - Reschedule"}
+FU_FROM = date(2026, 11, 19)      # daily follow-ups and the day-before text on such welcome calls (Sheila, Nov 19)
 NO_TEXT_FROM = date(2026, 11, 17)   # welcome calls need no text from this day (Nov 18 call; Sheila moved it to Nov 17)
 
 def p(s):
@@ -126,7 +138,7 @@ for f in sorted(glob.glob(f"{D}/eod*.json")):
 optional = lambda name: json.load(open(f"{D}/{name}")) if os.path.exists(f"{D}/{name}") else {}
 lead_fix = optional("lead_fix.json")
 overrides = optional("overrides.json")
-miss_overrides = optional("miss_overrides.json")   # {"<event id>|welcome|daybefore|545": "<verified reason>"} (step 7c)
+miss_overrides = optional("miss_overrides.json")   # {"<event id>|welcome|daybefore|545|followup-<date>": "<verified reason>"} (step 7c)
 text_conf = optional("text_confirms.json")   # prospects who confirmed by text (Sheila, Nov 13); see text_confirms.py
 alerts = [json.loads(l) for l in open(f"{D}/slack_alerts.jsonl")]
 booked_alerts = [a for a in alerts if a["type"] == "NEW CALL BOOKED"]
@@ -355,7 +367,11 @@ for ev in scope:
         # 6pm MT (Richard Davidson, Nov 16: booked 7:53pm ET, dialed and confirmed 8:01pm ET, was shown never dialed).
         due_day = due.astimezone(ET).date()
         hi = min(alive_until, et(due_day + timedelta(days=1), 2))
-        cp = checkpoint(lead, booked, hi, due, need_text=due_day < NO_TEXT_FROM)
+        # Nov 19: booked 2+ days out but first called on the day before (booked the evening before it): this one call
+        # is the day-before call, so it needs the text. A next-day booking (booked on the day before) doesn't.
+        two_plus = booked < et(cd - timedelta(days=1), 0)
+        row["w_daybefore_text"] = due_day >= FU_FROM and due_day == cd - timedelta(days=1) and two_plus
+        cp = checkpoint(lead, booked, hi, due, need_text=due_day < NO_TEXT_FROM or row["w_daybefore_text"])
         # Sheila, Nov 18: the prospect cancelled or declined before he reached them, and he logged 8 (Edgar Parrado).
         f8 = next((p(e["date_updated"]) for e in fev if e["lead_id"] == lead and p(e["date_updated"]) >= booked
                    and fval(e).startswith("8.")), None)
@@ -437,6 +453,8 @@ for ev in scope:
             # Nov 18: a next-day booking is never cancelled. That is the same set: a call booked for the next day is
             # booked on the day before. Calls booked 2+ days out still get the 5:45 cancel.
             row["r_required"], row["r_reason"] = "No", "Next-day booking (booked the day before): never cancelled"
+            if cancel_at and cancel_at.astimezone(ET).date() == db and "gino" in (ev.get("canceled_by") or "").lower():
+                row["r_result"] = "Cancelled by Gino, but next-day bookings are never cancelled"
         elif cancel_at and cancel_at < cutoff(db):
             row["r_required"], row["r_reason"] = "No", "Cancelled or rescheduled before 5:45 MT"
         else:
@@ -461,6 +479,40 @@ for ev in scope:
                 row["r_result"] = "Not cancelled"
     row["db_counts"] = "Yes" if row["db_required"] == "Yes" and db not in NO_GATE_DB else "No"
     row["r_counts"] = "Yes" if row["r_required"] == "Yes" and db not in NO_GATE_DB else "No"
+
+    # ---- daily follow-up calls (Nov 19): booked 2+ days out, invite not accepted, weekdays between welcome and day-before
+    row["fu"] = []
+    # Only judge days inside the activity this run pulled (Gino's calls and texts since T-4); merge.py keeps the
+    # results of older days from earlier runs.
+    row["window_from"] = (TODAY - timedelta(days=4)).isoformat()
+    row["fu_from"] = max(FU_FROM.isoformat(), row["window_from"])
+    if booked >= START and booked < et(db, 0):
+        first = (booked if in_shift(booked) else next_shift_start(booked)).astimezone(ET).date()
+        d = first + timedelta(days=1)
+        while d < cd:
+            if workday(d) and not (d == db) and d.isoformat() >= row["fu_from"] and d in DAYS:
+                f = dict(date=d.isoformat(), cp=None, counts="No")
+                if cancel_at and cancel_at < shift_start(d):
+                    f["required"], f["reason"] = "No", "Cancelled or rescheduled before that day"
+                else:
+                    f["required"], f["reason"] = need(shift_start(d))
+                    if f["required"] == "Yes":
+                        ok, lab = queue_check(lead, shift_start(d))
+                        if not ok:
+                            f["required"], f["reason"] = "Not in his queue", lab
+                        elif lab != "In his smart view":
+                            f["reason"] = "Invite not accepted. " + lab
+                if f["required"] == "Yes":
+                    hi_f = min(alive_until, et(d + timedelta(days=1), 2))
+                    c_ = checkpoint(lead, et(d, 0), hi_f, shift_end(d), need_text=False)
+                    if cancel_at and cancel_at < et(d + timedelta(days=1), 2) and not c_["touched"]:
+                        f["required"], f["reason"] = "No", f"Cancelled ({fmt(cancel_at)}) before he called that day"
+                    else:
+                        if c_["text"] == "Not required (welcome call, from Nov 17)":
+                            c_["text"] = "Not required (follow-up call)"
+                        f["cp"], f["counts"] = c_, "Yes"
+                row["fu"].append(f)
+            d += timedelta(days=1)
 
     # ---- Gino's logging ----
     fv = [e for e in fev if e["lead_id"] == lead]
@@ -506,6 +558,10 @@ for ev in scope:
         why = miss_overrides.get(f"{row['event']}|{kind}")
         if why and row.get(cpk) and not row[cpk]["finished"]:
             row[cpk].update(finished=True, dropoff="", excused=why)
+    for f in row["fu"]:
+        why = miss_overrides.get(f"{row['event']}|followup-{f['date']}")
+        if why and f.get("cp") and not f["cp"]["finished"]:
+            f["cp"].update(finished=True, dropoff="", excused=why)
     why = miss_overrides.get(f"{row['event']}|545")
     if why and row.get("r_required") == "Yes" and row.get("r_result") != "Cancelled":
         row["r_required"], row["r_reason"], row["r_counts"] = "No", f"Excused from his note: {why}", "No"
