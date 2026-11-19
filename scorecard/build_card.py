@@ -10,18 +10,19 @@ How each tile is counted (the same rules as the tracker's Reviews tab, docs/DECI
 - Speed to lead: share of during-shift bookings first dialed within 15 min, out of all that were due (the same as
   KPI 2 on the Management tab; a booking never dialed counts as not in 15 min). Green at 85% or more, red below
   (Sheila, Nov 17). A booking never dialed is still listed under "Reply with why"; it is a KPI 1 miss.
-- VM + text: no-answers where he did every step: double dial + voicemail + text (welcome calls from Nov 17 and daily
-  follow-up calls: double dial + voicemail only; build.py decides).
+- No-answer steps (was "VM + text" until Nov 19): no-answers where he did every step the call needs. Day-before calls:
+  double dial + voicemail + text. Welcome calls (from Nov 17) and daily follow-up calls: double dial + voicemail, no
+  text. build.py decides which steps each call needs.
 - Day-before: day-before calls due, minus the ones not made.
 - Follow-ups (from Nov 19): daily follow-up calls due (bookings 2+ days out, invite still not accepted, on the weekdays
-  between the welcome call and the day before), minus the ones not made. Their no-answers count in VM + text, where
+  between the welcome call and the day before), minus the ones not made. Their no-answers count in No-answer steps, where
   double dial + voicemail is enough (no text).
 - 5:45 cancels: unaccepted next-day calls that needed the cancel, minus the ones not cancelled.
 - Logging: logging errors still open.
 The "Reply with why" list is every open (not excused) Reviews row for that day.
 
 What isn't a miss comes from tracker/pipeline/build.py, so the card follows it. Since Sheila's Nov 16 reply to the
-Nov 13 card: a dial hung up or dropped before a voicemail could be left excuses the voicemail (VM + text tile); his
+Nov 13 card: a dial hung up or dropped before a voicemail could be left excuses the voicemail (No-answer steps tile); his
 last calls before the 5:45 cancel and a prospect calling him back count toward the day-before call; a welcome call on
 the day-before shift covers the day-before call (one item, not two); a prospect who confirmed by phone on the day
 before needs no 5:45 cancel; and any cancel on the day before counts as the 5:45 cancel, whoever Calendly names.
@@ -82,7 +83,7 @@ lg = len(cp(open_, LOG))
 tiles = [
     ["Overnight", ov_v, "all dialed", ov_s],
     ["Speed to lead", sp_v, sp_t, sp_s],
-    ["VM + text", st_v, "every no-answer", st_s],
+    ["No-answer steps", st_v, "all done", st_s],
     ["Follow-ups", fu_v, "called", fu_s],
     ["Day-before", db_v, "called", db_s],
     ["5:45 cancels", c_v, "done", c_s],
