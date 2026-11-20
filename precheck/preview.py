@@ -1,5 +1,5 @@
-"""Offline: Gino's afternoon pre-check. Lists what would show as a miss on the next scorecard if nothing changes before
-his shift ends (6pm MT), so he can fix it in the last 30 minutes. No network.
+"""Offline: Gino's afternoon pre-check. Lists what would show as a miss on the next scorecard if nothing changes, and the
+5:45 cancels coming up. Information only: work after his shift still counts (to midnight MT). No network.
 
 Usage: python3 -I precheck/preview.py DIR TODAY      (TODAY = today's date in US Eastern, YYYY-MM-DD)
 Reads DIR/calls_new.json (from `build.py DIR TODAY preview`) and DIR/review_keys_prev.json (the Reviews keys already
@@ -98,8 +98,7 @@ hm = lambda x: x.strftime("%-I:%M%p").lower()
 msg = (f"<@U0CFPJZQHGQ> Pre-check for today, {day_s(TODAY)} (your Close activity as of {hm(asof)} MT). ")
 if fixes:
     msg += (f"If nothing changes, {'this shows' if len(fixes) == 1 else f'these {len(fixes)} show'} as "
-            f"{'a miss' if len(fixes) == 1 else 'misses'} on {next_card.strftime('%A')}'s scorecard. "
-            "You have until 6pm MT to fix them:\n")
+            f"{'a miss' if len(fixes) == 1 else 'misses'} on {next_card.strftime('%A')}'s scorecard:\n")
     msg += "\n".join(f"{i}. {n} · {s} · {w} → {f}" for i, (_, n, s, w, f) in enumerate(fixes, 1))
 else:
     msg += f"Nothing would show as a miss on {next_card.strftime('%A')}'s scorecard so far. Keep it up."

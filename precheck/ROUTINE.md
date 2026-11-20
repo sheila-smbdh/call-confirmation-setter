@@ -3,7 +3,8 @@
 Runs Monday to Friday at **4:37pm MT (6:37pm ET)** as a scheduled session, and posts by **5:30pm MT (7:30pm ET)**, 30
 minutes before Gino's shift ends (6pm MT / 8pm ET, `docs/SOP.md`). It checks today's work the same way the morning
 tracker run will, and posts one message in #cc-gino tagging Gino with every item that would show as a miss on the next
-scorecard, plus the 5:45 cancels coming up, so he can fix them before he logs off (Sheila, Nov 20).
+scorecard, plus the 5:45 cancels coming up, so he can see them before he logs off (Sheila, Nov 20). The post sets no
+deadline: anything he does after his shift still counts, to midnight MT (`docs/DECISIONS.md`, Nov 20).
 
 - Monday to Thursday: covers today, for tomorrow's scorecard. Friday: covers Friday, for Monday's scorecard.
 - Saturday and Sunday: nothing is sent.

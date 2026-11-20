@@ -2,7 +2,18 @@
 
 The source of truth for every decision about the Call Confirmation Specialist role. The SOP, the Close setup, the Zaps and the payout code all follow this file. If anything conflicts with it, this file wins until Sheila changes it.
 
-Last updated: 2026-11-19 (rev 7). **The newest section is first and overrides anything older below it** (00000, then 0000, then 000, then 00, then 0).
+Last updated: 2026-11-20 (rev 8). **The newest section is first and overrides anything older below it** (000000, then 00000, then 0000, then 000, then 00, then 0).
+
+---
+
+## 000000. Update Nov 20, 2026 (rev 8): work after his shift counts; afternoon pre-check
+
+From Sheila, Nov 20.
+
+| Topic | Rule |
+|---|---|
+| **Work after 6pm MT** | Anything Gino does after his shift still counts. Every checkpoint looks to **midnight MT** of its day: welcome and follow-up calls (already), and now day-before calls, prospects confirming by phone, and the 5:45 cancel (a cancel after 6pm MT on the day before counts as done). Until Nov 20 the day-before call stopped at 6pm MT. The 5:45 cancel is still due at 5:45: a call after it doesn't excuse a missed cancel unless the prospect accepts or confirms by phone. |
+| **Afternoon pre-check** | Weekdays by 5:30pm MT, a post in #cc-gino tags Gino with what would show as a miss on the next scorecard if nothing changes, and the 5:45 cancels coming up (`precheck/ROUTINE.md`). It's information only: no deadline, and it decides nothing. The morning run still decides. |
 
 ---
 
