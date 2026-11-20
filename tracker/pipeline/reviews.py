@@ -9,28 +9,21 @@ import json, sys
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
-D = sys.argv[1]
 ET = ZoneInfo("America/New_York")
-rows = json.load(open(f"{D}/calls_all.json"))
-have = set(json.load(open(f"{D}/review_keys.json")))
-last = int(open(f"{D}/reviews_last_row.txt").read().strip())
-try:
-    slack = json.load(open(f"{D}/slack_decisions.json"))   # from slack_match.py; optional
-except FileNotFoundError:
-    slack = {}
-try:
-    hints = json.load(open(f"{D}/rule_hints.json"))       # {review_key: "Possibly covered by ... <link>"}; optional
-except FileNotFoundError:
-    hints = {}
-# Gino's lead notes pulled in step 7c (note_lead_<lead_id>.json), shown on each Reviews row with his call notes
-import glob, os
-lead_notes = {}
-for f in glob.glob(f"{D}/note_lead_*.json"):
-    for n in json.load(open(f)).get("data", []):
-        if "gino" in (n.get("user_name") or "").lower() and (n.get("note") or "").strip():
-            lead_notes.setdefault(n["lead_id"], []).append((n["date_created"], " ".join(n["note"].split())[:150]))
+import glob
 
-def gino_notes(r, cp):
+
+def load_lead_notes(D):
+    """Gino's lead notes pulled in step 7c (note_lead_<lead_id>.json), shown on each Reviews row with his call notes."""
+    lead_notes = {}
+    for f in glob.glob(f"{D}/note_lead_*.json"):
+        for n in json.load(open(f)).get("data", []):
+            if "gino" in (n.get("user_name") or "").lower() and (n.get("note") or "").strip():
+                lead_notes.setdefault(n["lead_id"], []).append((n["date_created"], " ".join(n["note"].split())[:150]))
+    return lead_notes
+
+
+def gino_notes(r, cp, lead_notes):
     parts = [x for x in ((cp or {}).get("notes") or "").split("; ") if x]
     parts += [t for _, t in sorted(lead_notes.get(r.get("lead_id"), []))[-2:] if t not in parts]
     return ("Gino's notes: " + " | ".join(parts)) if parts else ""
@@ -38,11 +31,15 @@ def gino_notes(r, cp):
 dt = lambda s: datetime.fromisoformat(s).astimezone(ET)
 wk = lambda d: d - timedelta(days=d.weekday())
 
-def items():
+def items(rows, lead_notes=None):
+    """Every miss and logging error in rows (calls_all.json / calls_new.json), as (week, day, checkpoint, kind,
+    lead name, what happened, note, review key). Also used by precheck/preview.py, so the pre-check flags exactly
+    what the morning run will."""
+    lead_notes = lead_notes or {}
     out = []
     def add(dstr, cp, kind, r, what, note, key, chk=None):
         d = date.fromisoformat(dstr)
-        note = "; ".join(x for x in (note, gino_notes(r, chk)) if x)
+        note = "; ".join(x for x in (note, gino_notes(r, chk, lead_notes)) if x)
         out.append((wk(d), d, cp, kind, r["lead_name"], what, note, key))
     for r in rows:
         w, b = r.get("w"), r.get("db")
@@ -67,19 +64,36 @@ def items():
                 "Judge: edge case he couldn't have known, or a real miss?", f"{r['event']}|logging")
     return sorted(out, key=lambda x: (x[0], x[1], x[2], x[4]))
 
-data, n = [], last
-for it in items():
-    if it[7] in have:
-        continue
-    n += 1
-    note = "; ".join(x for x in (it[6], hints.get(it[7], "")) if x)
-    data.append({"range": f"Reviews!A{n}:G{n}", "values": [[it[0].isoformat(), it[1].isoformat(), it[2], it[3], it[4], it[5], note]]})
-    data.append({"range": f"Reviews!L{n}", "values": [[it[7]]]})
-    d = slack.get(it[7])
-    if d:   # Sheila or Jay already approved this in #cc-gino: record it so it doesn't wait for review
-        data.append({"range": f"Reviews!H{n}:J{n}", "values": [[d["decision"],
-                     f"{'Approved' if d['decision'] == 'Excused' else 'Decided'} in #cc-gino: {d['summary']} {d['link']}".strip(), d["decided_by"]]]})
-json.dump(data, open(f"{D}/reviews_append.json", "w"))
-new = n - last
-pre = sum(1 for x in data if ":J" in x["range"])
-print(new, "new Reviews rows", f"(rows {last + 1}-{n})" if new else "", f"{pre} already decided via Slack")
+def main():
+    D = sys.argv[1]
+    rows = json.load(open(f"{D}/calls_all.json"))
+    have = set(json.load(open(f"{D}/review_keys.json")))
+    last = int(open(f"{D}/reviews_last_row.txt").read().strip())
+    try:
+        slack = json.load(open(f"{D}/slack_decisions.json"))   # from slack_match.py; optional
+    except FileNotFoundError:
+        slack = {}
+    try:
+        hints = json.load(open(f"{D}/rule_hints.json"))       # {review_key: "Possibly covered by ... <link>"}; optional
+    except FileNotFoundError:
+        hints = {}
+    data, n = [], last
+    for it in items(rows, load_lead_notes(D)):
+        if it[7] in have:
+            continue
+        n += 1
+        note = "; ".join(x for x in (it[6], hints.get(it[7], "")) if x)
+        data.append({"range": f"Reviews!A{n}:G{n}", "values": [[it[0].isoformat(), it[1].isoformat(), it[2], it[3], it[4], it[5], note]]})
+        data.append({"range": f"Reviews!L{n}", "values": [[it[7]]]})
+        d = slack.get(it[7])
+        if d:   # Sheila or Jay already approved this in #cc-gino: record it so it doesn't wait for review
+            data.append({"range": f"Reviews!H{n}:J{n}", "values": [[d["decision"],
+                         f"{'Approved' if d['decision'] == 'Excused' else 'Decided'} in #cc-gino: {d['summary']} {d['link']}".strip(), d["decided_by"]]]})
+    json.dump(data, open(f"{D}/reviews_append.json", "w"))
+    new = n - last
+    pre = sum(1 for x in data if ":J" in x["range"])
+    print(new, "new Reviews rows", f"(rows {last + 1}-{n})" if new else "", f"{pre} already decided via Slack")
+
+
+if __name__ == "__main__":
+    main()

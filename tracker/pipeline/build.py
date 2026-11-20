@@ -12,12 +12,12 @@ Rules from Gino's Nov 13 scorecard thread (Sheila, #cc-gino Nov 16: all 8 explan
 - Hung up or dropped before voicemail: if a no-answer dial is picked up and ends before a voicemail can be left
   (answered, no voicemail, under 30 seconds, or logged "No answer / hung up"), the voicemail step is excused like
   "No VM option". The double dial and the text are still required.
-- The day-before checkpoint runs to the end of his shift (6pm MT), not just to 5:45: the calls he makes right before
-  the 5:45 cancel, and a prospect calling him back, count. One voicemail anywhere in the checkpoint is enough; the
+- The day-before checkpoint runs past 5:45: the calls he makes right before the 5:45 cancel, and a prospect calling him
+  back, count. (To the end of his shift until Nov 20; since then to midnight MT, see below.) One voicemail anywhere in the checkpoint is enough; the
   last call right before the cancel needs no second voicemail.
 - One shift, one checkpoint: when the welcome call falls on the day-before shift (e.g. booked overnight for the next
   day), the welcome call covers the day-before call. It is not scored twice.
-- Spoke and confirmed by phone: if he talked to the prospect on the day before (through 6pm MT) and logged the outcome
+- Spoke and confirmed by phone: if he talked to the prospect on the day before (to midnight MT since Nov 20) and logged the outcome
   "Conversation: Confirmed not Accepted" (or "Confirmed and Accepted"), no 5:45 cancel is needed.
 - Any cancel on the day before after 5:45 counts as the 5:45 cancel, whoever Calendly names as the canceller (cancelling
   through the prospect's own link records the prospect's name).
@@ -57,7 +57,12 @@ Rules from the Nov 18 SOP update (Sheila, approved in Claude Code Nov 19):
   as an overnight booking (from Nov 19). A next-day booking (booked on the day before) needs no text and is never
   cancelled.
 
-Usage: python3 -I build.py DATA_DIR TODAY(YYYY-MM-DD, ET run date)  -> DATA_DIR/calls_new.json
+Sheila, Nov 20: work Gino does after his shift still counts. Every checkpoint window runs to midnight MT of its day
+(welcome, follow-up and now day-before calls, phone confirmations and the 5:45 cancel), not to 6pm MT.
+
+Usage: python3 -I build.py DATA_DIR TODAY(YYYY-MM-DD, ET run date) [preview]  -> DATA_DIR/calls_new.json
+  preview: the afternoon pre-check (precheck/ROUTINE.md). Judges TODAY as of now, before its 5:45 MT cutoff, so Gino
+  sees what is still open while he can fix it. Never used by the morning tracker run.
 Only the calls in DATA_DIR/scope.json are built (scope.py picks the run window); merge.py combines them with the rows
 already in the tracker.
 """
@@ -90,7 +95,8 @@ shift_end = lambda d: et(d, 20)
 cutoff = lambda d: et(d, 19, 45)
 workday = lambda d: d.weekday() < 5
 # Never judge a day before its 5:45 MT cutoff has passed (e.g. a run during Gino's shift): evaluate through yesterday.
-if datetime.now(timezone.utc) < cutoff(TODAY) + timedelta(minutes=15):
+PREVIEW = len(sys.argv) > 3 and sys.argv[3] == "preview"
+if datetime.now(timezone.utc) < cutoff(TODAY) + timedelta(minutes=15) and not PREVIEW:
     DAYS = [d for d in DAYS if d < TODAY]
 fmt = lambda t: t.astimezone(ET).strftime("%b %-d %-I:%M %p") if t else ""
 
@@ -443,8 +449,9 @@ for ev in scope:
                 elif lab != "In his smart view":
                     row["db_reason"] = "Invite not accepted. " + lab
         if row["db_required"] in ("Yes", "Can't tell"):
-            # through 6pm MT: his last calls before the 5:45 cancel and a call back from the prospect count (Nov 16)
-            row["db"] = checkpoint(lead, et(db, 0), min(shift_end(db), alive_until), cutoff(db))
+            # Nov 16: his last calls before the 5:45 cancel and a call back from the prospect count. Sheila, Nov 20: and
+            # anything he does after his shift, to midnight MT, like the welcome call (work after 6pm MT isn't dismissed).
+            row["db"] = checkpoint(lead, et(db, 0), min(et(db + timedelta(days=1), 2), alive_until), cutoff(db))
         # ---- 5:45 resolution ----
         if booked >= cutoff(db):
             row["r_required"], row["r_reason"] = "No", "Booked after 5:45 MT"
@@ -459,7 +466,7 @@ for ev in scope:
             row["r_required"], row["r_reason"] = "No", "Cancelled or rescheduled before 5:45 MT"
         else:
             row["r_required"], row["r_reason"] = need(cutoff(db))
-            pc = phone_confirmed(lead, et(db, 0), shift_end(db)) if row["r_required"] == "Yes" else None
+            pc = phone_confirmed(lead, et(db, 0), et(db + timedelta(days=1), 2)) if row["r_required"] == "Yes" else None
             if pc:
                 row["r_required"], row["r_reason"] = "No", f"Spoke and confirmed by phone on the day before ({fmt(pc)}), per Sheila Nov 16"
             if row["r_required"] == "Yes":
@@ -470,8 +477,9 @@ for ev in scope:
         if row["r_required"] in ("Yes", "Can't tell"):
             by_gino = bool(cancel_at) and "gino" in (ev.get("canceled_by") or "").lower()
             field6 = any(e["lead_id"] == lead and fval(e).startswith("6.") for e in fev)
-            # Nov 16: any cancel on the day before counts (Calendly names the prospect when he cancels through their link)
-            if cancel_at and cancel_at.astimezone(ET).date() == db:
+            # Nov 16: any cancel on the day before counts (Calendly names the prospect when he cancels through their link),
+            # to midnight MT (Nov 20)
+            if cancel_at and et(db, 0) <= cancel_at < et(db + timedelta(days=1), 2):
                 row["r_result"] = "Cancelled"
             elif cancel_at and cancel_at.astimezone(ET).date() == cd and (by_gino or field6):
                 row["r_result"] = "Cancelled on the day of the call"
