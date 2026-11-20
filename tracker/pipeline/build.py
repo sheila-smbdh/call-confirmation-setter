@@ -57,7 +57,9 @@ Rules from the Nov 18 SOP update (Sheila, approved in Claude Code Nov 19):
   as an overnight booking (from Nov 19). A next-day booking (booked on the day before) needs no text and is never
   cancelled.
 
-Usage: python3 -I build.py DATA_DIR TODAY(YYYY-MM-DD, ET run date)  -> DATA_DIR/calls_new.json
+Usage: python3 -I build.py DATA_DIR TODAY(YYYY-MM-DD, ET run date) [preview]  -> DATA_DIR/calls_new.json
+  preview: the afternoon pre-check (precheck/ROUTINE.md). Judges TODAY as of now, before its 5:45 MT cutoff, so Gino
+  sees what is still open while he can fix it. Never used by the morning tracker run.
 Only the calls in DATA_DIR/scope.json are built (scope.py picks the run window); merge.py combines them with the rows
 already in the tracker.
 """
@@ -90,7 +92,8 @@ shift_end = lambda d: et(d, 20)
 cutoff = lambda d: et(d, 19, 45)
 workday = lambda d: d.weekday() < 5
 # Never judge a day before its 5:45 MT cutoff has passed (e.g. a run during Gino's shift): evaluate through yesterday.
-if datetime.now(timezone.utc) < cutoff(TODAY) + timedelta(minutes=15):
+PREVIEW = len(sys.argv) > 3 and sys.argv[3] == "preview"
+if datetime.now(timezone.utc) < cutoff(TODAY) + timedelta(minutes=15) and not PREVIEW:
     DAYS = [d for d in DAYS if d < TODAY]
 fmt = lambda t: t.astimezone(ET).strftime("%b %-d %-I:%M %p") if t else ""
 
