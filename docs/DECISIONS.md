@@ -13,7 +13,7 @@ From Sheila, Nov 20.
 | Topic | Rule |
 |---|---|
 | **Work after 6pm MT** | Anything Gino does after his shift still counts. Every checkpoint looks to **midnight MT** of its day: welcome and follow-up calls (already), and now day-before calls, prospects confirming by phone, and the 5:45 cancel (a cancel after 6pm MT on the day before counts as done). Until Nov 20 the day-before call stopped at 6pm MT. The 5:45 cancel is still due at 5:45: a call after it doesn't excuse a missed cancel unless the prospect accepts or confirms by phone. |
-| **Afternoon pre-check** | Weekdays by 5:30pm MT, a post in #cc-gino tags Gino with what would show as a miss on the next scorecard if nothing changes, and the 5:45 cancels coming up (`precheck/ROUTINE.md`). It's information only: no deadline, and it decides nothing. The morning run still decides. |
+| **Afternoon pre-check** | Weekdays by 5:30pm MT, a post in #cc-gino tags Gino with what would show as a miss on the next scorecard if nothing changes, and the 5:45 cancels coming up (`precheck/ROUTINE.md`). It's information only: no deadline, and it decides nothing. The morning run still decides. From Nov 23 the channel post is one sentence (day, activity time, counts) and the list goes in a thread reply under it, so it doesn't fill the channel. |
 
 ---
 
