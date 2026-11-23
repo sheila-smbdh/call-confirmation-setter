@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Recovery Tab Mockup</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 11px; background: #fff; color: #1d2433; padding: 14px; width: 1500px; }
+  h2 { font-size: 14px; margin: 14px 0 4px; } h2:first-child { margin-top: 0; }
+  p.note { color: #5d6676; margin: 0 0 6px; font-size: 11px; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #d9d9d9; padding: 3px 5px; white-space: nowrap; text-align: left; }
+  th { background: #1f3864; color: #fff; font-weight: 700; font-size: 10.5px; }
+  th.grp { background: #2f5fb3; text-align: center; }
+  th.res { background: #1f8a4c; }
+  td.y { background: #fff2cc; } td.g { background: #e2f2e8; } td.r { background: #fbe1df; } td.m { color: #5d6676; }
+  .tag { color: #c2362f; font-weight: 700; letter-spacing: .06em; }
+</style>
+</head>
+<body>
+<h2>Recovery tab <span class="tag">PROPOSAL · SAMPLE DATA</span></h2>
+<p class="note">One row per lost call (a "case"). Filled by the nightly run. The day-by-day touch grid (D1–D5) shows what was due and what he did. ✓ = done, ✗ = missed, – = not due (rebooked, weekend, ended).</p>
+<table>
+<tr><th colspan="7" class="grp">The lost call</th><th colspan="6" class="grp">His touches (business days)</th><th colspan="5" class="grp">Outcome</th><th colspan="3" class="grp res" style="background:#1f8a4c">Bonus</th></tr>
+<tr>
+  <th>Case</th><th>Lead</th><th>Advisor</th><th>Original call (ET)</th><th>Type</th><th>Found by</th><th>First touch due</th>
+  <th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>D5</th><th>Touches</th>
+  <th>Status</th><th>Rebooked at</th><th>New call (ET)</th><th>Calendar</th><th>Logged in Close?</th>
+  <th class="res">New call result</th><th class="res">Credit?</th><th class="res">Bonus</th>
+</tr>
+<tr><td>R-0141</td><td>Sam Patel</td><td>Owen</td><td>Mon Nov 30 2:00pm</td><td>No-show</td><td>Pipeline: No Show/Cancel</td><td>Tue Dec 1</td>
+  <td class="r">✗</td><td class="g">✓ VM+text</td><td></td><td></td><td></td><td>1/2</td>
+  <td>Open (day 2 of 5)</td><td></td><td></td><td></td><td class="m">–</td><td class="m">–</td><td class="m">–</td><td class="m">–</td></tr>
+<tr><td>R-0139</td><td>Dana Brooks</td><td>Harry</td><td>Mon Nov 30 11:00am</td><td>Cancel</td><td>Calendly cancel (same day)</td><td>Mon Nov 30</td>
+  <td class="g">✓ VM+text</td><td class="g">✓ reached</td><td class="m">–</td><td class="m">–</td><td class="m">–</td><td>2/2</td>
+  <td>Rebooked</td><td>Tue Dec 1 3:10pm</td><td>Thu Dec 3 1:00pm</td><td>Closers RR</td><td class="r">No (miss)</td><td class="y">Upcoming</td><td>Yes</td><td class="y">Pending</td></tr>
+<tr><td>R-0137</td><td>Priya Nair</td><td>Owen</td><td>Fri Nov 27 4:00pm</td><td>Reschedule request</td><td>Pipeline: Reschedule Request</td><td>Fri Nov 27 (15 min)</td>
+  <td class="g">✓ reached</td><td class="m">–</td><td class="m">–</td><td class="m">–</td><td class="m">–</td><td>1/1</td>
+  <td>Rebooked</td><td>Fri Nov 27 4:22pm</td><td>Tue Dec 1 10:00am</td><td>Closers RR</td><td class="g">Yes</td><td class="g">Showed</td><td>Yes</td><td class="g">$50 (wk Nov 30)</td></tr>
+<tr><td>R-0131</td><td>Marco Lee</td><td>Harry</td><td>Tue Nov 24 1:00pm</td><td>No-show</td><td>Pipeline: No Show/Cancel</td><td>Wed Nov 25</td>
+  <td class="g">✓</td><td class="g">✓</td><td class="g">✓</td><td class="g">✓</td><td class="g">✓</td><td>5/5</td>
+  <td>Window ended</td><td></td><td></td><td></td><td class="m">–</td><td class="m">–</td><td class="m">–</td><td class="m">–</td></tr>
+<tr><td>R-0129</td><td>Ella Kim</td><td>Owen</td><td>Mon Nov 23 3:00pm</td><td>No-show</td><td>5:45 cancel (his)</td><td>Tue Nov 24</td>
+  <td class="g">✓ reached</td><td class="m">–</td><td class="m">–</td><td class="m">–</td><td class="m">–</td><td>1/1</td>
+  <td>Not interested</td><td></td><td></td><td></td><td class="m">–</td><td class="m">–</td><td class="m">–</td><td class="m">–</td></tr>
+<tr><td>R-0122</td><td>Jon Ortiz</td><td>Harry</td><td>Thu Nov 19 12:00pm</td><td>No-show</td><td>Pipeline: No Show/Cancel</td><td>Fri Nov 20</td>
+  <td class="g">✓</td><td class="g">✓ reached</td><td class="m">–</td><td class="m">–</td><td class="m">–</td><td>2/2</td>
+  <td>Rebooked</td><td>Mon Nov 23 2:40pm</td><td>Wed Nov 25 11:00am</td><td>Closers RR</td><td class="g">Yes</td><td class="r">No-show again → back to Open</td><td>Yes</td><td class="y">Pending (same case, 2nd rebook allowed)</td></tr>
+</table>
+
+<h2>Daily and Weekly tabs: new recovery columns (added to the right of the confirmation columns)</h2>
+<table>
+<tr><th colspan="2" class="grp">Day</th><th colspan="4" class="grp">Recovery effort (scored)</th><th colspan="5" class="grp res" style="background:#1f8a4c">Recovery results (not scored)</th></tr>
+<tr><th>Date</th><th>New lost calls (NS / Cxl / RR)</th><th>Resched. asks in 15 min</th><th>First touches on time</th><th>Daily touches done</th><th>Recovery logging errors</th>
+<th class="res">Open cases</th><th class="res">Reached</th><th class="res">Rebooked</th><th class="res">Recovered calls that showed</th><th class="res">Bonus earned</th></tr>
+<tr><td>Mon Nov 30</td><td>6 (3 / 2 / 1)</td><td class="g">1/1</td><td class="g">5/5</td><td class="g">9/9</td><td class="g">0</td><td>14</td><td>5</td><td>3</td><td>1</td><td>$50</td></tr>
+<tr><td>Tue Dec 1</td><td>4 (2 / 1 / 1)</td><td class="g">2/2</td><td class="r">4/5</td><td class="g">11/11</td><td class="r">1</td><td>16</td><td>6</td><td>3</td><td>2</td><td>$100</td></tr>
+</table>
+
+<h2>Management tab: what changes</h2>
+<table>
+<tr><th>Column</th><th>Today</th><th>Proposed</th></tr>
+<tr><td>Recovered calls that showed</td><td>Typed in by hand</td><td>Counted from the Recovery tab (cases whose new call showed that week, credit = Yes, first show per original lost call)</td></tr>
+<tr><td>KPI 4 (new): recovery touches</td><td>–</td><td>100% of recovery touches due were done, after excused misses. Shown from day one; counts toward the gate only from a date you pick.</td></tr>
+<tr><td>Recovery logging</td><td>–</td><td>Folded into KPI 3 (zero logging errors counted as a miss)</td></tr>
+<tr><td>Rebooked calls still ahead</td><td>–</td><td>Shown as info: bonus that could still land in a later week</td></tr>
+</table>
+</body>
+</html>

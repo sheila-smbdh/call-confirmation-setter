@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Gino's Scorecard</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --ink: #1d2433; --muted: #5d6676; --line: #e6e4dd;
+    --g: #1f8a4c; --g-bg: #e2f2e8;
+    --r: #c2362f; --r-bg: #fbe1df;
+    --b: #2f5fb3; --b-bg: #e6edf8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: Inter, sans-serif; width: 640px; padding: 16px 18px 14px; font-size: 12.5px; line-height: 1.35; }
+
+  .head { display: flex; justify-content: space-between; align-items: center; }
+  h1 { font-family: "Inter Display", Inter, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
+  h1 span { color: var(--muted); font-weight: 500; }
+  .score { font-weight: 700; font-size: 13px; padding: 4px 11px; border-radius: 99px; color: #fff; }
+  .score.g { background: var(--g); } .score.r { background: var(--r); }
+  .sub { color: var(--muted); font-size: 11.5px; margin: 2px 0 10px; }
+  .sub .sample { color: var(--r); font-weight: 700; letter-spacing: .06em; margin-left: 6px; }
+
+  .lbl { font-size: 9.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--b); margin: 0 0 4px; display: flex; justify-content: space-between; }
+  .lbl span { color: var(--muted); font-weight: 500; letter-spacing: .02em; text-transform: none; }
+  .tiles { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-bottom: 10px; }
+  .tile { border-radius: 7px; padding: 6px 7px 5px; }
+  .tile.g { background: var(--g-bg); } .tile.r { background: var(--r-bg); }
+  .tile .n { font-size: 10px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+  .tile .v { font-family: "Inter Display", Inter, sans-serif; font-size: 19px; font-weight: 700; line-height: 1.15; }
+  .tile.g .v { color: var(--g); } .tile.r .v { color: var(--r); }
+  .tile .t { font-size: 9.5px; color: var(--muted); }
+  .tiles.soon .tile { border: 1.5px dashed #cbc8bf; background: transparent; }
+  .tiles.soon .v { color: #c4c1b8; }
+
+  .ask { background: #fff; border: 1.5px solid var(--r); border-radius: 8px; padding: 7px 10px 6px; margin-bottom: 10px; }
+  .ask-h { font-size: 11.5px; margin-bottom: 4px; }
+  .ask-h b { color: var(--r); }
+  .it { display: grid; grid-template-columns: 18px 1fr; gap: 6px; padding: 3px 0; border-top: 1px solid var(--line); }
+  .it .k { width: 17px; height: 17px; border-radius: 50%; background: var(--r); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .it b { font-weight: 600; }
+  .it em { font-style: normal; color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; margin: 0 4px; }
+
+  .wk { background: var(--b-bg); border-radius: 7px; padding: 6px 10px; margin-bottom: 10px; font-size: 11.5px; }
+  .wk b { color: var(--b); }
+  .foot { font-size: 10px; color: var(--muted); display: flex; justify-content: space-between; }
+
+  /* Proposal additions: blue "result" tiles are information, not pass/fail. */
+  .tile.i { background: var(--b-bg); } .tile.i .v { color: var(--b); }
+  .tiles.rec { grid-template-columns: repeat(4, 1fr) 6px repeat(3, 1fr); }
+  .tiles.rec .gap { border-left: 1.5px dashed #cbc8bf; margin: 3px 0 3px 2px; }
+  .sublbl { display: grid; grid-template-columns: 4fr 6px 3fr; gap: 5px; font-size: 9px; color: var(--muted); margin: -2px 0 3px; }
+  .sublbl span:last-child { text-align: left; }
+  .funnel { background: #fff; border: 1px solid var(--line); border-radius: 7px; padding: 6px 10px; margin: -4px 0 10px; font-size: 11.5px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .funnel b { font-family: "Inter Display", Inter, sans-serif; font-size: 14px; }
+  .funnel .ar { color: #b7b3a8; }
+  .funnel .pay { margin-left: auto; color: var(--g); font-weight: 700; }
+  .funnel .h { color: var(--b); font-weight: 700; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; margin-right: 4px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* PROPOSAL MOCKUP, SAMPLE DATA ONLY. Names and numbers are made up. */
+const d = {
+  day: "Tue, Dec 1", sent: "Sent Wed, Dec 2",
+  stats: "24 bookings · 9 lost calls in recovery · 78 dials · 9:01am–6:07pm MT",
+  conf: [
+    ["Overnight", "5/5", "all dialed", "g"],
+    ["Speed to lead", "90%", "target 85%", "g"],
+    ["No-answer steps", "12/12", "all done", "g"],
+    ["Follow-ups", "6/6", "called", "g"],
+    ["Day-before", "4/4", "called", "g"],
+    ["5:45 cancels", "1/1", "done", "g"],
+    ["Logging", "0", "errors", "g"]
+  ],
+  recEffort: [
+    ["Resched. asks", "2/2", "called in 15 min", "g"],
+    ["First touch", "4/5", "on time", "r"],
+    ["Daily touches", "11/11", "open cases", "g"],
+    ["Logging", "1", "error", "r"]
+  ],
+  recResult: [
+    ["Rebooked", "3", "of 9 worked", "i"],
+    ["Showed", "2", "recovered calls", "i"],
+    ["Earned", "$100", "pending week gate", "i"]
+  ],
+  week: { lost: 23, reached: 15, rebooked: 8, showed: 4, upcoming: 3, pay: "$200" },
+  ask: [
+    ["Sam Patel", "No-show · first touch", "no call on Tue (no-show Mon 2pm ET with Owen)"],
+    ["Dana Brooks", "Recovery logging", "rebooked Tue 3:10pm for Thu 1pm, no Call Confirmation Specialist activity"]
+  ]
+};
+const scored = [...d.conf, ...d.recEffort];
+const hit = scored.filter(t => t[3] === "g").length;
+const tiles = ts => ts.map(([n, v, t, s]) => `<div class="tile ${s}"><div class="n">${n}</div><div class="v">${v}</div><div class="t">${t}</div></div>`).join("");
+const w = d.week;
+
+document.getElementById("app").innerHTML = `
+  <div class="head"><h1>Gino's scorecard <span>· ${d.day}</span></h1>
+    <span class="score ${hit === scored.length ? "g" : "r"}">${hit} of ${scored.length} hit</span></div>
+  <div class="sub">${d.stats}<span class="sample">PROPOSAL · SAMPLE</span></div>
+
+  <div class="lbl">Call confirmation<span>green = hit · red = missed</span></div>
+  <div class="tiles" style="grid-template-columns: repeat(7, 1fr)">${tiles(d.conf)}</div>
+
+  <div class="lbl">Call recovery<span>blue = results, not scored</span></div>
+  <div class="sublbl"><span>Did the work (scored)</span><span></span><span>Results</span></div>
+  <div class="tiles rec">${tiles(d.recEffort)}<div class="gap"></div>${tiles(d.recResult)}</div>
+  <div class="funnel"><span class="h">Week so far</span>
+    <span><b>${w.lost}</b> lost calls</span><span class="ar">→</span>
+    <span><b>${w.reached}</b> reached</span><span class="ar">→</span>
+    <span><b>${w.rebooked}</b> rebooked</span><span class="ar">→</span>
+    <span><b>${w.showed}</b> showed</span>
+    <span style="color:var(--muted)">(${w.upcoming} rebooked calls still ahead)</span>
+    <span class="pay">${w.pay} bonus so far</span></div>
+
+  ${d.ask.length ? `<div class="ask"><div class="ask-h"><b>Reply with why (${d.ask.length}):</b> in this post's thread by noon MT, one line per number, e.g. "2: he asked me to wait"</div>
+    ${d.ask.map(([who, sec, what], i) => `<div class="it"><span class="k">${i + 1}</span><span><b>${who}</b><em>${sec}</em>${what}</span></div>`).join("")}</div>` : ""}
+  <div class="foot"><span>${d.sent}</span><span>Call times in ET · Questions? Sheila or Jay in #cc-gino</span></div>`;
+</script>
+</body>
+</html>
