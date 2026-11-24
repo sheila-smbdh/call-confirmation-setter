@@ -163,9 +163,16 @@ day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TOD
      the situation in a note): `.../activity/sms/?lead_id=<lead_id>&_limit=100` and
      `.../activity/note/?lead_id=<lead_id>&_limit=50`, one curl each. A prospect's text saying they'll attend goes in
      `text_confirms.json` (step 7b; build.py then marks the logging valid). Then read Gino's call transcript (`curl -s -u "$CLOSE_API_KEY:" ".../activity/call/<id>/?_fields=id,duration,recording_transcript"`
-     for the ids in the row's `transcript_calls`). If the prospect confirmed (by phone, text or as his note explains) and had a technical problem accepting, add
-     to `$DIR/overrides.json` `{"<lead_id>": "Valid (verbal + tech issue): <one-sentence reason>"}`; if not,
-     `{"<lead_id>": "Logging error: <one-sentence reason>"}`. Re-run build.py. Don't quote transcripts at length.
+     for the ids in the row's `transcript_calls`: his connected calls on the lead from booking to 12 hours after he
+     logged it; `phone_outcome` is true when he also logged "Confirmed not Accepted" or field 5).
+     - Sheila, Nov 24: if the transcript shows the prospect **verbally confirmed** they'll be on the call (yes to the
+       day and time, "I'll be there", "see you then"), it's valid, with or without a technical problem accepting:
+       `{"<lead_id>": "Valid (confirmed by phone): <one-sentence reason, with the call date>"}`.
+     - If the prospect confirmed and had a technical problem accepting, `"Valid (verbal + tech issue): <reason>"` as before.
+     - Otherwise `{"<lead_id>": "Logging error: <one-sentence reason>"}`: no connected call, no transcript (say so, and
+       name his outcome or note if he logged one, for Sheila and Jay), or the prospect didn't clearly confirm ("I'll
+       check my email", "maybe", only a reschedule request).
+     Re-run build.py. Don't quote transcripts at length.
 
 7b. **Prospects who confirmed by text** (Sheila, Nov 13: a prospect's own text saying they'll be on the call counts
    as confirmed; no day-before call or 5:45 cancel is needed after it)
