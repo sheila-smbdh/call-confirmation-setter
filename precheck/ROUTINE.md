@@ -2,8 +2,10 @@
 
 Runs Monday to Friday at **4:37pm MT (6:37pm ET)** as a scheduled session, and posts by **5:30pm MT (7:30pm ET)**, 30
 minutes before Gino's shift ends (6pm MT / 8pm ET, `docs/SOP.md`). It checks today's work the same way the morning
-tracker run will, and posts one message in #cc-gino tagging Gino with every item that would show as a miss on the next
-scorecard, plus the 5:45 cancels coming up, so he can see them before he logs off (Sheila, Nov 20). The post sets no
+tracker run will, and posts in #cc-gino tagging Gino with every item that would show as a miss on the next scorecard,
+plus the 5:45 cancels coming up, so he can see them before he logs off (Sheila, Nov 20). The channel gets one sentence
+(the day, the activity time and the counts); the list itself goes in a thread reply under it, so it doesn't take up
+the channel and only Gino needs to open it (Sheila, Nov 23). The post sets no
 deadline: anything he does after his shift still counts, to midnight MT (`docs/DECISIONS.md`, Nov 20).
 
 - Monday to Thursday: covers today, for tomorrow's scorecard. Friday: covers Friday, for Monday's scorecard.
@@ -16,12 +18,13 @@ deadline: anything he does after his shift still counts, to midnight MT (`docs/D
 May, without asking (once Sheila adds this run to her standing approvals):
 - Read Close (REST API, inline `curl`), Calendly, Slack (#call-confirmation) and Supabase setter-data `call_confirm_*`
   tables (GET only).
-- Post **one** message per day to #cc-gino (`C0CG28G7TQT`): the contents of `$DIR/message.txt`.
+- Post **one** message per day to #cc-gino (`C0CG28G7TQT`): the contents of `$DIR/message.txt`, and, when
+  `$DIR/thread.txt` isn't empty, **one** thread reply under that message with the contents of `$DIR/thread.txt`.
 - If a step fails or the post would land after 6pm MT: one Slack DM to Sheila (`U0BM6J8KM32`) saying what went wrong.
 
 Must not:
 - Write to Close, Calendly, Supabase, the tracker sheet, Drive or anything else.
-- Post anything else to Slack, reply in threads, or message anyone else.
+- Post anything else to Slack, reply in any other thread, or message anyone else.
 - Commit anything. The working files contain lead names: keep them in `precheck/data/` (gitignored).
 
 Follow `/root/.claude/CLAUDE.md`. Close and Supabase calls are inline `curl` only, one request per command, in the form
@@ -79,16 +82,22 @@ Sunday, stop. `DIR=precheck/data/$TODAY`, `P=tracker/pipeline`. `T-4` = TODAY mi
    becomes a miss, and the post tells Gino to leave a note where one explains a step.
 
 7. **Write and post**
-   - `python3 -I precheck/preview.py $DIR $TODAY` -> `$DIR/message.txt`; it prints `OK {...}` with the counts.
-   - Read the message once. Check that the items make sense against `calls_new.json` (no item for a call that was
+   - `python3 -I precheck/preview.py $DIR $TODAY` -> `$DIR/message.txt` (one sentence: day, activity time, counts) and
+     `$DIR/thread.txt` (the numbered list, the cancels coming up, speed to lead and the note reminder; empty when
+     there's nothing to list). It prints `OK {...}` with the counts and `"thread": true/false`.
+   - Read both once. Check that the items make sense against `calls_new.json` (no item for a call that was
      cancelled, no item dated another day except logging errors).
-   - Read the last few messages in `C0CG28G7TQT` (`slack_read_channel`). If today's pre-check is already there, stop,
-     so nothing posts twice.
+   - Read the last few messages in `C0CG28G7TQT` (`slack_read_channel`). If today's pre-check is already there, don't
+     post it again: if `thread.txt` isn't empty and that message has no thread reply from this run yet
+     (`slack_read_thread`), post only the thread reply (below) under it; otherwise stop.
    - If it is before 6pm MT: `slack_send_message` to `C0CG28G7TQT` with the exact text of `message.txt` (it tags Gino
      as `<@U0CFPJZQHGQ>`). Post it even when nothing is open (it then says so).
+   - Then, if `thread.txt` isn't empty: `slack_send_message` to `C0CG28G7TQT` with `thread_ts` set to the `ts` the
+     main post returned, and the exact text of `thread.txt`. Don't broadcast it to the channel.
 
 8. **If anything fails** before the post, or it is already 6pm MT: post nothing to #cc-gino. DM Sheila one line: "Gino's
-   pre-check wasn't sent: <which step and why>." If the post call fails partway, read the channel before retrying.
+   pre-check wasn't sent: <which step and why>." If a post call fails partway, read the channel (and the thread) before retrying. If the main post went out but the
+   thread reply failed, retry the reply once; if it still fails, DM Sheila that the list didn't post.
 
-9. **Finish** with one line: what was posted (items to fix, cancels coming up, the activity time it used) or why
+9. **Finish** with one line: what was posted (main post and whether the thread reply went) (items to fix, cancels coming up, the activity time it used) or why
    nothing was, and how long the run took (so the 4:37pm MT start can be moved if it runs close to 5:30).

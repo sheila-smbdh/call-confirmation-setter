@@ -2,11 +2,11 @@
 
 The source of truth for every decision about the Call Confirmation Specialist role. The SOP, the Close setup, the Zaps and the payout code all follow this file. If anything conflicts with it, this file wins until Sheila changes it.
 
-Last updated: 2026-11-24 (rev 9). **The newest section is first and overrides anything older below it** (0000000, then 000000, then 00000, then 0000, then 000, then 00, then 0).
+Last updated: 2026-11-24 (rev 10). **The newest section is first and overrides anything older below it** (00000000, then 0000000, then 000000, then 00000, then 0000, then 000, then 00, then 0).
 
 ---
 
-## 0000000. Update Nov 24, 2026 (rev 9): call recovery tracking and pay
+## 00000000. Update Nov 24, 2026 (rev 10): call recovery tracking and pay
 
 From Sheila, in the recovery design session (Nov 23–24). Full proposal and mockups: [`proposals/call-recovery/`](../proposals/call-recovery/README.md). This section replaces sections 2 (gate on the recovery bonus) and 7 (recovery) where they differ, and closes open items 1 and 2 (section 12) and E (section 0.6).
 
@@ -26,6 +26,18 @@ From Sheila, in the recovery design session (Nov 23–24). Full proposal and moc
 
 ---
 
+## 0000000. Update Nov 24, 2026 (rev 9): confirmed by phone or text is valid logging
+
+From Sheila, Nov 24.
+
+| Topic | Rule |
+|---|---|
+| **Confirmed by phone** | If the prospect verbally confirmed on the call (yes to the day and time, "I'll be there") and Gino logged them accepted (field 1, 3 or 9, or status Confirmed) before the calendar invite was accepted, that's **not a logging error**. No technical problem is needed. Gino usually also logs the outcome "Confirmed not Accepted" or field 5 and leaves a note. Those point to the call, but **the call transcript is the proof**: the morning run reads it and records "Valid (confirmed by phone)". No connected call, no transcript, or no clear confirmation ("I'll check my email") is still a logging error for Sheila and Jay. |
+| **Confirmed by text** | Unchanged and confirmed: when the prospect texts that they'll attend, Gino logs them accepted, as he's been told. That's valid ("Valid (confirmed by text)", since Nov 18). |
+| **Pre-check** | It doesn't read transcripts or new texts, so these can still appear there. It tells Gino there's nothing to do when he spoke to them or they texted; the morning run decides. |
+
+---
+
 ## 000000. Update Nov 20, 2026 (rev 8): work after his shift counts; afternoon pre-check
 
 From Sheila, Nov 20.
@@ -33,7 +45,7 @@ From Sheila, Nov 20.
 | Topic | Rule |
 |---|---|
 | **Work after 6pm MT** | Anything Gino does after his shift still counts. Every checkpoint looks to **midnight MT** of its day: welcome and follow-up calls (already), and now day-before calls, prospects confirming by phone, and the 5:45 cancel (a cancel after 6pm MT on the day before counts as done). Until Nov 20 the day-before call stopped at 6pm MT. The 5:45 cancel is still due at 5:45: a call after it doesn't excuse a missed cancel unless the prospect accepts or confirms by phone. |
-| **Afternoon pre-check** | Weekdays by 5:30pm MT, a post in #cc-gino tags Gino with what would show as a miss on the next scorecard if nothing changes, and the 5:45 cancels coming up (`precheck/ROUTINE.md`). It's information only: no deadline, and it decides nothing. The morning run still decides. |
+| **Afternoon pre-check** | Weekdays by 5:30pm MT, a post in #cc-gino tags Gino with what would show as a miss on the next scorecard if nothing changes, and the 5:45 cancels coming up (`precheck/ROUTINE.md`). It's information only: no deadline, and it decides nothing. The morning run still decides. From Nov 23 the channel post is one sentence (day, activity time, counts) and the list goes in a thread reply under it, so it doesn't fill the channel. |
 
 ---
 

@@ -3,7 +3,8 @@
 
 Usage: python3 -I precheck/preview.py DIR TODAY      (TODAY = today's date in US Eastern, YYYY-MM-DD)
 Reads DIR/calls_new.json (from `build.py DIR TODAY preview`) and DIR/review_keys_prev.json (the Reviews keys already
-in Supabase, `[{"review_key": ...}]`). Writes DIR/message.txt (the Slack post) and prints OK with the counts.
+in Supabase, `[{"review_key": ...}]`). Writes DIR/message.txt (the one-sentence main post) and DIR/thread.txt (the
+list, posted as a thread reply under it; empty when there's nothing to list) and prints OK with the counts.
 
 Which items: exactly what tracker/pipeline/reviews.py would turn into Reviews rows (the scorecard's "Reply with why"
 list), using its own items() function, for today's checkpoints, plus any logging error not already on the Reviews tab.
@@ -46,11 +47,14 @@ def when(text):
     return f"call {dd.strftime('%a')} {m[3]}{m[4].lower()} ET"
 
 
-def fix(cp, t):
+def fix(cp, t, phone=False):
     """What he can do now, in a few words."""
+    if cp == LOG and phone:
+        return ("if they confirmed on the call or by text, nothing to do: the morning run checks the call transcript "
+                "and texts (a note on the lead helps)")
     if cp == LOG:
-        return ("set Confirmed only once the invite is accepted; if they confirmed by phone or text, or couldn't accept, "
-                "add a note on the lead saying so")
+        return ("if they confirmed by text, nothing to do: the morning run reads the texts; if they confirmed some other "
+                "way, add a note on the lead saying so; otherwise set Confirmed only once the invite is accepted")
     if t.startswith("Not touched"):
         return "call now: double dial + voicemail + text" if cp == DB else "call now: double dial + voicemail"
     if t.startswith("Missing"):
@@ -74,6 +78,7 @@ def what(cp, t):
 
 
 name = lambda s: " ".join(w.capitalize() if w.isupper() else w for w in s.split())
+byev = {r["event"]: r for r in rows}
 fixes, coming = [], []
 for wk, d, cp, kind, lead, t, note, key in items(rows):
     if key in have:
@@ -85,7 +90,8 @@ for wk, d, cp, kind, lead, t, note, key in items(rows):
             w = when(t)
             coming.append(f"{name(lead)}" + (f" ({w})" if w else ""))
         continue
-    fixes.append((ORDER.index(cp) if cp in ORDER else 9, name(lead), SEC.get(cp, cp), what(cp, t), fix(cp, t)))
+    phone = cp == LOG and bool(byev.get(key.split("|")[0], {}).get("transcript_calls"))
+    fixes.append((ORDER.index(cp) if cp in ORDER else 9, name(lead), SEC.get(cp, cp), what(cp, t), fix(cp, t, phone)))
 fixes.sort()
 
 # Speed to lead today (KPI 2): during-shift bookings due today, first dialed within 15 min. Can't be fixed now.
@@ -95,20 +101,32 @@ in15 = sum(1 for r in ds if r["w"].get("on_time"))
 
 day_s = lambda x: x.strftime("%a %b ") + str(x.day)
 hm = lambda x: x.strftime("%-I:%M%p").lower()
-msg = (f"<@U0CFPJZQHGQ> Pre-check for today, {day_s(TODAY)} (your Close activity as of {hm(asof)} MT). ")
+# Two posts (Sheila, Nov 23): a one-sentence main message in #cc-gino that tags Gino, and the list itself as a thread
+# reply under it, so the channel shows one line a day and only Gino opens the details.
+card = next_card.strftime("%A")
+msg = f"<@U0CFPJZQHGQ> Pre-check for today, {day_s(TODAY)} (your Close activity as of {hm(asof)} MT): "
 if fixes:
-    msg += (f"If nothing changes, {'this shows' if len(fixes) == 1 else f'these {len(fixes)} show'} as "
-            f"{'a miss' if len(fixes) == 1 else 'misses'} on {next_card.strftime('%A')}'s scorecard:\n")
-    msg += "\n".join(f"{i}. {n} · {s} · {w} → {f}" for i, (_, n, s, w, f) in enumerate(fixes, 1))
+    msg += f"{len(fixes)} {'item' if len(fixes) == 1 else 'items'} would show as {'a miss' if len(fixes) == 1 else 'misses'} on {card}'s scorecard"
 else:
-    msg += f"Nothing would show as a miss on {next_card.strftime('%A')}'s scorecard so far. Keep it up."
+    msg += f"nothing would show as a miss on {card}'s scorecard so far"
 if coming:
-    msg += ("\n*5:45pm MT cancels coming up* (cancel unless they accept or confirm by phone before then):\n"
-            + "\n".join(f"• {c}" for c in coming))
-if ds:
-    msg += f"\nSpeed to lead today: {in15} of {len(ds)} new bookings dialed within 15 min (already final)."
-msg += ("\n_Couldn't do a step (didn't ring, number disconnected, no voicemail box)? Leave a note on the lead saying why. "
-        "The morning run reads your notes before it marks a miss. Anything booked after this check is still due as usual._")
+    msg += f", and {len(coming)} {'cancel' if len(coming) == 1 else 'cancels'} due at 5:45pm MT"
+msg += ". Details in the thread." if (fixes or coming) else ". Keep it up."
+
+thread = ""
+if fixes:
+    thread += f"*Would show as {'a miss' if len(fixes) == 1 else 'misses'} on {card}'s scorecard if nothing changes:*\n"
+    thread += "\n".join(f"{i}. {n} · {s} · {w} → {f}" for i, (_, n, s, w, f) in enumerate(fixes, 1))
+if coming:
+    thread += ("\n" if thread else "") + ("*5:45pm MT cancels coming up* (cancel unless they accept or confirm by phone "
+                                          "before then):\n" + "\n".join(f"• {c}" for c in coming))
+if thread:
+    if ds:
+        thread += f"\nSpeed to lead today: {in15} of {len(ds)} new bookings dialed within 15 min (already final)."
+    thread += ("\n_Couldn't do a step (didn't ring, number disconnected, no voicemail box)? Leave a note on the lead "
+               "saying why. The morning run reads your notes before it marks a miss. Anything booked after this check is "
+               "still due as usual._")
 open(f"{D}/message.txt", "w").write(msg)
+open(f"{D}/thread.txt", "w").write(thread)              # empty: post no thread reply
 print("OK", json.dumps({"day": TODAY.isoformat(), "asof_mt": asof.strftime("%H:%M"), "to_fix": len(fixes),
-                        "cancels_coming": len(coming), "speed": f"{in15}/{len(ds)}"}))
+                        "cancels_coming": len(coming), "speed": f"{in15}/{len(ds)}", "thread": bool(thread)}))
