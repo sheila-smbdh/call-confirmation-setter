@@ -10,7 +10,7 @@ Sources:
 Mockups (sample data, made-up names):
 - `mockup/scorecard.png`: the Tue–Fri card with the recovery row.
 - `mockup/scorecard-monday.png`: the Monday card. It shows Friday, plus last week's full recovery numbers.
-- `mockup/tracker-recovery.png`: the recovery tab, the new Daily/Weekly columns, and the Management changes. **This is rev 1. It still shows the old D1–D5 rules and a gate; it will be redrawn to match the rules below.**
+- `mockup/tracker-recovery.png`: the recovery tab, the new Daily/Weekly columns, and the Management changes. Redrawn Nov 24 with the final rules.
 
 ---
 
@@ -44,7 +44,7 @@ Mockups (sample data, made-up names):
 |---|---|---|
 | 1 | Call → double dial → recovery voicemail + the Day 1 text for the type (no-show, cancel or reschedule request) | Day 1 Recovery - No Pickup, Double Dial, VM, Text |
 | 2 | Call (double dial unless they pick up) | Day 2 Recovery - No Pickup |
-| 3 | Call (double dial) + Day 3 voicemail + Day 3 text | Day 3 Recovery - No Pickup (see note) |
+| 3 | Call (double dial) + Day 3 voicemail + Day 3 text | Day 3 Recovery - No Pickup, Double Dial, VM, Text |
 | 4 | Call (double dial unless they pick up) | Day 4 Recovery - No Pickup |
 | 5 | Call (double dial) + breakup voicemail + breakup text, then stop | Day 5 Recovery - No Pickup, Double Dial, VM, Text |
 
@@ -53,7 +53,9 @@ Mockups (sample data, made-up names):
   - the lead says "not interested" or "already bought";
   - he sets a callback task.
 - **Closer exception:** if the closer is already rescheduling the lead, Gino stays out, and those days aren't counted against him. He takes over if the closer sent their own calendar link and the lead hasn't replied in 24 hours.
-- **Reschedule requests** are called within 15 minutes if they come in during his shift, as the SOP's "right away" (open item A).
+- **Reschedule requests** that come in during his shift are tracked for a call within 15 minutes. One that comes in overnight has no speed target: it's due as Day 1 on his next shift (Sheila, Nov 24).
+- **Not interested:** he sets the Call Recovery field to "Not Interested" (added Nov 24) and the row ends.
+- **Callbacks:** no field option (Sheila, Nov 24). An open Close task on the lead pauses the schedule until the task's date; the recovery smart views already hide leads with open tasks.
 - After a rebook, the new call is a **new booking** and goes through normal confirmation, including the day-before 5:45 cancel.
 
 ### Credit for a rebook
@@ -120,7 +122,5 @@ Open item B below covers how the tracker proves #3.
 
 | # | Item | Proposed |
 |---|---|---|
-| A | Reschedule request "right away" | Within 15 minutes during his shift; first 30 minutes of the next shift if it comes in overnight |
 | B | ~~Proving Gino was the scheduler in Calendly~~ **Works (tested Nov 24).** | Sheila booked a test on the round robin from her Calendly account. The round-robin event is named "Discovery Call with SMB Deal Hunter Pro - O2C". The booking's `invitee_scheduled_by` named her Calendly user. Public-link bookings leave it empty. **Rule:** credit only when `invitee_scheduled_by` = Gino's Calendly user (`users/a657209b-e5aa-4e23-b2e8-d9699363b19b`). No fallback needed. |
-| D | Close field fixes (Sheila's call, nothing changed) | Rename "Day 3 Recovery - No Pickup" to include VM + Text. Add choices for "Not interested" and "Callback set", so a case can end early for the right reason. |
-| E | "Call Recovery - Follow-up" smart view | Add a "not called today" filter, or sort by last call, so he doesn't call anyone twice or skip anyone |
+| E | "Call Recovery - Follow-up" smart view | Sheila adds a "not called today" filter later, once it has leads in it |
