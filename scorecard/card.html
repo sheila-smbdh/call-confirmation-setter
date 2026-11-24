@@ -44,6 +44,26 @@
   .wk { background: var(--b-bg); border-radius: 7px; padding: 6px 10px; margin-bottom: 10px; font-size: 11.5px; }
   .wk b { color: var(--b); }
   .foot { font-size: 10px; color: var(--muted); display: flex; justify-content: space-between; }
+  .tile.i { background: var(--b-bg); } .tile.i .v { color: var(--b); }
+  .tiles.rec { grid-template-columns: repeat(4, 1fr) 6px repeat(3, 1fr); }
+  .tiles.rec .gap { border-left: 1.5px dashed #cbc8bf; margin: 3px 0 3px 2px; }
+  .sublbl { display: grid; grid-template-columns: 4fr 6px 3fr; gap: 5px; font-size: 9px; color: var(--muted); margin: -2px 0 3px; }
+  .wkbox { background:#fff; border:1.5px solid var(--b); border-radius:8px; padding:8px 10px 7px; margin-bottom:10px; }
+  .wkbox h3 { font-size:11.5px; color:var(--b); margin-bottom:5px; }
+  .wkbox h3 span { color:var(--muted); font-weight:500; }
+  .fw { display:grid; grid-template-columns: 5fr 1fr; gap:4px; margin-bottom:6px; }
+  .fn { display:grid; grid-template-columns: repeat(5, 1fr); gap:4px; margin-bottom:6px; }
+  .fb { background:var(--g-bg); border-radius:6px; padding:6px 8px; margin-top:15px; margin-bottom:6px; display:flex; flex-direction:column; justify-content:center; }
+  .fb .v { font-family:"Inter Display",Inter,sans-serif; font-size:22px; font-weight:700; color:var(--g); }
+  .fb .n { font-size:9.5px; color:var(--muted); }
+  .fn > div { background:var(--b-bg); border-radius:6px; padding:4px 6px; }
+  .fn .v { font-family:"Inter Display",Inter,sans-serif; font-size:17px; font-weight:700; color:var(--b); }
+  .fn .v small { font-size:11px; font-weight:600; margin-left:4px; }
+  .fn .n { font-size:9.5px; color:var(--muted); }
+  .fn > .pay { background:var(--g-bg); } .fn .pay .v { color:var(--g); }
+  .fn > .blank { background: transparent; }
+  .fl { font-size:9.5px; font-weight:700; color:var(--muted); margin:0 0 2px; }
+  .wkl { font-size:11px; padding:2px 0; border-top:1px solid var(--line); display:flex; justify-content:space-between; }
 </style>
 </head>
 <body>
@@ -97,8 +117,14 @@ document.getElementById("app").innerHTML = `
   <div class="lbl">Call confirmation<span>green = hit · red = missed</span></div>
   <div class="tiles" style="grid-template-columns: repeat(${d.tiles.length}, 1fr)">${tiles(d.tiles)}</div>
 
-  <div class="lbl">Call recovery<span>coming soon</span></div>
-  <div class="tiles soon">${tiles([["No-shows", "–", ""], ["Cancels", "–", ""], ["Reschedules", "–", ""], ["Rebooked", "–", ""], ["Showed", "–", ""], ["Logging", "–", ""]].map(x => [...x, ""]))}</div>
+  ${d.rec ? `<div class="lbl">Call recovery<span>bonus effort · never affects base pay or the bonus check</span></div>
+  <div class="sublbl"><span>Did the steps</span><span></span><span>Results that day</span></div>
+  <div class="tiles rec">${tiles(d.rec.effort)}<div class="gap"></div>${tiles(d.rec.result)}</div>
+  ${d.rec.funnels ? `<div class="wkbox"><h3>${d.rec.funnels.title} <span>· ${d.rec.funnels.range}</span></h3>
+    <div class="fw"><div class="fr">${d.rec.funnels.rows.map(([lab, cells]) => `<div class="fl">${lab}</div><div class="fn">${cells.map(([v, n, c]) => `<div class="${c || ""}"><div class="v">${v}</div><div class="n">${n}</div></div>`).join("")}</div>`).join("")}</div>
+    <div class="fb"><div class="v">${d.rec.funnels.bonus}</div><div class="n">bonus: both rows<br>${d.rec.funnels.bonus_note}</div></div></div>
+    <div style="font-size:9.5px;color:var(--muted);margin-top:-2px">Still ahead = rebooked calls not held yet (part of rebooked). Showed counts the week the call is held, so all shows × $50 = the bonus.</div></div>` : ""}` : `<div class="lbl">Call recovery<span>coming soon</span></div>
+  <div class="tiles soon">${tiles([["No-shows", "–", ""], ["Cancels", "–", ""], ["Reschedules", "–", ""], ["Rebooked", "–", ""], ["Showed", "–", ""], ["Logging", "–", ""]].map(x => [...x, ""]))}</div>`}
 
   ${d.ask.length ? `<div class="ask"><div class="ask-h"><b>Reply with why (${d.ask.length}):</b> in this post's thread by noon MT, one line per number, e.g. "2: he asked me to wait"</div>
     ${d.ask.map(([who, sec, what], i) => `<div class="it"><span class="k">${i + 1}</span><span><b>${who}</b><em>${sec}</em>${what}</span></div>`).join("")}</div>` : ""}

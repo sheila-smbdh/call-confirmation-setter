@@ -11,6 +11,7 @@ SOPs, Close setup, automations and payout tracking for SMB Deal Hunter's Call Co
   - `tracker/data/`: each run's working files. They contain lead data, so they're gitignored and never committed.
 
 - `precheck/`: Gino's afternoon pre-check, posted to #cc-gino Mon–Fri by 5:30pm MT (30 minutes before his shift ends): what would show as a miss on the next scorecard, while he can still fix it. `precheck/ROUTINE.md` has the steps.
+- Call recovery (from Nov 24): the nightly run builds a Recovery tab (one row per lost call) with `tracker/pipeline/recovery.py`, and the scorecard shows a recovery row. Design and decisions: `proposals/call-recovery/README.md`, `docs/DECISIONS.md` rev 10.
 - `scorecard/`: Gino's daily scorecard, posted to #cc-gino Mon–Fri before 7am ET. `scorecard/ROUTINE.md` has the steps; `scorecard/mockup/` has the sample PNGs.
 
 Latest handoff: `handoffs/2026-11-04-precall-confirmation/README.md` (pre-call confirmation analysis and setter-set workflow proposal).

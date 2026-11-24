@@ -33,9 +33,11 @@ cols_ = [
     ("status", "Week", "Week status", '=IF({due}{{r}}=0,"No data yet",IF({end}{{r}}+19/24>NOW(),"Week still open (closes "&TEXT({end}{{r}},"ddd mmm d")&")",IF({todo}{{r}}>0,"WAITING: Reviews",IF(OR({aps}{{r}}="",{apj}{{r}}=""),"WAITING: approval","Done"))))', "@"),
     ("aps", "Sign-off and bonus", "Approved: Sheila", None, "@"),
     ("apj", "Sign-off and bonus", "Approved: Jay", None, "@"),
-    ("bonus", "Sign-off and bonus", "Recovery bonus to pay ($)", '=IF(LEFT({elig}{{r}},3)="Yes",{shows}{{r}}*{BONUS},0)', '"$"#,##0'),
-    ("shows", "Sign-off and bonus", "Recovered calls that showed", None, "0"),
-    ("elig", "Sign-off and bonus", "Eligible for recovery bonus?", '=IF({due}{{r}}=0,"No data",IF({todo}{{r}}>0,"WAITING: decide on Reviews tab",IF({gate}{{r}}="No (ramp)","Yes (ramp week, no gate)",{comp}{{r}})))', "@"),
+    # Nov 24 (Sheila): no gate on the recovery bonus, and recovered calls that showed is a live formula
+    # (Management -> Daily "Recovered calls that showed" -> the Recovery tab's rows), never typed in.
+    ("bonus", "Sign-off and bonus", "Recovery bonus to pay ($)", '={shows}{{r}}*{BONUS}', '"$"#,##0'),
+    ("shows", "Sign-off and bonus", "Recovered calls that showed", "=" + dsum(L("Call recovery (information only)", "Recovered calls that showed")), "0"),
+    ("elig", "Sign-off and bonus", "Eligible for recovery bonus?", '=IF({start}{{r}}>=DATE(2026,11,23),"Yes (no gate from Nov 24)",IF({due}{{r}}=0,"No data",IF({todo}{{r}}>0,"WAITING: decide on Reviews tab",IF({gate}{{r}}="No (ramp)","Yes (ramp week, no gate)",{comp}{{r}}))))', "@"),
     ("comp", "Sign-off and bonus", "Compliant on call confirmation? (all 3 KPIs met)", '=IF({due}{{r}}=0,"No data",IF({todo}{{r}}>0,"WAITING: decide on Reviews tab",IF(AND({k1m}{{r}}="Yes",{k2m}{{r}}="Yes",{k3m}{{r}}="Yes"),"Yes","No")))', "@"),
     ("k1", "Key KPIs (all 3 must be met)", "KPI 1: Confirmation score (target 100%)", '=IF({due}{{r}}=0,"",({fin}{{r}}+{exc}{{r}})/{due}{{r}})', "0%"),
     ("k1m", "Key KPIs (all 3 must be met)", "KPI 1 met?", '=IF({due}{{r}}=0,"No data",IF({k1}{{r}}>={GATE},"Yes","No"))', "@"),
@@ -54,7 +56,8 @@ cols_ = [
     ("w15", "Supporting numbers", "First dialed within 15 min",
      f'=COUNTIFS({wdue},">="&$A{{{{r}}}},{wdue},"<="&$B{{{{r}}}},{wreq},"Yes",{wbt},"During shift",{wot},"Yes")', "0"),
     ("lerr", "Supporting numbers", "Logging errors (all)", "=" + rvw(',Reviews!$D:$D,"Logging error"'), "0"),
-    ("todo", "Supporting numbers", "Reviews still to decide (this week)", "=" + rvw(',Reviews!$H:$H,""'), "0"),
+    # Nov 24: recovery rows on Reviews are coaching only, so they never hold the week
+    ("todo", "Supporting numbers", "Reviews still to decide (this week)", "=" + rvw(',Reviews!$D:$D,"Miss",Reviews!$H:$H,""') + "+" + rvw(',Reviews!$D:$D,"Logging error",Reviews!$H:$H,""'), "0"),
     ("notes", "Supporting numbers", "Notes", None, "@"),
 ]
 LET = {k: get_column_letter(i) for i, (k, *_r) in enumerate(cols_, 1)}
@@ -156,8 +159,8 @@ for key in ("elig", "comp", "k1m", "k2m", "k3m"):
     cl = LET[key]
     mg.conditional_formatting.add(f"{cl}{T0}:{cl}{T1}", FormulaRule(formula=[f'LEFT({cl}{T0},3)="Yes"'], fill=grn))
     mg.conditional_formatting.add(f"{cl}{T0}:{cl}{T1}", FormulaRule(formula=[f'{cl}{T0}="No"'], fill=red))
-mg.cell(last + 2, 1, "How to read this: the 3 gold KPI columns decide 'Compliant'. Compliant (or a ramp week) makes him eligible, and the bonus is recovered calls that showed x the bonus per call. Grey columns are the supporting numbers.").font = Font(name=FONT, italic=True, color="595959")
-mg.cell(last + 3, 1, "Yellow = something for Sheila or Jay to do. It clears on its own once the decision or approval is entered. Recovered calls that showed is typed in for now; it will come from the Recovery tab once that's built.").font = Font(name=FONT, italic=True, color="595959")
+mg.cell(last + 2, 1, "How to read this: the 3 gold KPI columns decide 'Compliant' on call confirmation. From Nov 24 the recovery bonus has no gate: it is recovered calls that showed x the bonus per call. Grey columns are the supporting numbers.").font = Font(name=FONT, italic=True, color="595959")
+mg.cell(last + 3, 1, "Yellow = something for Sheila or Jay to do. It clears on its own once the decision or approval is entered. Recovered calls that showed adds up the Daily tab, which counts the Recovery tab's rows: click through to check before approving.").font = Font(name=FONT, italic=True, color="595959")
 mg.column_dimensions["A"].width = 60
 mg.column_dimensions["B"].width = 14
 mg.column_dimensions[LET["status"]].width = 24

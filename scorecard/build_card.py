@@ -1,7 +1,8 @@
 """Offline: build Gino's daily scorecard data from the files plan.py told you to fetch. No network.
 
 Usage: python3 -I scorecard/build_card.py DIR
-Reads DIR/plan.json, runs.json, daily.json, reviews.json, dials.json. Writes DIR/card.json (for render.js) and
+Reads DIR/plan.json, runs.json, daily.json, reviews.json, dials.json, and (Nov 24) rec_days.json and rec_weeks.json
+for the call recovery row and funnels (optional: the card still builds without them). Writes DIR/card.json (for render.js) and
 DIR/message.txt (the Slack comment). Prints OK, or STALE / NO DATA with the reason (then send no card).
 
 How each tile is counted (the same rules as the tracker's Reviews tab, docs/DECISIONS.md, newest sections first):
@@ -28,7 +29,7 @@ the day-before shift covers the day-before call (one item, not two); a prospect 
 before needs no 5:45 cancel; and any cancel on the day before counts as the 5:45 cancel, whoever Calendly names.
 """
 import json, re, sys
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 D = sys.argv[1]
@@ -46,6 +47,9 @@ if not through or through < day or plan["day"] not in rows:
 
 r = rows[plan["day"]]
 g = lambda k: r.get(k) or 0
+REC_KINDS = ("Recovery miss", "Recovery logging")
+rec_reviews = [x for x in reviews if x.get("kind") in REC_KINDS]
+reviews = [x for x in reviews if x.get("kind") not in REC_KINDS]
 open_ = [x for x in reviews if (x.get("decision") or "").strip().lower() != "excused"]
 excused = [x for x in reviews if (x.get("decision") or "").strip().lower() == "excused"]
 cp = lambda xs, name: [x for x in xs if x["checkpoint"] == name]
@@ -91,6 +95,42 @@ tiles = [
 ]
 
 
+# ---- Nov 24: call recovery (information only; never affects pay or the "hit" pill) ----
+import os
+opt = lambda f: json.load(open(f"{D}/{f}")) if os.path.exists(f"{D}/{f}") else []
+rdays = {x["payload"]["date"]: x["payload"] for x in opt("rec_days.json")}
+rweek = (opt("rec_weeks.json") or [{}])[0].get("payload")
+rec_open = [x for x in rec_reviews if (x.get("decision") or "").strip().lower() != "excused"]
+rd = rdays.get(plan["day"], {})
+def rfrac(due, ok):
+    return (f"{ok}/{due}" if due else "–"), ("g" if ok == due else "r")
+rr_v, rr_s = rfrac(rd.get("rr_due", 0), rd.get("rr_ok", 0))
+d1_v, d1_s = rfrac(rd.get("d1_due", 0), rd.get("d1_ok", 0))
+d25_v, d25_s = rfrac(rd.get("d25_due", 0), rd.get("d25_ok", 0))
+le = rd.get("log_err", 0)
+rec = None
+if rdays or rweek:
+    rec = {"effort": [["Resched. asks", rr_v, "called in 15 min", rr_s], ["Day 1 touch", d1_v, "full sequence", d1_s],
+                      ["Days 2–5", d25_v, "on schedule", d25_s], ["Logging", str(le), "error" if le == 1 else "errors", "g" if le == 0 else "r"]],
+           "result": [["Rebooked", str(rd.get("rebooked", 0)), "by you in Calendly", "i"],
+                      ["Showed", str(rd.get("shows", 0)), "rebooked earlier", "i"],
+                      ["Bonus", f"${rd.get('bonus', 0)}", "from those shows", "i"]]}
+    if rweek and weekend:   # Monday card only (Sheila, Nov 24): Tue-Fri cards stay short
+        n, o = rweek["new"], rweek["older"]
+        # two funnels (Sheila, Nov 24). Showed counts the week the new call is held, so showed x $50 = the bonus.
+        # Still ahead = rebooked calls not held yet; they are part of rebooked.
+        rows_ = [["Lost last week",
+                  [[str(n["lost"]), "lost calls"], [str(n["worked"]), "you worked"], [str(n["rebooked"]), "rebooked"],
+                   [str(n["showed"]), "showed"], [str(n["ahead"]), "still ahead"]]],
+                 ["Older lost calls + backlog",
+                  [["", "", "blank"], [str(o["worked"]), "you worked"], [str(o["rebooked"]), "rebooked"],
+                   [str(o["showed"]), "showed"], [str(o["ahead"]), "still ahead"]]]]
+        rec["funnels"] = {"title": "Last week's call recovery", "bonus": f"${rweek['bonus']}",
+                          "bonus_note": f"{n['showed'] + o['showed']} showed × $50",
+                          "range": f"{date.fromisoformat(rweek['week']).strftime('%a %b')} {date.fromisoformat(rweek['week']).day} – "
+                                   f"{(date.fromisoformat(rweek['week']) + timedelta(days=6)).strftime('%a %b')} {(date.fromisoformat(rweek['week']) + timedelta(days=6)).day}",
+                          "rows": rows_}
+
 def when(text):
     """'(call 11-13 1:00 PM)' or '(booked ..., call 11-13 1:00 PM)' -> 'call Fri 1:00pm ET'."""
     m = re.search(r"call (\d\d)-(\d\d) (\d+:\d\d) ([AP]M)", text)
@@ -123,6 +163,8 @@ ORDER = [WO, WS, FUP, DB, C545, LOG]
 open_.sort(key=lambda x: (ORDER.index(x["checkpoint"]) if x["checkpoint"] in ORDER else 9, x["lead_name"].lower()))
 name = lambda s: " ".join(w.capitalize() if w.isupper() else w for w in s.split())
 ask = [[name(x["lead_name"]), SEC.get(x["checkpoint"], x["checkpoint"]), what(x)] for x in open_]
+# recovery items come after the confirmation items; their label already says "Recovery ..."
+ask += [[name(x["lead_name"]), x["checkpoint"], x["what_happened"]] for x in sorted(rec_open, key=lambda x: (x["checkpoint"], x["lead_name"].lower()))]
 
 # Header: bookings to confirm, dials and first/last dial (MT) on the scored day.
 ts = [datetime.fromisoformat(x["occurred_at"]).astimezone(MT) for x in dials]
@@ -152,11 +194,13 @@ if weekend:
 
 fmt = lambda x: x.strftime("%a, %b ") + str(x.day)
 today = date.fromisoformat(plan["today"])
-card = {"day": fmt(day), "sent": f"Sent {fmt(today)}", "stats": stats, "tiles": tiles, "ask": ask, "weekend": wk}
+card = {"day": fmt(day), "sent": f"Sent {fmt(today)}", "stats": stats, "tiles": tiles, "ask": ask, "weekend": wk, "rec": rec}
 json.dump(card, open(f"{D}/card.json", "w"), indent=1)
 
 hit = sum(t[3] == "g" for t in tiles)
-msg = f"<@U0CFPJZQHGQ> your scorecard for {day.strftime('%A, %b ')}{day.day}: {hit} of {len(tiles)} targets hit."
+msg = f"<@U0CFPJZQHGQ> your scorecard for {day.strftime('%A, %b ')}{day.day}: {hit} of {len(tiles)} call confirmation targets hit."
+if rec and rd:
+    msg += f" Call recovery: {rd.get('rebooked', 0)} rebooked, {rd.get('shows', 0)} showed (${rd.get('bonus', 0)})."
 msg += (f" {len(ask)} item{'s' if len(ask) != 1 else ''} to explain: reply in this thread by noon MT, one line per number."
         if ask else " Nothing to explain. Nice work.")
 # The numbered list goes in the post as text too, so the morning tracker run can match Sheila's and Jay's replies

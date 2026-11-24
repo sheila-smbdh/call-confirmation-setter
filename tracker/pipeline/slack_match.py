@@ -18,6 +18,8 @@ the thread; the run fills the Reviews tab so they don't have to)):
   that call: if it names a date, that date is the call's date, day-before date or booking date; if it names none, it
   was raised within 7 days before the call. If the decision lists `checkpoints` (welcome / daybefore / 545 / logging / followup),
   it covers only those items for that lead (a scorecard reply names items by number).
+  Call recovery items (Nov 24, rec_reviews.json): only a scorecard reply naming the item (checkpoints day<N> / field<N> /
+  rr15 / activity, the lead and the scored day) decides them. They are coaching only and never affect the bonus.
 Which review kinds a Slack approval can clear: see KINDS.
 """
 import json
@@ -30,7 +32,7 @@ import openpyxl
 
 DIR, XLSX = sys.argv[1], sys.argv[2]
 CHANNEL = "C0CG28G7TQT"
-KINDS = {"Logging error", "Miss"}  # Sheila, Nov 13: a lead-specific approval clears that lead's misses and logging errors
+KINDS = {"Logging error", "Miss", "Recovery miss", "Recovery logging"}  # Sheila, Nov 13: a lead-specific approval clears that lead's misses and logging errors
 norm = lambda s: re.sub(r"[^a-z]", "", (s or "").lower())
 
 
@@ -96,6 +98,22 @@ for ev, r in calls.items():
         d = decide(f"{ev}|{suffix}", kind)
         if d:
             out[f"{ev}|{suffix}"] = d
+
+# Nov 24: call recovery items (coaching only). Only a scorecard-thread decision that names the item covers it: its
+# checkpoints hold the item's key suffix (day2, field3, rr15, activity), and it names the lead and the scored day.
+for x in load("rec_reviews.json", []):
+    sfx = x["key"].split("|")[-1]
+    for a in reversed(decisions):
+        if sfx not in (a.get("checkpoints") or []):
+            continue
+        if not (x.get("lead_id") in set(a.get("lead_ids") or []) or norm(x.get("lead_name")) in {norm(n) for n in a.get("lead_names") or []}):
+            continue
+        if (a.get("call_date_mentioned") or "")[:10] not in ("", x["date"]):
+            continue
+        out[x["key"]] = {"decision": "Excused" if a["decision"] == "approved" else "Counts as a miss",
+                         "decided_by": f"{a.get('decided_by')} (Slack)", "decision_ts": a.get("decision_ts") or a.get("raised_ts"),
+                         "summary": a.get("decision_summary") or "", "link": link(a.get("thread_ts") or a.get("raised_ts"))}
+        break
 
 fill = []
 wb = openpyxl.load_workbook(XLSX, data_only=True)

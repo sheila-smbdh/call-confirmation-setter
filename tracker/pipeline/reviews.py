@@ -64,6 +64,20 @@ def items(rows, lead_notes=None):
                 "Judge: edge case he couldn't have known, or a real miss?", f"{r['event']}|logging")
     return sorted(out, key=lambda x: (x[0], x[1], x[2], x[4]))
 
+def rec_items(D):
+    """Nov 24: call recovery misses and logging errors (recovery.py -> rec_reviews.json). Kind "Recovery miss" or
+    "Recovery logging", so the Management KPIs (which count "Miss" and "Logging error") never include them."""
+    try:
+        xs = json.load(open(f"{D}/rec_reviews.json"))
+    except FileNotFoundError:
+        return []
+    out = []
+    for x in xs:
+        d = date.fromisoformat(x["date"])
+        kind = "Recovery logging" if x["section"] == "Recovery logging" else "Recovery miss"
+        out.append((wk(d), d, x["section"], kind, x["lead_name"], x["what"], "Coaching only: never affects the bonus", x["key"]))
+    return out
+
 def main():
     D = sys.argv[1]
     rows = json.load(open(f"{D}/calls_all.json"))
@@ -78,7 +92,7 @@ def main():
     except FileNotFoundError:
         hints = {}
     data, n = [], last
-    for it in items(rows, load_lead_notes(D)):
+    for it in sorted(items(rows, load_lead_notes(D)) + rec_items(D), key=lambda x: (x[0], x[1], x[2], x[4])):
         if it[7] in have:
             continue
         n += 1

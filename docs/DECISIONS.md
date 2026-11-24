@@ -2,7 +2,27 @@
 
 The source of truth for every decision about the Call Confirmation Specialist role. The SOP, the Close setup, the Zaps and the payout code all follow this file. If anything conflicts with it, this file wins until Sheila changes it.
 
-Last updated: 2026-11-24 (rev 9). **The newest section is first and overrides anything older below it** (0000000, then 000000, then 00000, then 0000, then 000, then 00, then 0).
+Last updated: 2026-11-24 (rev 10). **The newest section is first and overrides anything older below it** (00000000, then 0000000, then 000000, then 00000, then 0000, then 000, then 00, then 0).
+
+---
+
+## 00000000. Update Nov 24, 2026 (rev 10): call recovery tracking and pay
+
+From Sheila, in the recovery design session (Nov 23–24). Full proposal and mockups: [`proposals/call-recovery/`](../proposals/call-recovery/README.md). This section replaces sections 2 (gate on the recovery bonus) and 7 (recovery) where they differ, and closes open items 1 and 2 (section 12) and E (section 0.6).
+
+| Topic | Rule |
+|---|---|
+| **No gate on the recovery bonus** | Recovery is Gino's discretionary effort for the bonus. Nothing in recovery affects his base pay or base KPIs, and **the confirmation KPIs no longer gate the recovery bonus either**: every recovered call that shows pays $50. Sheila and Jay still approve the week on Tuesdays. Recovery steps are tracked and shown for coaching only. |
+| **Counts from** | Recoveries from **Nov 24** (once the routine is turned on). |
+| **Where recoveries book** | Every recovery (no-show, cancel, reschedule request) books on the **closers' round robin**, `sdrb_c2_startnow` (Calendly event "Discovery Call with SMB Deal Hunter Pro - O2C"). The setter calendar (`emorg_intro`) is no longer used for recovery. |
+| **Credit** | All of: (1) Gino touched the lead after it entered recovery and before the rebook; (2) the new call is on the round robin; (3) **Calendly names Gino as the scheduler** (`invitee_scheduled_by` = his Calendly user `users/a657209b-e5aa-4e23-b2e8-d9699363b19b`): he books it himself while logged in and never sends the link; (4) nobody else tried to rebook the lead in between. Tested Nov 24: Sheila's own booking on the round robin recorded her as scheduler; public-link bookings record nobody. |
+| **Pays** | $50 when the lead **shows** to that rebooked call ("showed" source order as section 9), once per original lost call. Max 2 rebooks per person; if the rebooked call no-shows, the same case reopens. Bonus week = the week the call shows. |
+| **Lost calls (a row on the tracker)** | A lead lands in recovery: lead status `No Show - Recovery`, `Cancelled - Recovery` or `Reschedule Request - Recovery`. **His own 5:45 day-before cancels count.** Backlog leads get a row the first time he touches one. Lost calls found only by the Zoom backstop (the closer never moved them) are shown, flagged and **not scored**; he can label them and work them, and a rebook that shows still pays. |
+| **5-day sequence** | Starts at **his first attempt**, not when the lead lands in recovery. Day 1: call, double dial, recovery voicemail, Day 1 text for the type. Day 2: double dial unless they pick up. Day 3: double dial, Day 3 voicemail and text. Day 4: double dial unless they pick up. Day 5: double dial, breakup voicemail and text, then stop. Ends early on a rebook or "Not Interested". A callback (an open Close task on the lead) pauses it until the task's date. If the closer is already rescheduling, Gino stays out; he takes over if the closer sent their own link and the lead hasn't replied in 24 hours. |
+| **Reschedule requests** | One that comes in during his shift is tracked for a call within 15 minutes. One that comes in overnight has no speed target: it's due as Day 1 on his next shift. |
+| **Logging** | The **Call Recovery** field each day (Day 1–5, Not Interested, Rebooked; Sheila renamed Day 3 and added Not Interested on Nov 24; no callback option). A **Call Confirmation Specialist** activity when he rebooks. |
+| **Tracker** | New Recovery tab after Sheila's divider tab **"Call Recovery>>"** (renamed Nov 24). Daily/Weekly get recovery columns. Management's "Recovered calls that showed" is a **live formula** (Management → Daily → Recovery rows), never typed in. Recovery misses go on Reviews with a "Recovery" label; decisions are for coaching and never change the bonus. |
+| **Scorecard** | Tue–Fri: a recovery row (steps: reschedule requests in 15 min, Day 1 full sequence, Days 2–5 on schedule, logging; results that day: rebooked by Gino, recovered calls that showed, bonus). The "X of 7 hit" pill counts confirmation only. On the **Monday card only** (Tue–Fri cards stay short), two funnels for last week (Sheila, Nov 24), with one bonus tile spanning both: **lost this week** (lost → worked → rebooked → showed → still ahead, and the bonus) and **older lost calls + backlog** (worked → rebooked → showed → still ahead). Still ahead = rebooked calls not held yet, part of rebooked. Showed counts the week the call is held, so all shows × $50 = the bonus. On the Recovery tab, a day after the lead was rebooked shows N/A; the day it was rebooked shows what Gino did and who booked it (Gino, or the lead through the public link). |
 
 ---
 

@@ -29,16 +29,17 @@ Follow `/root/.claude/CLAUDE.md`. Supabase calls are inline curl only, never fro
 
 1. **Plan**: `python3 -I scorecard/plan.py $TODAY $DIR`.
    - If it prints `SKIP`, stop. Post nothing.
-   - Otherwise it prints four lines, `<file> <url>`. For each, run `curl -s "<url>" -o $DIR/<file>`, copying the URL
-     exactly (the four reads may be chained with `&&` in one command). Each file must be a JSON list; if one holds an
+   - Otherwise it prints seven lines, `<file> <url>`. For each, run `curl -s "<url>" -o $DIR/<file>`, copying the URL
+     exactly (one request per command; Sheila's Supabase rule). The last three (`rec_*`) are call recovery, from Nov 24. Each file must be a JSON list; if one holds an
      error object instead, treat it as a failed step (step 5).
 2. **Build**: `python3 -I scorecard/build_card.py $DIR`.
    - `OK ...`: carry on.
    - `STALE ...`: this morning's tracker run didn't finish (or is still running). Post nothing to #cc-gino. DM Sheila one line:
      "Gino's scorecard wasn't sent: <the STALE line>. Check this morning's tracker run." Then stop.
 3. **Render**: `node scorecard/render.js $DIR` -> `$DIR/scorecard.png`. Look at it once: the date in the title is the
-   scored day, seven tiles in the Call confirmation row (Follow-ups was added Nov 19), and the number of items in "Reply with why" matches the
-   `to_explain` count from step 2.
+   scored day, seven tiles in the Call confirmation row (Follow-ups was added Nov 19), a Call recovery row of four + three tiles
+   (Nov 24; on Mondays also the "Last week's call recovery" box), and the number of items in "Reply with why" matches the
+   `to_explain` count from step 2 (recovery items come last and say "Recovery").
 4. **Post** (once only). First read the last few messages in `C0CG28G7TQT` (`slack_read_channel`); if a scorecard
    for this day is already there, stop, so nothing posts twice.
    - `slack_get_file_upload_url` with filename `gino-scorecard-<day>.png`, `content_length` = the file's size in
@@ -61,4 +62,5 @@ the weekly approval on Tuesdays (Sheila, Nov 18).
 
 See the docstring at the top of `scorecard/build_card.py`. In short, a miss is an open row on the tracker's Reviews
 tab for that day, so the card and the tracker always agree. Rows Sheila or Jay already marked Excused (for example,
-approved in #cc-gino) leave the card. Call recovery tiles are placeholders until that section is built.
+approved in #cc-gino) leave the card. Call recovery (Nov 24) comes from the recovery_day records the morning run saves
+in Supabase (`tracker/pipeline/recovery.py`): it's information only, never part of the "X of 7 hit" pill or the bonus.

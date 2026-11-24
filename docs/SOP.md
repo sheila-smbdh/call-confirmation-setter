@@ -1,6 +1,6 @@
 # Call Confirmation Quick Guide
 
-Nov 3, 2026 · @Jay. Updated by Sheila on Nov 13, 2026 with the rules agreed in #cc-gino, on Nov 18, 2026 with the sales leadership call, and on Nov 18–19, 2026 with daily follow-ups and next-day bookings.
+Nov 3, 2026 · @Jay. Updated by Sheila on Nov 13, 2026 with the rules agreed in #cc-gino, on Nov 18, 2026 with the sales leadership call, on Nov 18–19, 2026 with daily follow-ups and next-day bookings, and on Nov 24, 2026 with the Call Recovery section (5-day cadence, round robin only, Gino books in Calendly himself).
 
 *This file is a copy of the live SOP. If the two differ, the live SOP wins. Rules and their history: [`DECISIONS.md`](DECISIONS.md). What changed on Nov 13: [`sop-changes-2026-11-13.md`](sop-changes-2026-11-13.md).*
 
@@ -31,7 +31,7 @@ No Close phone number yet? Create one in Close. Any US area code is fine.
 |---|---|---|
 | 9:00 | Confirm overnight bookings (step 1). Soonest call first. | Smart view |
 | Right after | Call everyone booked for tomorrow who hasn't accepted (step 2). Do this early so they have time to accept before the 5:45 cutoff. | Smart view |
-| All day | These interrupt anything else. New booking or rescheduled call → call within 15 min (step 1). Reschedule request → call right away (step 3). | Slack channel; Newest - Cancels; Newest - Reschedule Requests; Newest - Reschedules |
+| All day | These interrupt anything else. New booking or rescheduled call → call within 15 min (step 1). Reschedule request → call right away (step 3). | Slack channel; Newest - Cancels; Newest - Reschedule Requests; Newest - Reschedules; Call Recovery - Follow-up (days 2–5) |
 | In between | Daily follow-up calls for bookings 2+ days out that haven't accepted (no text). Then the backlog: no-shows first (step 4), then cancels (step 5). | Call Confirmation - Follow-up; Newest - No Shows; Backlog - No shows/Cancels/Reschedules |
 | If time is left | Call tomorrow's prospects who already accepted (step 6). | Smart view |
 | 5:45 | Do day-before cancels, check everything is logged, and send a voice note to Sheila and Jay. | |
@@ -62,7 +62,7 @@ If the invite isn't accepted, call them, even if they've already texted or talke
 | 5. Cancels | Same day, then once a day | They rebook, or 5 business days |
 | 6. Tomorrow's calls, already accepted | Day before, only if time is left | One touch |
 
-Rebook every recovery at the soonest open slot, on the calendar for that lead type (see Recovery scripts). Max 2 rebooks per person.
+Rebook every recovery at the soonest open slot on the closers' round robin, booking it yourself in Calendly (see "Call recovery"). Max 2 rebooks per person.
 
 ## How to confirm
 
@@ -120,58 +120,99 @@ Can't reach them by 5:45pm MT the day before? Cancel it yourself in Calendly, th
 
 Typo in the prospect's email address? Ask the closer to fix the Google Calendar invite.
 
-## Recovery scripts
+## Call recovery
 
-For no-shows, cancels and reschedule requests. Your goal is a booked call on the right calendar (see "Where to book" below).
+For no-shows, cancels (including your own 5:45 day-before cancels) and reschedule requests.
+
+### Cadence: 5 business days in a row, starting from your first attempt
+
+| Day | What to do |
+|---|---|
+| 1 (first touch) | Call. If they pick up, use the scripts below and book them in yourself. No answer? Double dial. Still no answer? Leave the recovery voicemail and send the Day 1 text for the type (no-show, cancel or reschedule request). |
+| 2 | Call (double dial unless they pick up). No voicemail, no text. |
+| 3 | Call (double dial), then leave the Day 3 voicemail and send the Day 3 text. |
+| 4 | Call (double dial unless they pick up). No voicemail, no text. |
+| 5 | Call (double dial), then leave the breakup voicemail and send the breakup text. Then stop. |
+
+- Reschedule requests: call right away. One that comes in during your shift is tracked for a call within 15 minutes.
+- Check who you need to follow up (days 2–5) in the smart view "Call Recovery - Follow-up".
+- **Where to book:** the soonest open slot on the closers' round robin: https://calendly.com/smb-st/sdrb_c2_startnow. This is for every recovery: no-shows, cancels and reschedule requests.
+- **Book them in yourself, logged in to your own Calendly account. Never send them the booking link.** Your bonus only counts if Calendly shows you as the one who scheduled it.
+- Max 2 rebooks per person.
+- **Exception:** if the closer is already rescheduling the lead, don't reach out. If the closer sent their own calendar link and the lead hasn't replied in 24 hours, take over.
+- **Rebooked someone?** The new call is a new booking. Follow every Call Confirmation step for it, including the day-before confirmation. If they still haven't accepted by the 5:45 cutoff, send the day-before cancel text and cancel the call.
+
+### Scripts
+
+Your goal is a booked call on the closers' round robin.
 - Ask the two quick questions in the script, then book.
 - Leave anything deeper (capital, goals, fit) for whoever they're booked with.
 
 Check the lead in Close before you dial.
 - Backlog leads (Backlog smart view) → Script 1.
 - Recent leads (Newest smart views) → Script 2.
-- **Where to book:** soonest open slot.
-  - Reschedule requests → closers (round robin): https://calendly.com/smb-st/sdrb_c2_startnow
-  - No-shows and cancels → setter calendar: https://calendly.com/smb-st/emorg_intro
-  - Exception: if the closer already spoke with the lead, don't book. Leave it to the closer; they recover them directly.
 
-### Script 1: backlog leads
+**Script 1: backlog leads**
 
 "Hey [Name], it's [You] with SMB Deal Hunter. At one point, you were interested in us. It looks like you weren't able to make your call. I'm reaching out to see if buying a business was still top of mind."
 
 Then go to "Rest of the call".
 
-### Script 2: recent leads
-
-Use the opener that matches:
+**Script 2: recent leads.** Use the opener that matches:
 - **No-show:** "Hey [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. Looks like we missed each other for your call with [Advisor]. No worries! I wanted to get you a new time."
 - **Cancel:** "Hey [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. I saw your call with [Advisor] was cancelled. If it was just the timing, I'd love to find you a better slot."
 - **Reschedule request:** "Hey [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. I saw you asked [Advisor] for a new time, so I'm here to get that set up for you."
 
 Then go to "Rest of the call".
 
-### Rest of the call (both scripts)
+**Rest of the call (both scripts)**
 
 1. **Still looking?** "Are you still looking to buy a business in the next 6 to 12 months?" No or not sure → handle it like "Not right now" below.
 2. **What kind?** "Have you been looking at any type of business in particular?" Note the answer in Close for whoever they're booked with. Any answer is fine, even "not sure yet."
-3. **Set up the next step:** "Great. The next step is a quick call with [an Enrollment Advisor for reschedules / an Enrollment Specialist for no-shows and cancels], to catch up on where you're at and what you're looking for."
-4. **Check availability on the right calendar:**
-   1. reschedules → closers (round robin);
-   2. no-shows and cancels → setter calendar.
+3. **Set up the next step:** "Great. The next step is a quick call with an Enrollment Advisor, to catch up on where you're at and what you're looking for."
+4. **Check availability** on the closers' round robin.
 5. **Offer two times:** "I have [day] at [time] or [day] at [time]. Which works better for you?" Book it while they're on the phone.
 6. **Get it accepted:** "You'll get a calendar invite in a minute. Could you click Accept while I have you? Our system automatically cancels calls that aren't accepted, so I want to make sure you keep your spot."
 7. **Close warm:** "Perfect, you're all set for [day]. Talk soon!"
 
-### If they push back
+**If they push back**
 
 - "What's this about?" or "How much is it?" → "That's exactly what the Enrollment Advisor will walk you through. I just make sure you get the time with them." Then offer two times.
 - "Not right now" or "I'm busy" → "No problem. When's a better time for me to reach back out?" Set a task in Close for that day.
-- "Not interested anymore" or "Already bought something" → "Totally understand, thanks for letting me know." Note it in Close and move on. Don't push.
+- "Not interested anymore" or "Already bought something" → "Totally understand, thanks for letting me know." Note it in Close, set the Call Recovery field to "Not Interested", and move on. Don't push.
+
+### Recovery templates
+
+**Recovery voicemail (Day 1)**
+> Hi [Name], this is [You], the Enrollment Coordinator at SMB Deal Hunter. I saw that [you missed your call / your call was cancelled / you're looking for a new time for your call] with one of our Enrollment Advisors, and I'm here to help you get rescheduled. I just tried calling and missed you, so I'll send you a text too. Just reply with the days and times that work for you, and I'll get you booked back on the calendar. Talk soon!
+
+**Day 1: No-show text**
+> Hi [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. Looks like we missed each other for your call with [Advisor], your Enrollment Advisor. No worries! Want me to find a new time this week?
+
+**Day 1: Cancel text**
+> Hi [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. I saw your call with [Advisor], your Enrollment Advisor, was cancelled. If it was just the timing, I'm happy to find a better slot. What works for you?
+
+**Day 1: Reschedule request text**
+> Hi [Name], this is [You], the Enrollment Coordinator at SMB Deal Hunter. I saw you're looking for a new time for your call with one of our Enrollment Advisors, and I'm here to help you get rescheduled. What works best in the next couple of days?
+
+**Day 3 voicemail**
+> Hi [Name], this is [You], the Enrollment Coordinator at SMB Deal Hunter. Just following up to see if you'd still like a new time to talk with one of our Enrollment Advisors about your business-buying journey. I'll send you a text too, so just reply with a time that works for you. Talk soon.
+
+**Day 3 text**
+> Hi [Name], just following up: are you still interested in a new time to talk with one of our Enrollment Advisors about buying a business? Which day and time works best for you?
+
+**Day 5 voicemail (breakup)**
+> Hi [Name], this is [You] from SMB Deal Hunter. I've tried you a few times about rebooking your call, so I'll assume now isn't the right time and stop reaching out. If anything changes, just reply to my text and I'll get you booked in. Keep an eye on our newsletter for updates. Take care.
+
+**Day 5 text (breakup)**
+> Hi [Name], it's [You] from SMB Deal Hunter. Looks like now might not be the right time, so this is my last message. If anything changes, just reply here and I'll get you booked in. Keep an eye on our newsletter for updates in the meantime!
 
 ## Never
 
 - Don't sell or explain the program. Say: "That's exactly what [Advisor], your Enrollment Advisor, will walk you through."
 - Don't talk price, fees or discounts.
 - Don't cancel on the day of the call.
+- Never send a Calendly link to the prospect. Always book them in yourself.
 
 ## Logging
 
@@ -206,31 +247,34 @@ Only select one of these with a number in front (or Closer Confirmed / Setter Co
 
 - Don't log the "welcome series" playbook; that's for something else.
 
-### Call recovery (only when they're booked again)
+### Call recovery
 
-Log a **Call Confirmation Specialist** activity:
+**Log every day:** after each day's recovery outreach, set the **Call Recovery** custom field on the lead to that day:
+- Day 1 Recovery - No Pickup, Double Dial, VM, Text
+- Day 2 Recovery - No Pickup
+- Day 3 Recovery - No Pickup, Double Dial, VM, Text
+- Day 4 Recovery - No Pickup
+- Day 5 Recovery - No Pickup, Double Dial, VM, Text
+- Not Interested
+- Rebooked
+
+**When you book them** (only once they're booked on the calendar), also log a **Call Confirmation Specialist** activity:
 1. Open the lead in Close.
 2. In the rightmost panel, open the Activity dropdown and select Call Confirmation Specialist.
 3. Pick what you recovered them from: no-show, cancel or reschedule.
 4. Add notes on how you recovered them.
 
-Only log a recovery once the prospect is booked on a calendar. You earn the recovery bonus only if that booked call shows, so confirm the new call like any fresh booking (step 1).
+You earn the recovery bonus only if that booked call shows, so confirm the new call like any fresh booking (step 1).
 
-## Templates
+## Templates (call confirmation)
 
-Fill in the [brackets]. Always use the prospect's time zone. Where a template has two texts, send them back to back. *(See "How to make a template in Close" in the live SOP.)*
+Recovery templates are in "Call recovery" above. Fill in the [brackets]. Always use the prospect's time zone. Where a template has two texts, send them back to back. *(See "How to make a template in Close" in the live SOP.)*
 
 **Voicemail**
 > Hi [Name], it's [You], Enrollment Coordinator at SMB Deal Hunter, confirming your call with [Advisor], your Enrollment Advisor, on [day] at [time]. Please accept the zoom invite to save your spot. Our system automatically cancels calls that aren't accepted. I know it sometimes can hit spam too, so be sure to check there as well. Talk soon.
 
 **Voicemail, next-day booking**
 > Hi [Name], it's [You], Enrollment Coordinator at SMB Deal Hunter, confirming your call with [Advisor], your Enrollment Advisor, tomorrow at [time]. Please accept the calendar invite, and plan to be on your laptop so you can join on Zoom. Talk soon.
-
-**No-show text**
-> Hi [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. Looks like we missed each other for your call with [Advisor], your Enrollment Advisor. No worries! Want me to find a new time this week?
-
-**Cancel text**
-> Hi [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. I saw your call with [Advisor], your Enrollment Advisor, was cancelled. If it was just the timing, I'm happy to find a better slot. What works for you?
 
 **Day-before cancel text**
 > Hi [Name], it's [You], the Enrollment Coordinator at SMB Deal Hunter. I couldn't reach you to confirm tomorrow's call with [Advisor], your Enrollment Advisor. Our automated system just cancelled the call. Want me to find a time that works better?

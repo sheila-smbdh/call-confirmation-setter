@@ -146,6 +146,79 @@ ws.cell(1, 1).comment = Comment(
     "calendar Accepted/Declined emails, call transcripts), Calendly (direct discovery event type), #closer-eod. Refreshed by the nightly update, last run "
     + RUN_AT + ". One row per booked call. Rules are on the Definitions tab.", "Claude")
 
+# ======================= Recovery (Nov 24: one row per lost call) =======================
+import os as _os
+REC = json.load(open(f"{D}/rec_rows.json")) if _os.path.exists(f"{D}/rec_rows.json") else []
+REC_DAILY = json.load(open(f"{D}/rec_daily.json")) if _os.path.exists(f"{D}/rec_daily.json") else {}
+rc = wb.create_sheet("Recovery")
+rcols = [("Lost", n) for n in ("Lead", "Close lead", "Advisor", "Original call (ET)", "Type", "Found by", "In recovery since (ET)")]
+rcols += [("Seq", n) for n in ("First attempt (ET)", "Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Resched. request: first call (min)",
+                               "Call Recovery field now", "Status")]
+rcols += [("Rebook", n) for n in ("Rebooked at (ET)", "New call (ET)", "New call closer", "Calendar", "Booked by (Calendly)",
+                                  "Activity logged?", "Others who contacted the lead", "Credit?")]
+rcols += [("Bonus", n) for n in ("New call result", "Show date", "Bonus ($)", "Bonus week (Mon)")]
+RCL = {k: get_column_letter(j) for j, k in enumerate(rcols, 1)}
+headers(rc, rcols, {"Lost": "D9E1F2", "Seq": "DDEBF7", "Rebook": "FFF2CC", "Bonus": "E2EFDA"},
+        {"Lost": "The lost call", "Seq": "His 5-day sequence (starts at his first attempt)", "Rebook": "Rebook", "Bonus": "Bonus"})
+fdt = lambda s: datetime.fromisoformat(s).astimezone(ET).strftime("%a %b %-d %-I:%M %p") if s else ""
+def daycell(x):
+    if not x:
+        return ""
+    d_ = date.fromisoformat(x["date"]).strftime("%a %b %-d")
+    st = x["status"]
+    if st == "ahead":
+        return f"{d_}: due"
+    if st == "not due":
+        return "N/A" if x.get("what") == "N/A" else f"{d_}: – {x.get('what', '')}"
+    mark = {"done": "✓", "missed": "✗", "not scored": "(not scored)"}[st]
+    extra = "" if x.get("field", "Yes") == "Yes" else f" · field: {x['field']}"
+    return f"{d_}: {mark} {x.get('what', '')}{extra}"
+REC.sort(key=lambda r: r["start"], reverse=True)
+for i, r in enumerate(REC, 3):
+    dd_ = {x["day"]: x for x in r.get("days") or []}
+    v = {("Lost", "Lead"): r["lead_name"],
+         ("Lost", "Close lead"): f'=HYPERLINK("https://app.close.com/lead/{r["lead_id"]}/","Open in Close")',
+         ("Lost", "Advisor"): r.get("advisor", ""), ("Lost", "Original call (ET)"): fdt(r.get("orig_call")),
+         ("Lost", "Type"): r["type"], ("Lost", "Found by"): r["found_by"], ("Lost", "In recovery since (ET)"): fdt(r["start"]),
+         ("Seq", "First attempt (ET)"): fdt(r.get("first_attempt")) or "not yet",
+         ("Seq", "Resched. request: first call (min)"): r.get("rr_minutes") if "rr_on_time" in r else None,
+         ("Seq", "Call Recovery field now"): r.get("field_now", ""), ("Seq", "Status"): r["status"],
+         ("Rebook", "Rebooked at (ET)"): fdt(r.get("rebooked_at")), ("Rebook", "New call (ET)"): fdt(r.get("new_call")),
+         ("Rebook", "New call closer"): r.get("new_call_closer", ""), ("Rebook", "Calendar"): r.get("calendar", ""),
+         ("Rebook", "Booked by (Calendly)"): r.get("booked_by", ""), ("Rebook", "Activity logged?"): r.get("activity_logged", ""),
+         ("Rebook", "Others who contacted the lead"): r.get("others_between", ""), ("Rebook", "Credit?"): r.get("credit", ""),
+         ("Bonus", "New call result"): r.get("result", ""), ("Bonus", "Show date"): dcell(r.get("show_date")),
+         ("Bonus", "Bonus ($)"): r.get("bonus") or 0, ("Bonus", "Bonus week (Mon)"): dcell(r.get("bonus_week"))}
+    for k in range(1, 6):
+        v[("Seq", f"Day {k}")] = daycell(dd_.get(k))
+    for j, k in enumerate(rcols, 1):
+        c = rc.cell(i, j, v.get(k))
+        c.font = Font(name=FONT, color="0563C1" if k == ("Lost", "Close lead") else "000000")
+        if isinstance(v.get(k), date):
+            c.number_format = "mmm d, yyyy"
+        if k == ("Bonus", "Bonus ($)"):
+            c.number_format = '"$"#,##0'
+        t = str(v.get(k) or "")
+        if k[1].startswith("Day ") and ": ✗" in t or k == ("Rebook", "Activity logged?") and t == "No" or k == ("Rebook", "Credit?") and t.startswith("No"):
+            c.fill = PatternFill("solid", fgColor="FBE1DF")
+        elif k[1].startswith("Day ") and ": ✓" in t or t == "Yes" or (k == ("Bonus", "Bonus ($)") and v.get(k)):
+            c.fill = PatternFill("solid", fgColor="E2EFDA")
+        elif t in ("Upcoming", "Not looked up yet"):
+            c.fill = PatternFill("solid", fgColor="FFF2CC")
+RJC = len(rcols) + 1
+rc.cell(2, RJC, "Row data (used by the daily update; don't edit)").font = Font(name=FONT, bold=True)
+for i, r in enumerate(REC, 3):
+    rc.cell(i, RJC, json.dumps(r, default=str))
+rc.column_dimensions[get_column_letter(RJC)].hidden = True
+for j, (g_, n) in enumerate(rcols, 1):
+    rc.column_dimensions[get_column_letter(j)].width = {"Lead": 22, "Status": 26, "Found by": 22, "Others who contacted the lead": 24,
+                                                        "Credit?": 28, "Call Recovery field now": 30}.get(n, 30 if n.startswith("Day ") else 16)
+rc.row_dimensions[2].height = 45
+rc.freeze_panes = "B3"
+rc.cell(1, 1).comment = Comment("One row per lost call (no-show, cancel, reschedule request, or a backlog lead he worked), newest first. "
+    "Built by the daily update from Close (recovery status changes, his calls and texts, the Call Recovery field, Call Confirmation "
+    "Specialist activities, meetings) and Calendly (who scheduled the rebook). Rules are on the Definitions tab. Last run " + RUN_AT + ".", "Claude")
+
 # ======================= Daily (v3: same columns for every category) =======================
 dy = wb.create_sheet("Daily")
 col = lambda g, n: f"Calls!${C[(g, n)]}:${C[(g, n)]}"
@@ -244,10 +317,27 @@ for h, nf in (("Due", "0"), ("Touched", "0"), ("Touched %", "0%"), ("Got them on
     add(FU, h, fu_val(h), nf)
 spec[:] = [(gg, h, (ff.replace("{FUC}", L(FU, "Due")).replace("{FUF}", L(FU, "Finished")) if isinstance(ff, str) else ff), nf)
            for gg, h, ff, nf in spec]
+# Nov 24: call recovery (information only; never part of the 100% gate or the bonus check). Recovered calls that showed
+# and the bonus are formulas on the Recovery tab, so Management -> Daily -> Recovery rows can be checked by clicking.
+RG_ = "Call recovery (information only)"
+def rv(k, k2=None):
+    return lambda d: (REC_DAILY.get(d, {}).get(k, 0) if k2 is None else
+                      (f"{REC_DAILY[d][k2]}/{REC_DAILY[d][k]}" if REC_DAILY.get(d, {}).get(k) else ""))
+for h, f_, nf in (("New lost calls: no-shows", rv("new_ns"), "0"), ("New lost calls: cancels", rv("new_cxl"), "0"),
+                  ("New lost calls: reschedule requests", rv("new_rr"), "0"), ("Backlog leads started", rv("new_backlog"), "0"),
+                  ("Reschedule requests called in 15 min (during shift)", rv("rr_due", "rr_ok"), "@"),
+                  ("Day 1 full sequence", rv("d1_due", "d1_ok"), "@"), ("Days 2-5 on schedule", rv("d25_due", "d25_ok"), "@"),
+                  ("Recovery logging errors", rv("log_err"), "0"), ("Lost calls worked", rv("worked"), "0"), ("Reached", rv("reached"), "0"),
+                  ("Rebooked by Gino", rv("rebooked"), "0")):
+    add(RG_, h, f_, nf)
+add(RG_, "Recovered calls that showed",
+    f'=COUNTIFS(INDIRECT("Recovery!{RCL[("Bonus", "Show date")]}:{RCL[("Bonus", "Show date")]}"),$A{{r}},INDIRECT("Recovery!{RCL[("Bonus", "Bonus ($)")]}:{RCL[("Bonus", "Bonus ($)")]}"),">0")')
+add(RG_, "Recovery bonus ($)",
+    f'=SUMIFS(INDIRECT("Recovery!{RCL[("Bonus", "Bonus ($)")]}:{RCL[("Bonus", "Bonus ($)")]}"),INDIRECT("Recovery!{RCL[("Bonus", "Show date")]}:{RCL[("Bonus", "Show date")]}"),$A{{r}})', '"$"#,##0')
 spec.append(("", "Notes", None, "@"))
 names = [(gg, h) for gg, h, ff, n in spec]
 DF = {DS: "E2EFDA", OV: "C6E0B4", "Welcome: not counted": "EDEDED", DB: "FFF2CC", "5:45 resolutions": "FCE4D6", "100% gate": "D9E1F2",
-      "Logging check": "EDEDED", cg: "EDEDED", "Daily follow-up calls": "DDEBF7", "": "FFFFFF"}
+      "Logging check": "EDEDED", cg: "EDEDED", "Daily follow-up calls": "DDEBF7", "": "FFFFFF", RG_: "E2EFDA"}
 headers(dy, names, DF, {})
 notes = {"2026-11-10": "First day. Jay told Gino to do welcome calls only, so Nov 10 day-before calls and 5:45 cancels (for Nov 11 calls) don't count toward the gate.",
          "2026-11-11": "Day-before and 5:45 columns are for the next day's calls (Friday covers Saturday to Monday calls)."}
@@ -285,6 +375,10 @@ wcols += [("5:45 cancels needed", "=" + inwk(L("5:45 resolutions", "Needed a can
           ("Logging errors", "=" + inwk(L("Logging check", "Logging errors")), "0"),
           ("Follow-up: due", "=" + inwk(L(FU, "Due")), "0"), ("Follow-up: touched", "=" + inwk(L(FU, "Touched")), "0"),
           ("Follow-up: finished", "=" + inwk(L(FU, "Finished")), "0"), ("Follow-up: finished %", None, "0%"),
+          ("Recovery: lost calls worked", "=" + inwk(L(RG_, "Lost calls worked")), "0"),
+          ("Recovery: rebooked by Gino", "=" + inwk(L(RG_, "Rebooked by Gino")), "0"),
+          ("Recovery: recovered calls that showed", "=" + inwk(L(RG_, "Recovered calls that showed")), "0"),
+          ("Recovery: bonus ($)", "=" + inwk(L(RG_, "Recovery bonus ($)")), '"$"#,##0'),
           ("Notes", "Partial week: Gino started Tue Nov 10. Only Nov 10 and 11 are filled in so far. Gate week runs Monday to Sunday.", "@")]
 wl = {h: get_column_letter(j) for j, (h, v, nf) in enumerate(wcols, 1)}
 for j, (h, v, nf) in enumerate(wcols, 1):
@@ -341,6 +435,12 @@ defs = [
     ("Weekends", "No shift on Saturday or Sunday, so nothing is due. Weekend bookings are overnight bookings, due at the start of Monday's shift. On Friday he does the day-before call and 5:45 cancel for Saturday calls only. Sunday and Monday calls have no day-before call or 5:45 cancel (SOP, Nov 13). The update still runs every day so anything Gino does on a weekend is captured."),
     ("100% gate", "Every checkpoint that counts must be finished: overnight and during-shift welcome calls, daily follow-up calls (from Nov 19), day-before calls and 5:45 cancels. Weekly, Monday to Sunday."),
     ("Logging check", "Every time Gino recorded an invite as accepted (Call Confirmation 1, 3 or 9, the 'Confirmed and Accepted' outcome, or moving the lead to 'Confirmed'), it's checked against the calendar response emails at that moment. Not accepted then: the prospect's texts, his notes on the lead and his call transcript are read (Sheila, Nov 18). The prospect texted that they'll attend ('accept', 'I will be there') = valid (confirmed by text). The call transcript shows the prospect verbally confirmed they'll be on the call = valid (confirmed by phone), with or without a technical problem accepting (Sheila, Nov 24). Otherwise = logging error. If Sheila or Jay already approved it in #cc-gino, the Reviews row is filled in as Excused with a link."),
+    ("Call recovery: lost call", "From Nov 24 (Sheila): a lead that lands in 'No Show - Recovery', 'Cancelled - Recovery' or 'Reschedule Request - Recovery', including his own 5:45 day-before cancels. A backlog lead he logs a Call Recovery day on gets a row too. Lost calls the closer never moved (found only by Zoom) aren't in his smart views, so they aren't scored. One row per lost call on the Recovery tab."),
+    ("Call recovery: 5-day sequence", "Starts at his first attempt, then 5 business days in a row. Day 1, 3 and 5: double dial, then voicemail and text if no one picks up. Days 2 and 4: double dial unless they pick up. Reached = a conversation, a screener he got through, an answered call of 45+ seconds with no voicemail, or the lead calling back. Steps he can't do (no voicemail option, hung up before the voicemail, a dial that never rang, a text that won't send) aren't misses. Ends early on a rebook or 'Not Interested'. An open task of his on the lead pauses it until the task's date. Windows run to midnight MT."),
+    ("Call recovery: reschedule request speed", "A reschedule request that lands during his shift is tracked for a first call within 15 minutes. Overnight ones have no speed target (Sheila, Nov 24)."),
+    ("Call recovery: logging", "The Call Recovery field set to that day (Day 1-5, Not Interested or Rebooked) on each day he works it, and a Call Confirmation Specialist activity when he rebooks. A rebook with no activity, or an activity with no new booking, is a recovery logging error."),
+    ("Call recovery: credit and bonus", "Credit needs all of: he touched the lead after it landed in recovery and before the rebook, the new call is on the closers' round robin (Calendly 'Discovery Call ... - O2C'), and Calendly names Gino as the person who scheduled it (he books it himself, logged in; never sends the link). $50 when the lead shows to that call (#closer-eod, then Zoom), once per original lost call; counted in the week the call shows. 'Others who contacted the lead' lists anyone else who called the lead in between, for Sheila and Jay to check."),
+    ("Call recovery: no gate", "Recovery is his discretionary effort for the bonus (Sheila, Nov 24). Recovery misses go on Reviews for coaching only. Nothing in recovery affects his base pay, his confirmation KPIs or whether the bonus pays, and the confirmation KPIs no longer gate the recovery bonus."),
     ("Call happened?", "In order: #closer-eod (Nero's EOD posts), then Zoom attendance on the Close meeting. If neither settles it: Unknown, ask Sheila. The EOD Tracker sheet, Sales Tracker and 2M tracker weren't checked in this version."),
 ]
 for j, h in enumerate(["Term", "Meaning"], 1):
@@ -361,6 +461,8 @@ src = [
     (f"Calls!A2:{get_column_letter(len(cols))}{LAST}", "Slack", "#call-confirmation 'NEW CALL BOOKED' alerts", "Slack connector, run by Claude (nightly update)", "Alerts from the last 4 days, merged with earlier runs", RUN_AT),
     (f"Calls!A2:{get_column_letter(len(cols))}{LAST}", "Calendly", "Scheduled events and invitees, organization-wide", "Calendly connector, run by Claude (nightly update)", "Direct discovery event type, booked in the last 3 days or with a call from 3 days ago to 14 days ahead; older rows kept from earlier runs", RUN_AT),
     (f"Calls!A2:{get_column_letter(len(cols))}{LAST}", "Close", "Lead status changes, 45-minute meetings, Gino's calls, texts and Call Confirmation field history, calendar Accepted/Declined emails, call transcripts", "Close API, read-only, run by Claude (nightly update)", "Last 4 days of Gino's activity; last 30 days of status changes and calendar responses for those leads", RUN_AT),
+    (f"Recovery!A2:{get_column_letter(len(rcols))}{len(REC) + 2}", "Close", "Lead status changes into the recovery statuses, Call Recovery field, all calls and Gino's texts on those leads, Call Confirmation Specialist activities, meetings, Gino's tasks", "Close API, read-only, run by Claude (nightly update)", "Everything since Nov 24 (backlog leads: since his first call)", RUN_AT),
+    (f"Recovery!{RCL[('Rebook', 'Calendar')]}3:{RCL[('Rebook', 'Booked by (Calendly)')]}{len(REC) + 2}", "Calendly", "Rebooked events and invitees (event type, who scheduled it)", "Calendly connector, run by Claude (nightly update)", "Lookup by the lead's email from the day the call was lost", RUN_AT),
     (f"Calls!{C[('Check', 'Call happened?')]}3:{C[('Check', 'Source')]}{LAST}", "Slack", "#closer-eod (Nero EOD posts)", "Slack connector, run by Claude (nightly update)", "EOD posts for the last 4 days", RUN_AT),
 ]
 for j, h in enumerate(["Written to", "Source", "Object", "Obtained via", "Query or request", "Run at"], 1):
@@ -376,4 +478,4 @@ for j, w in enumerate([20, 10, 42, 24, 60, 24], 1):
     ds.column_dimensions[get_column_letter(j)].width = w
 
 wb.save(OUTF)
-print("saved", OUTF, len(rows), "rows;", len(cols), "Calls columns;", len(spec), "Daily columns")
+print("saved", OUTF, len(rows), "rows;", len(cols), "Calls columns;", len(spec), "Daily columns;", len(REC), "Recovery rows")
