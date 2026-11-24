@@ -47,11 +47,14 @@ def when(text):
     return f"call {dd.strftime('%a')} {m[3]}{m[4].lower()} ET"
 
 
-def fix(cp, t):
+def fix(cp, t, phone=False):
     """What he can do now, in a few words."""
+    if cp == LOG and phone:
+        return ("if they confirmed on the call or by text, nothing to do: the morning run checks the call transcript "
+                "and texts (a note on the lead helps)")
     if cp == LOG:
-        return ("set Confirmed only once the invite is accepted; if they confirmed by phone or text, or couldn't accept, "
-                "add a note on the lead saying so")
+        return ("if they confirmed by text, nothing to do: the morning run reads the texts; if they confirmed some other "
+                "way, add a note on the lead saying so; otherwise set Confirmed only once the invite is accepted")
     if t.startswith("Not touched"):
         return "call now: double dial + voicemail + text" if cp == DB else "call now: double dial + voicemail"
     if t.startswith("Missing"):
@@ -75,6 +78,7 @@ def what(cp, t):
 
 
 name = lambda s: " ".join(w.capitalize() if w.isupper() else w for w in s.split())
+byev = {r["event"]: r for r in rows}
 fixes, coming = [], []
 for wk, d, cp, kind, lead, t, note, key in items(rows):
     if key in have:
@@ -86,7 +90,8 @@ for wk, d, cp, kind, lead, t, note, key in items(rows):
             w = when(t)
             coming.append(f"{name(lead)}" + (f" ({w})" if w else ""))
         continue
-    fixes.append((ORDER.index(cp) if cp in ORDER else 9, name(lead), SEC.get(cp, cp), what(cp, t), fix(cp, t)))
+    phone = cp == LOG and bool(byev.get(key.split("|")[0], {}).get("transcript_calls"))
+    fixes.append((ORDER.index(cp) if cp in ORDER else 9, name(lead), SEC.get(cp, cp), what(cp, t), fix(cp, t, phone)))
 fixes.sort()
 
 # Speed to lead today (KPI 2): during-shift bookings due today, first dialed within 15 min. Can't be fixed now.

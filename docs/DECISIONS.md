@@ -2,7 +2,19 @@
 
 The source of truth for every decision about the Call Confirmation Specialist role. The SOP, the Close setup, the Zaps and the payout code all follow this file. If anything conflicts with it, this file wins until Sheila changes it.
 
-Last updated: 2026-11-20 (rev 8). **The newest section is first and overrides anything older below it** (000000, then 00000, then 0000, then 000, then 00, then 0).
+Last updated: 2026-11-24 (rev 9). **The newest section is first and overrides anything older below it** (0000000, then 000000, then 00000, then 0000, then 000, then 00, then 0).
+
+---
+
+## 0000000. Update Nov 24, 2026 (rev 9): confirmed by phone or text is valid logging
+
+From Sheila, Nov 24.
+
+| Topic | Rule |
+|---|---|
+| **Confirmed by phone** | If the prospect verbally confirmed on the call (yes to the day and time, "I'll be there") and Gino logged them accepted (field 1, 3 or 9, or status Confirmed) before the calendar invite was accepted, that's **not a logging error**. No technical problem is needed. Gino usually also logs the outcome "Confirmed not Accepted" or field 5 and leaves a note. Those point to the call, but **the call transcript is the proof**: the morning run reads it and records "Valid (confirmed by phone)". No connected call, no transcript, or no clear confirmation ("I'll check my email") is still a logging error for Sheila and Jay. |
+| **Confirmed by text** | Unchanged and confirmed: when the prospect texts that they'll attend, Gino logs them accepted, as he's been told. That's valid ("Valid (confirmed by text)", since Nov 18). |
+| **Pre-check** | It doesn't read transcripts or new texts, so these can still appear there. It tells Gino there's nothing to do when he spoke to them or they texted; the morning run decides. |
 
 ---
 

@@ -57,6 +57,12 @@ Rules from the Nov 18 SOP update (Sheila, approved in Claude Code Nov 19):
   as an overnight booking (from Nov 19). A next-day booking (booked on the day before) needs no text and is never
   cancelled.
 
+Sheila, Nov 24: confirmed by phone counts for logging. If the prospect verbally confirmed on the call (the call
+transcript shows it), logging it accepted (field 1/3/9, status Confirmed) is valid even with no technical problem and
+no text: "Valid (confirmed by phone)". He usually also logs the outcome "Confirmed not Accepted" or field 5 and leaves a
+note; those point the run to the call, but the transcript is the proof. The run judges it in step 7 (overrides.json),
+using row["transcript_calls"]. No transcript, or the prospect didn't clearly confirm: still a logging error to review.
+
 Sheila, Nov 20: work Gino does after his shift still counts. Every checkpoint window runs to midnight MT of its day
 (welcome, follow-up and now day-before calls, phone confirmations and the 5:45 cancel), not to 6pm MT.
 
@@ -547,6 +553,14 @@ for ev in scope:
             row["check"] = "Verified: calendar shows accepted (no response email to time it)"
         else:
             row["check"] = "Logging error: invite not accepted when he logged it (check the call transcript)"
+            # Sheila, Nov 24: a prospect who verbally confirmed on the call makes it valid (no tech issue needed), once
+            # the transcript shows it. These are the calls the run reads (runbook step 7): his connected calls on the
+            # lead from booking to 12 hours after he logged it, and whether he logged "Confirmed not Accepted".
+            tcs = [c for c in allcalls if c["lead_id"] == lead and booked <= p(c["date_created"]) <= tc + timedelta(hours=12)
+                   and is_conn(c)]
+            row["transcript_calls"] = [c["id"] for c in tcs]
+            row["phone_outcome"] = any(OUT.get(c.get("outcome_id")) == "Conversation: Confirmed not Accepted" for c in tcs) \
+                or any(e["lead_id"] == lead and fval(e).startswith("5.") for e in fev)
         later_d = [ts for ts, k in rs_window if k == "D" and ts > tc]
         if later_d:
             row["check"] += f". Prospect later declined the invite ({fmt(later_d[0])})"
