@@ -43,10 +43,10 @@ Mockups (sample data, made-up names):
 | Day | Due | Call Recovery field |
 |---|---|---|
 | 1 | Call → double dial → recovery voicemail + the Day 1 text for the type (no-show, cancel or reschedule request) | Day 1 Recovery - No Pickup, Double Dial, VM, Text |
-| 2 | Call only | Day 2 Recovery - No Pickup |
-| 3 | Call + Day 3 voicemail + Day 3 text | Day 3 Recovery - No Pickup (see note) |
-| 4 | Call only | Day 4 Recovery - No Pickup |
-| 5 | Call + breakup voicemail + breakup text, then stop | Day 5 Recovery - No Pickup, Double Dial, VM, Text |
+| 2 | Call (double dial unless they pick up) | Day 2 Recovery - No Pickup |
+| 3 | Call (double dial) + Day 3 voicemail + Day 3 text | Day 3 Recovery - No Pickup (see note) |
+| 4 | Call (double dial unless they pick up) | Day 4 Recovery - No Pickup |
+| 5 | Call (double dial) + breakup voicemail + breakup text, then stop | Day 5 Recovery - No Pickup, Double Dial, VM, Text |
 
 - **The sequence ends early when:**
   - he rebooks the lead (field = Rebooked);
@@ -96,7 +96,8 @@ Open item B below covers how the tracker proves #3.
   - **The funnel of last week's lost calls only:** lost → worked → reached → rebooked → showed.
   - **The bonus:** every recovered call that showed last week, whenever it was lost, split into this week's and backlog.
   - **Still ahead:** rebooked calls still to come, and what they could earn.
-  - A **by-type** line, **recovery touches %** (information only), **backlog** worked/rebooked/showed, and **found by Zoom, not moved by the closer**.
+  - The **showed** tile shows last week's recovered shows, with backlog shows as a small "+1 backlog" next to it, so showed × $50 = the bonus tile.
+  - Nothing else: by-type, touches %, backlog and Zoom-found lines were cut as redundant (Sheila, Nov 24).
 
 ---
 
@@ -111,11 +112,7 @@ Open item B below covers how the tracker proves #3.
 | **Definitions** | Adds the rules above. |
 | Supabase | Two new tables, `call_confirm_recovery_cases` and `call_confirm_recovery_touches`. Creating them is DDL, so it needs Sheila's approval. |
 
-**Question 7, the empty "Call Recovery" tab.** The tracker already has a tab called "Call Recovery". It's empty, like a section divider, the same as "Call Confirmation>>". **Proposal:**
-- Rename it **"Call Recovery>>"** so it works as a divider.
-- Put the new recovery tab(s) right after it.
-
-Sheila decides.
+**Tab order:** Sheila renamed the empty "Call Recovery" tab to **"Call Recovery>>"** (Nov 24). It's a divider like "Call Confirmation>>". The new recovery tab(s) go right after it. The runbook's tab order and its "never touch Sheila's tabs" list need updating to the new name.
 
 ---
 
@@ -124,8 +121,6 @@ Sheila decides.
 | # | Item | Proposed |
 |---|---|---|
 | A | Reschedule request "right away" | Within 15 minutes during his shift; first 30 minutes of the next shift if it comes in overnight |
-| B | **Proving Gino was the scheduler in Calendly** | To check: whether Calendly's booking data names who booked on the invitee's behalf. If it doesn't, the fallback is "Gino had a live call or text with the lead in Close in the minutes before the booking was created". Sheila to approve whichever proves reliable. |
-| C | Days 2–5: one dial or a double dial? | One dial, unless the SOP says otherwise |
+| B | **Proving Gino was the scheduler in Calendly** | Calendly's booking data has an `invitee_scheduled_by` field (and `scheduling_method`). On every recent booking checked (Nov 19–23, setter S2C calls included) it's empty: those were booked through the public booking page, which records no scheduler. It should fill in only when a logged-in Calendly user books through Calendly's own book-on-behalf flow. **Needs a test:** Gino (he has a Calendly seat) books one real recovery on `sdrb_c2_startnow` while logged in, and we check that the field names him. Fallback if it can't: credit when Gino had a logged call with the lead in the 15 minutes before the booking was created, and nobody else touched the lead. |
 | D | Close field fixes (Sheila's call, nothing changed) | Rename "Day 3 Recovery - No Pickup" to include VM + Text. Add choices for "Not interested" and "Callback set", so a case can end early for the right reason. |
 | E | "Call Recovery - Follow-up" smart view | Add a "not called today" filter, or sort by last call, so he doesn't call anyone twice or skip anyone |
-| F | Call Recovery tab naming (question 7 above) | Rename it to a divider; new tabs go after it |

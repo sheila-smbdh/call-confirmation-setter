@@ -63,6 +63,7 @@
   .fn { display:grid; grid-template-columns: repeat(6, 1fr); gap:4px; margin-bottom:6px; }
   .fn div { background:var(--b-bg); border-radius:6px; padding:4px 6px; }
   .fn .v { font-family:"Inter Display",Inter,sans-serif; font-size:17px; font-weight:700; color:var(--b); }
+  .fn .v small { font-size:11px; font-weight:600; margin-left:4px; }
   .fn .n { font-size:9.5px; color:var(--muted); }
   .fn .pay { background:var(--g-bg); } .fn .pay .v { color:var(--g); }
   .wkl { font-size:11px; padding:2px 0; border-top:1px solid var(--line); display:flex; justify-content:space-between; }
@@ -93,14 +94,10 @@ const MON = {
   weekend: "<b>Weekend (not scored):</b> Sat 3 of 5 new bookings called, 2 accepted · Sun no calls",
   lastWeek: {
     range: "Mon Nov 30 – Sun Dec 6",
-    fn: [["21","lost calls"],["19","you worked"],["11","reached"],["7","rebooked"],["3","showed"],["$200","bonus","pay"]],
+    fn: [["21","lost calls"],["19","you worked"],["11","reached"],["7","rebooked"],["3<small>+1 backlog</small>","showed"],["$200","bonus","pay"]],
     lines: [
       ["Recovered calls that showed last week", "<b>4</b> (3 from last week's lost calls, 1 from backlog) × $50 = <b>$200</b>"],
-      ["Still ahead", "3 rebooked calls this week, worth up to $150 if they show"],
-      ["By type", "No-shows 9 → 3 rebooked · Cancels 7 → 2 · Reschedule requests 5 → 2"],
-      ["Recovery touches done", "<b>96%</b> (52 of 54) · information only, never affects pay"],
-      ["Backlog", "34 leads worked · 2 rebooked · 1 showed"],
-      ["Found by Zoom, not moved by the closer", "2 leads · label them in Close to work them"]
+      ["Still ahead", "3 rebooked calls this week, worth up to $150 if they show"]
     ]
   },
   ask: []
@@ -124,7 +121,7 @@ document.getElementById("app").innerHTML = `
 
   ${lw ? `<div class="wkbox"><h3>Last week's call recovery <span>· ${lw.range}</span></h3>
     <div class="fn">${lw.fn.map(([v, n, c]) => `<div class="${c || ""}"><div class="v">${v}</div><div class="n">${n}</div></div>`).join("")}</div>
-    <div style="font-size:9.5px;color:var(--muted);margin:-3px 0 4px">The first five follow last week's lost calls only. Bonus = every recovered call that showed last week, whenever it was lost.</div>
+    <div style="font-size:9.5px;color:var(--muted);margin:-3px 0 4px">Lost → rebooked follow last week's lost calls. Showed and bonus count every recovered call that showed last week, including the backlog.</div>
     ${lw.lines.map(([k, v]) => `<div class="wkl"><span>${k}</span><span>${v}</span></div>`).join("")}</div>` : ""}
 
   ${d.ask.length ? `<div class="ask"><div class="ask-h"><b>Reply with why (${d.ask.length}):</b> in this post's thread by noon MT, one line per number, e.g. "2: he asked me to wait"</div>
