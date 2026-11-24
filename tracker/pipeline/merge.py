@@ -7,6 +7,8 @@ Usage: python3 -I merge.py DATA_DIR TRACKER_XLSX
   Reads the hidden "Row data" column on the Calls tab, replaces any call rebuilt this run (DATA_DIR/calls_new.json),
   adds new ones, and writes DATA_DIR/calls_all.json. Also writes DATA_DIR/review_keys.json (keys already on Reviews)
   and DATA_DIR/reviews_last_row.txt.
+  Nov 24: also reads the hidden "Row data" column on the Recovery tab (if there is one) into DATA_DIR/rec_prev.json, so
+  recovery.py keeps results it can no longer re-read (a show result, a Call Recovery field check older than 4 days).
 """
 import json, sys
 from openpyxl import load_workbook
@@ -48,6 +50,19 @@ for r in new:
     merged[r["event"]] = r
 json.dump(list(merged.values()), open(f"{D}/calls_all.json", "w"), default=str)
 print(f"{len(old)} rows from the tracker, {len(new)} rebuilt this run, {len(merged)} total")
+
+rec_prev = {}
+if "Recovery" in wb.sheetnames:
+    rs = wb["Recovery"]
+    rh = [c.value for c in next(rs.iter_rows(min_row=2, max_row=2))]
+    rj = next((i for i, h in enumerate(rh) if h and str(h).startswith("Row data")), None)
+    if rj is not None:
+        for row in rs.iter_rows(min_row=3, values_only=True):
+            if rj < len(row) and row[rj]:
+                x = json.loads(row[rj])
+                rec_prev[x["id"]] = x
+json.dump(rec_prev, open(f"{D}/rec_prev.json", "w"))
+print(len(rec_prev), "recovery rows from the tracker")
 
 rv = wb["Reviews"]
 rhdr = [c.value for c in next(rv.iter_rows(min_row=1, max_row=1))]
