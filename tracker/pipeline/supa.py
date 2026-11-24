@@ -127,6 +127,26 @@ p = os.path.join(DIR, "lead_fix.json")
 if os.path.exists(p):
     for k, v in load(p).items():
         add("lead_fix", k, {"event_uri": k, "lead_id": v}, v)
+# Nov 24: call recovery, kept in raw_records (no new tables): what the run read, and what it built from it. The morning
+# scorecard reads recovery_row / recovery_day / recovery_review back from here.
+for pat, src, at in (("rec_lsc*.json", "close_status_change", "date_created"), ("rec_act*.json", "close_custom_activity", "date_created"),
+                     ("rec_calls*.json", "close_call", "date_created"), ("rec_sms*.json", "close_sms", "date_created"),
+                     ("rec_meet*.json", "close_meeting", "starts_at"), ("rec_tasks*.json", "close_task", "date_created")):
+    close_files(pat, src, at)
+for r in jsonl(os.path.join(DIR, "rec_cal.jsonl")):
+    add("calendly_recovery_lookup", f"{r.get('lead_id')}|{r.get('event_uri')}", r, r.get("lead_id"), r.get("start") or None)
+p = os.path.join(DIR, "rec_rows.json")
+if os.path.exists(p):
+    for r in load(p):
+        add("recovery_row", r["id"], r, r.get("lead_id"), r.get("start"))
+p = os.path.join(DIR, "rec_daily.json")
+if os.path.exists(p):
+    for k, v in load(p).items():
+        add("recovery_day", k, dict(v, date=k), None, k)
+p = os.path.join(DIR, "rec_reviews.json")
+if os.path.exists(p):
+    for r in load(p):
+        add("recovery_review", r["key"], r, r.get("lead_id"), r.get("date"))
 emit("call_confirm_raw_records", "source,record_id", raw)
 
 # ---------------- calls (from the pipeline's merged rows) ----------------
