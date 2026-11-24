@@ -56,67 +56,80 @@
   .funnel .ar { color: #b7b3a8; }
   .funnel .pay { margin-left: auto; color: var(--g); font-weight: 700; }
   .funnel .h { color: var(--b); font-weight: 700; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; margin-right: 4px; }
+
+  .wkbox { background:#fff; border:1.5px solid var(--b); border-radius:8px; padding:8px 10px 7px; margin-bottom:10px; }
+  .wkbox h3 { font-size:11.5px; color:var(--b); margin-bottom:5px; }
+  .wkbox h3 span { color:var(--muted); font-weight:500; }
+  .fn { display:grid; grid-template-columns: repeat(6, 1fr); gap:4px; margin-bottom:6px; }
+  .fn div { background:var(--b-bg); border-radius:6px; padding:4px 6px; }
+  .fn .v { font-family:"Inter Display",Inter,sans-serif; font-size:17px; font-weight:700; color:var(--b); }
+  .fn .n { font-size:9.5px; color:var(--muted); }
+  .fn .pay { background:var(--g-bg); } .fn .pay .v { color:var(--g); }
+  .wkl { font-size:11px; padding:2px 0; border-top:1px solid var(--line); display:flex; justify-content:space-between; }
+  .wkl b { font-weight:600; }
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
-/* PROPOSAL MOCKUP, SAMPLE DATA ONLY. Names and numbers are made up. */
-const d = {
+/* PROPOSAL MOCKUP, SAMPLE DATA ONLY. Names and numbers are made up.
+   ?v=day (Tue-Fri card) or ?v=mon (Monday card: Friday + last week's recovery). */
+const V = new URLSearchParams(location.search).get("v") || "day";
+const DAY = {
   day: "Tue, Dec 1", sent: "Sent Wed, Dec 2",
-  stats: "24 bookings · 9 lost calls in recovery · 78 dials · 9:01am–6:07pm MT",
-  conf: [
-    ["Overnight", "5/5", "all dialed", "g"],
-    ["Speed to lead", "90%", "target 85%", "g"],
-    ["No-answer steps", "12/12", "all done", "g"],
-    ["Follow-ups", "6/6", "called", "g"],
-    ["Day-before", "4/4", "called", "g"],
-    ["5:45 cancels", "1/1", "done", "g"],
-    ["Logging", "0", "errors", "g"]
-  ],
-  recEffort: [
-    ["Resched. asks", "2/2", "called in 15 min", "g"],
-    ["First touch", "4/5", "on time", "r"],
-    ["Daily touches", "11/11", "open cases", "g"],
-    ["Logging", "1", "error", "r"]
-  ],
-  recResult: [
-    ["Rebooked", "3", "of 9 worked", "i"],
-    ["Showed", "2", "recovered calls", "i"],
-    ["Earned", "$100", "pending week gate", "i"]
-  ],
-  week: { lost: 23, reached: 15, rebooked: 8, showed: 4, upcoming: 3, pay: "$200" },
-  ask: [
-    ["Sam Patel", "No-show · first touch", "no call on Tue (no-show Mon 2pm ET with Owen)"],
-    ["Dana Brooks", "Recovery logging", "rebooked Tue 3:10pm for Thu 1pm, no Call Confirmation Specialist activity"]
-  ]
+  stats: "24 bookings · 78 dials · 9:01am–6:07pm MT",
+  conf: [["Overnight","5/5","all dialed","g"],["Speed to lead","90%","target 85%","g"],["No-answer steps","12/12","all done","g"],["Follow-ups","6/6","called","g"],["Day-before","4/4","called","g"],["5:45 cancels","1/1","done","g"],["Logging","0","errors","g"]],
+  recEffort: [["Resched. asks","2/2","called in 15 min","g"],["Day 1 touch","4/5","full sequence","r"],["Days 2–5","11/11","on schedule","g"],["Logging","1","error","r"]],
+  recResult: [["Rebooked","3","by you in Calendly","i"],["Showed","2","rebooked earlier","i"],["Bonus","$100","from those shows","i"]],
+  week: "<b>This week so far:</b> 9 lost calls opened · 8 worked · 3 rebooked · 1 showed, 2 still ahead · <b style='color:var(--g)'>$150 bonus</b> (shows Mon–Tue)",
+  ask: [["Sam Patel","No-show · day 1","called and double dialed, no voicemail or text"],["Dana Brooks","Recovery logging","rebooked Tue 3:10pm for Thu 1pm, no Call Confirmation Specialist activity"]]
 };
-const scored = [...d.conf, ...d.recEffort];
-const hit = scored.filter(t => t[3] === "g").length;
+const MON = {
+  day: "Fri, Dec 4", sent: "Sent Mon, Dec 7",
+  stats: "22 bookings · 70 dials · 9:00am–6:02pm MT · day-before and 5:45 = Saturday calls only",
+  conf: [["Overnight","4/4","all dialed","g"],["Speed to lead","100%","target 85%","g"],["No-answer steps","9/9","all done","g"],["Follow-ups","5/5","called","g"],["Day-before","3/3","called","g"],["5:45 cancels","1/1","done","g"],["Logging","0","errors","g"]],
+  recEffort: [["Resched. asks","1/1","called in 15 min","g"],["Day 1 touch","3/3","full sequence","g"],["Days 2–5","12/12","on schedule","g"],["Logging","0","errors","g"]],
+  recResult: [["Rebooked","2","by you in Calendly","i"],["Showed","1","rebooked earlier","i"],["Bonus","$50","from those shows","i"]],
+  weekend: "<b>Weekend (not scored):</b> Sat 3 of 5 new bookings called, 2 accepted · Sun no calls",
+  lastWeek: {
+    range: "Mon Nov 30 – Sun Dec 6",
+    fn: [["21","lost calls"],["19","you worked"],["11","reached"],["7","rebooked"],["3","showed"],["$200","bonus","pay"]],
+    lines: [
+      ["Recovered calls that showed last week", "<b>4</b> (3 from last week's lost calls, 1 from backlog) × $50 = <b>$200</b>"],
+      ["Still ahead", "3 rebooked calls this week, worth up to $150 if they show"],
+      ["By type", "No-shows 9 → 3 rebooked · Cancels 7 → 2 · Reschedule requests 5 → 2"],
+      ["Recovery touches done", "<b>96%</b> (52 of 54) · information only, never affects pay"],
+      ["Backlog", "34 leads worked · 2 rebooked · 1 showed"],
+      ["Found by Zoom, not moved by the closer", "2 leads · label them in Close to work them"]
+    ]
+  },
+  ask: []
+};
+const d = V === "mon" ? MON : DAY;
+const hit = d.conf.filter(t => t[3] === "g").length;
 const tiles = ts => ts.map(([n, v, t, s]) => `<div class="tile ${s}"><div class="n">${n}</div><div class="v">${v}</div><div class="t">${t}</div></div>`).join("");
-const w = d.week;
-
+const lw = d.lastWeek;
 document.getElementById("app").innerHTML = `
   <div class="head"><h1>Gino's scorecard <span>· ${d.day}</span></h1>
-    <span class="score ${hit === scored.length ? "g" : "r"}">${hit} of ${scored.length} hit</span></div>
+    <span class="score ${hit === d.conf.length ? "g" : "r"}">${hit} of ${d.conf.length} hit</span></div>
   <div class="sub">${d.stats}<span class="sample">PROPOSAL · SAMPLE</span></div>
 
   <div class="lbl">Call confirmation<span>green = hit · red = missed</span></div>
   <div class="tiles" style="grid-template-columns: repeat(7, 1fr)">${tiles(d.conf)}</div>
 
-  <div class="lbl">Call recovery<span>blue = results, not scored</span></div>
-  <div class="sublbl"><span>Did the work (scored)</span><span></span><span>Results</span></div>
+  <div class="lbl">Call recovery<span>bonus effort · never affects base pay or the bonus check</span></div>
+  <div class="sublbl"><span>Did the steps</span><span></span><span>Results that day</span></div>
   <div class="tiles rec">${tiles(d.recEffort)}<div class="gap"></div>${tiles(d.recResult)}</div>
-  <div class="funnel"><span class="h">Week so far</span>
-    <span><b>${w.lost}</b> lost calls</span><span class="ar">→</span>
-    <span><b>${w.reached}</b> reached</span><span class="ar">→</span>
-    <span><b>${w.rebooked}</b> rebooked</span><span class="ar">→</span>
-    <span><b>${w.showed}</b> showed</span>
-    <span style="color:var(--muted)">(${w.upcoming} rebooked calls still ahead)</span>
-    <span class="pay">${w.pay} bonus so far</span></div>
+  ${d.week ? `<div class="wk">${d.week}</div>` : ""}
+
+  ${lw ? `<div class="wkbox"><h3>Last week's call recovery <span>· ${lw.range}</span></h3>
+    <div class="fn">${lw.fn.map(([v, n, c]) => `<div class="${c || ""}"><div class="v">${v}</div><div class="n">${n}</div></div>`).join("")}</div>
+    <div style="font-size:9.5px;color:var(--muted);margin:-3px 0 4px">The first five follow last week's lost calls only. Bonus = every recovered call that showed last week, whenever it was lost.</div>
+    ${lw.lines.map(([k, v]) => `<div class="wkl"><span>${k}</span><span>${v}</span></div>`).join("")}</div>` : ""}
 
   ${d.ask.length ? `<div class="ask"><div class="ask-h"><b>Reply with why (${d.ask.length}):</b> in this post's thread by noon MT, one line per number, e.g. "2: he asked me to wait"</div>
     ${d.ask.map(([who, sec, what], i) => `<div class="it"><span class="k">${i + 1}</span><span><b>${who}</b><em>${sec}</em>${what}</span></div>`).join("")}</div>` : ""}
+  ${d.weekend ? `<div class="wk">${d.weekend}</div>` : ""}
   <div class="foot"><span>${d.sent}</span><span>Call times in ET · Questions? Sheila or Jay in #cc-gino</span></div>`;
 </script>
 </body>
