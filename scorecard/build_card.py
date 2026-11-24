@@ -115,17 +115,18 @@ if rdays or rweek:
            "result": [["Rebooked", str(rd.get("rebooked", 0)), "by you in Calendly", "i"],
                       ["Showed", str(rd.get("shows", 0)), "rebooked earlier", "i"],
                       ["Bonus", f"${rd.get('bonus', 0)}", "from those shows", "i"]]}
-    if rweek:
+    if rweek and weekend:   # Monday card only (Sheila, Nov 24): Tue-Fri cards stay short
         n, o = rweek["new"], rweek["older"]
         # two funnels (Sheila, Nov 24). Showed counts the week the new call is held, so showed x $50 = the bonus.
         # Still ahead = rebooked calls not held yet; they are part of rebooked.
-        rows_ = [["Lost this week" if not weekend else "Lost last week",
+        rows_ = [["Lost last week",
                   [[str(n["lost"]), "lost calls"], [str(n["worked"]), "you worked"], [str(n["rebooked"]), "rebooked"],
-                   [str(n["showed"]), "showed"], [str(n["ahead"]), "still ahead"], [f"${rweek['bonus']}", "bonus (all)", "pay"]]],
+                   [str(n["showed"]), "showed"], [str(n["ahead"]), "still ahead"]]],
                  ["Older lost calls + backlog",
                   [["", "", "blank"], [str(o["worked"]), "you worked"], [str(o["rebooked"]), "rebooked"],
-                   [str(o["showed"]), "showed"], [str(o["ahead"]), "still ahead"], ["", "", "blank"]]]]
-        rec["funnels"] = {"title": ("This week's call recovery so far" if not weekend else "Last week's call recovery"),
+                   [str(o["showed"]), "showed"], [str(o["ahead"]), "still ahead"]]]]
+        rec["funnels"] = {"title": "Last week's call recovery", "bonus": f"${rweek['bonus']}",
+                          "bonus_note": f"{n['showed'] + o['showed']} showed × $50",
                           "range": f"{date.fromisoformat(rweek['week']).strftime('%a %b')} {date.fromisoformat(rweek['week']).day} – "
                                    f"{(date.fromisoformat(rweek['week']) + timedelta(days=6)).strftime('%a %b')} {(date.fromisoformat(rweek['week']) + timedelta(days=6)).day}",
                           "rows": rows_}
