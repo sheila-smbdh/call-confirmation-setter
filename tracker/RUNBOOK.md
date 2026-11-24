@@ -10,7 +10,8 @@ It refreshes the tracker: https://docs.google.com/spreadsheets/d/1R4l1Szm7cxfu70
 
 May, without asking:
 - Read Close (REST API, inline `curl`, one request per command), Calendly, Slack and the tracker.
-- Write to the tracker: replace the Calls, Daily, Weekly, Definitions and Data Sources tabs; append new rows to
+- Write to the tracker: replace the Calls, Recovery, Daily, Weekly, Definitions and Data Sources tabs (Recovery from Nov 24,
+  once Sheila adds it to her standing approval; until then, skip the Recovery tab and say so in the run summary); append new rows to
   Reviews (columns A-G and L); write Management!K5 (run time) and Management!M5 (data through).
 - Reviews H-J from Sheila's or Jay's decisions in #cc-gino (`slack_match.py` decides; Sheila, Nov 18: they decide
   every scorecard item in its thread and no longer edit the Reviews tab by hand). On rows whose H, I and J are all
@@ -28,7 +29,8 @@ May, without asking:
 Must not:
 - Write anything to Close, Calendly or Supabase. Never delete or merge anything in Close.
 - Touch Reviews column K (the Action formula), any Reviews H-J a person filled in (J not ending in "(Slack)"), or any Management
-  cell other than K5 and M5 (approvals, recovered calls, inputs).
+  cell other than K5 and M5 (approvals, inputs, and the formulas, including "Recovered calls that showed", which
+  has added up the Daily tab since Nov 24).
 - Post anything else to Slack, or message anyone.
 - If a step fails, stop before swapping tabs. Leave the tracker as it was (Management!A5 will show STALE). Do not retry
   writes blindly: re-read the tracker first to see what already happened.
@@ -205,11 +207,34 @@ day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TOD
      shows his notes on the Reviews row (column G).
    - Busy, blocked or failed 0-second dials already excuse the voicemail step automatically (Nov 18).
 
+6b. **Close: call recovery** (Sheila, Nov 24; `tracker/pipeline/recovery.py` has the rules)
+   - `python3 -I $P/bodies.py recovery $DIR $TODAY` -> `body_rec_lsc.json`, `body_rec_field.json`, `body_rec_act.json`.
+     Pull each with the search curl -> `rec_lsc.json`, `rec_field.json`, `rec_act.json` (result names must start with
+     `rec_`); check, split and re-pull if TRUNCATED, as in step 1.
+   - `python3 -I $P/bodies.py recovery_leads $DIR $TODAY` -> `body_rec_info.json`, `body_rec_calls.json`,
+     `body_rec_sms.json`, `body_rec_meet.json`, `body_rec_tasks.json`. Pull each the same way -> `rec_info.json`,
+     `rec_calls.json`, `rec_sms.json`, `rec_meet.json`, `rec_tasks.json`; check, split and re-pull if TRUNCATED.
+     `rec_info` is one query per lead id: if it is TRUNCATED, tell the run summary (it can't be split by date).
+
 8. **Merge with the live tracker**
    - `mcp__Google_Drive__download_file_content` with fileId = tracker id, exportMimeType
      `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`. The file is saved by the harness; copy it to
      `$DIR/tracker_live.xlsx`.
-   - `python3 -I $P/merge.py $DIR $DIR/tracker_live.xlsx` -> `calls_all.json`, `review_keys.json`, `reviews_last_row.txt`.
+   - `python3 -I $P/merge.py $DIR $DIR/tracker_live.xlsx` -> `calls_all.json`, `review_keys.json`, `reviews_last_row.txt`,
+     `rec_prev.json` (recovery rows already on the tracker).
+   - **Call recovery** (Nov 24): `python3 -I $P/recovery.py $DIR $TODAY` -> `rec_rows.json`, `rec_daily.json`,
+     `rec_reviews.json`, `need_rec_cal.txt`.
+     - For each line of `need_rec_cal.txt` (`<lead_id>\t<email>\t<from>`; a subagent is fine, the results are long):
+       `mcp__Calendly__meetings-list_events` with the organization, `invitee_email` = the email, `min_start_time` = from.
+       For every event returned that is 45 minutes long, `mcp__Calendly__meetings-list_event_invitees` with its uri, and
+       append one line to `$DIR/rec_cal.jsonl`: `{"lead_id", "event_uri", "event_name", "event_type" (uri), "start"
+       (start_time), "created" (created_at), "status", "scheduled_by"}`, where `scheduled_by` is the
+       `invitee_scheduled_by` of the invitee with that email (null when Calendly shows none). If no event comes back,
+       append `{"lead_id": ..., "event_uri": "", "event_name": "Not found in Calendly"}`. Never write to Calendly.
+     - Run `recovery.py` again. `need_rec_cal.txt` should now be empty.
+     - Only when a recovery day is a miss and Gino's notes on the lead explain it with Close evidence behind them (the
+       same test as step 7c), add `{"<review key>": "<what the note says> (<the evidence>)"}` to `$DIR/rec_overrides.json`
+       and run it again. Recovery items are coaching only; when in doubt, leave them for Sheila and Jay.
    - `python3 -I $P/export.py $DIR $DIR/tracker_out.xlsx $TODAY`
    - `python3 -I $P/slack_match.py $DIR $DIR/tracker_live.xlsx` -> `slack_decisions.json`, `reviews_fill.json`.
    - `python3 -I $P/reviews.py $DIR` -> `reviews_append.json` (rows Sheila or Jay already approved in Slack come
@@ -226,15 +251,17 @@ day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TOD
    (fields `sheets.properties(sheetId,title)`).
 
 10. **Swap tabs in the tracker** (Composio). Get the tracker's current sheet ids first. Do these strictly in order,
-    one tab at a time: **Calls, Daily, Weekly, Definitions, Data Sources** (Daily's formulas bind to the Calls tab that
-    exists when Daily is copied in, and Weekly's to Daily):
+    one tab at a time: **Calls, Recovery, Daily, Weekly, Definitions, Data Sources** (Daily's formulas bind to the Calls
+    tab that exists when Daily is copied in, and Weekly's to Daily; Daily reads Recovery through INDIRECT). The first run
+    after Nov 24 has no Recovery tab to rename yet: just copy it in and rename the copy:
     1. `GOOGLESHEETS_UPDATE_SHEET_PROPERTIES`: rename the current tab to `<name> (old)`.
     2. `GOOGLESHEETS_SPREADSHEETS_SHEETS_COPY_TO`: copy the tab from the TEMP file into the tracker.
     3. `GOOGLESHEETS_UPDATE_SHEET_PROPERTIES`: rename the copy (`Copy of <name>`) to `<name>`.
-    After all five: `GOOGLESHEETS_DELETE_SHEET` each `<name> (old)` tab created by THIS run (only those five; match
+    After all six: `GOOGLESHEETS_DELETE_SHEET` each `<name> (old)` tab created by THIS run (only those six; match
     by the sheet ids you renamed, never by title alone; leave every other hidden or "old ..." tab alone), then set
     indexes so the order is Management (0), Reviews (1), Call Confirmation>> (2), Calls (3), Daily (4), Weekly (5),
-    Call Recovery (6), Definitions (7), Data Sources (8). "Call Confirmation>>" and "Call Recovery" are Sheila's tabs:
+    Call Recovery>> (6), Recovery (7), Definitions (8), Data Sources (9). "Call Confirmation>>" and "Call Recovery>>"
+    (renamed by Sheila Nov 24) are Sheila's divider tabs:
     never edit, rename or delete them. Management uses INDIRECT for Calls and Daily, so it keeps working through the
     swap.
     Google Sheets allows about 60 reads per minute. If a call returns 429 (quota), wait 60 seconds and retry that
