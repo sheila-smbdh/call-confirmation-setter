@@ -1,8 +1,8 @@
 """Offline: build Gino's daily scorecard data from the files plan.py told you to fetch. No network.
 
 Usage: python3 -I scorecard/build_card.py DIR
-Reads DIR/plan.json, runs.json, daily.json, reviews.json, dials.json, and (Nov 24) rec_days.json, rec_rows.json,
-rec_ahead.json for the call recovery row (optional: the card still builds without them). Writes DIR/card.json (for render.js) and
+Reads DIR/plan.json, runs.json, daily.json, reviews.json, dials.json, and (Nov 24) rec_days.json and rec_weeks.json
+for the call recovery row and funnels (optional: the card still builds without them). Writes DIR/card.json (for render.js) and
 DIR/message.txt (the Slack comment). Prints OK, or STALE / NO DATA with the reason (then send no card).
 
 How each tile is counted (the same rules as the tracker's Reviews tab, docs/DECISIONS.md, newest sections first):
@@ -99,8 +99,7 @@ tiles = [
 import os
 opt = lambda f: json.load(open(f"{D}/{f}")) if os.path.exists(f"{D}/{f}") else []
 rdays = {x["payload"]["date"]: x["payload"] for x in opt("rec_days.json")}
-rrows = [x["payload"] for x in opt("rec_rows.json")]
-rahead = [x["payload"] for x in opt("rec_ahead.json")]
+rweek = (opt("rec_weeks.json") or [{}])[0].get("payload")
 rec_open = [x for x in rec_reviews if (x.get("decision") or "").strip().lower() != "excused"]
 rd = rdays.get(plan["day"], {})
 def rfrac(due, ok):
@@ -110,34 +109,26 @@ d1_v, d1_s = rfrac(rd.get("d1_due", 0), rd.get("d1_ok", 0))
 d25_v, d25_s = rfrac(rd.get("d25_due", 0), rd.get("d25_ok", 0))
 le = rd.get("log_err", 0)
 rec = None
-if rdays:
+if rdays or rweek:
     rec = {"effort": [["Resched. asks", rr_v, "called in 15 min", rr_s], ["Day 1 touch", d1_v, "full sequence", d1_s],
                       ["Days 2–5", d25_v, "on schedule", d25_s], ["Logging", str(le), "error" if le == 1 else "errors", "g" if le == 0 else "r"]],
            "result": [["Rebooked", str(rd.get("rebooked", 0)), "by you in Calendly", "i"],
                       ["Showed", str(rd.get("shows", 0)), "rebooked earlier", "i"],
                       ["Bonus", f"${rd.get('bonus', 0)}", "from those shows", "i"]]}
-    wk0 = date.fromisoformat(plan["day"]) - timedelta(days=day.weekday())
-    tw = [v for k, v in rdays.items() if date.fromisoformat(k) >= wk0 and k <= plan["day"]]
-    if not weekend:
-        lost = sum(v["new_ns"] + v["new_cxl"] + v["new_rr"] for v in tw)
-        rec["week"] = (f"<b>This week so far:</b> {lost} lost calls · {sum(v['worked'] for v in tw)} worked · "
-                       f"{sum(v['rebooked'] for v in tw)} rebooked by you · {sum(v['shows'] for v in tw)} showed · "
-                       f"<b style='color:var(--g)'>${sum(v['bonus'] for v in tw)} bonus</b>")
-    else:   # Monday: last week's box
-        lw0 = date.fromisoformat(plan["rec_week"])
-        lw = [v for k, v in rdays.items() if lw0.isoformat() <= k <= (lw0 + timedelta(days=6)).isoformat()]
-        mine = [r_ for r_ in rrows if "backlog" not in r_["type"]]
-        shows = sum(v["shows"] for v in lw)
-        bl = sum(v["shows_backlog"] for v in lw)
-        bonus = sum(v["bonus"] for v in lw)
-        reached = sum(1 for r_ in mine if any(x.get("what") == "reached" for x in r_.get("days") or []))
-        rec["lastWeek"] = {"range": f"{lw0.strftime('%a %b')} {lw0.day} – {(lw0 + timedelta(days=6)).strftime('%a %b')} {(lw0 + timedelta(days=6)).day}",
-                           "fn": [[str(len(mine)), "lost calls"], [str(sum(1 for r_ in mine if r_.get("first_attempt"))), "you worked"],
-                                  [str(reached), "reached"], [str(sum(1 for r_ in mine if r_.get("booked_by") == "Gino")), "rebooked"],
-                                  [f"{shows - bl}" + (f"<small>+{bl} backlog</small>" if bl else ""), "showed"], [f"${bonus}", "bonus", "pay"]],
-                           "lines": [["Recovered calls that showed last week", f"<b>{shows}</b>" + (f" ({shows - bl} from lost calls, {bl} from backlog)" if bl else "") + f" × $50 = <b>${bonus}</b>"],
-                                     ["Still ahead", f"{len(rahead)} rebooked call{'s' if len(rahead) != 1 else ''} not held yet, worth up to ${50 * len(rahead)} if they show"]]}
-
+    if rweek:
+        n, o = rweek["new"], rweek["older"]
+        # two funnels (Sheila, Nov 24). Showed counts the week the new call is held, so showed x $50 = the bonus.
+        # Still ahead = rebooked calls not held yet; they are part of rebooked.
+        rows_ = [["Lost this week" if not weekend else "Lost last week",
+                  [[str(n["lost"]), "lost calls"], [str(n["worked"]), "you worked"], [str(n["rebooked"]), "rebooked"],
+                   [str(n["showed"]), "showed"], [str(n["ahead"]), "still ahead"], [f"${rweek['bonus']}", "bonus (all)", "pay"]]],
+                 ["Older lost calls + backlog",
+                  [["", "", "blank"], [str(o["worked"]), "you worked"], [str(o["rebooked"]), "rebooked"],
+                   [str(o["showed"]), "showed"], [str(o["ahead"]), "still ahead"], ["", "", "blank"]]]]
+        rec["funnels"] = {"title": ("This week's call recovery so far" if not weekend else "Last week's call recovery"),
+                          "range": f"{date.fromisoformat(rweek['week']).strftime('%a %b')} {date.fromisoformat(rweek['week']).day} – "
+                                   f"{(date.fromisoformat(rweek['week']) + timedelta(days=6)).strftime('%a %b')} {(date.fromisoformat(rweek['week']) + timedelta(days=6)).day}",
+                          "rows": rows_}
 
 def when(text):
     """'(call 11-13 1:00 PM)' or '(booked ..., call 11-13 1:00 PM)' -> 'call Fri 1:00pm ET'."""

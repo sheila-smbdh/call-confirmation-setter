@@ -169,7 +169,7 @@ def daycell(x):
     if st == "ahead":
         return f"{d_}: due"
     if st == "not due":
-        return f"{d_}: – {x.get('what', '')}"
+        return "N/A" if x.get("what") == "N/A" else f"{d_}: – {x.get('what', '')}"
     mark = {"done": "✓", "missed": "✗", "not scored": "(not scored)"}[st]
     extra = "" if x.get("field", "Yes") == "Yes" else f" · field: {x['field']}"
     return f"{d_}: {mark} {x.get('what', '')}{extra}"

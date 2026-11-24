@@ -42,16 +42,13 @@ reads = [
                    f"&payload->>user_id=eq.{GINO}&payload->>direction=eq.outbound"
                    f"&occurred_at=gte.{utc(day)}&occurred_at=lt.{utc(last + timedelta(days=1))}&order=occurred_at"),
 ]
-# Nov 24: call recovery. Days for this week so far (Monday card: last week too), rows lost last week (Monday funnel),
-# and credited rebooks whose new call is still ahead.
+# Nov 24: call recovery. The scored day's numbers, and the week's two funnels (this week's lost calls; older lost
+# calls + backlog). On Monday the scored day is Friday, so the week is last week.
 wk0 = day - timedelta(days=day.weekday())
 lastwk0 = wk0   # the week of the scored day: on Monday that is last week (Friday is scored)
 reads += [
     ("rec_days.json", f"{BASE}/call_confirm_raw_records?select=payload&source=eq.recovery_day&record_id=gte.{lastwk0}&record_id=lte.{last}"),
-    ("rec_rows.json", f"{BASE}/call_confirm_raw_records?select=payload&source=eq.recovery_row"
-                      f"&occurred_at=gte.{utc(lastwk0)}&occurred_at=lt.{utc(lastwk0 + timedelta(days=7))}"),
-    ("rec_ahead.json", f"{BASE}/call_confirm_raw_records?select=payload&source=eq.recovery_row&payload->>result=eq.Upcoming"
-                       f"&payload->>credit=eq.Yes"),
+    ("rec_weeks.json", f"{BASE}/call_confirm_raw_records?select=payload&source=eq.recovery_week&record_id=eq.{lastwk0}"),
 ]
 plan["rec_week"] = lastwk0.isoformat()
 json.dump(plan, open(f"{d}/plan.json", "w"))

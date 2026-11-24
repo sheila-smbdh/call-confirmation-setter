@@ -143,6 +143,10 @@ p = os.path.join(DIR, "rec_daily.json")
 if os.path.exists(p):
     for k, v in load(p).items():
         add("recovery_day", k, dict(v, date=k), None, k)
+p = os.path.join(DIR, "rec_weeks.json")
+if os.path.exists(p):
+    for k, v in load(p).items():
+        add("recovery_week", k, v, None, k)
 p = os.path.join(DIR, "rec_reviews.json")
 if os.path.exists(p):
     for r in load(p):

@@ -3,6 +3,7 @@
 Usage: python3 -I recovery.py DATA_DIR TODAY
   -> DATA_DIR/rec_rows.json      one row per lost call ("case"), for the Recovery tab
      DATA_DIR/rec_daily.json     per-day numbers, for the Daily tab and the scorecard
+     DATA_DIR/rec_weeks.json     per-week funnels (this week's lost calls; older lost calls + backlog), for the scorecard
      DATA_DIR/rec_reviews.json   misses and logging errors, for the Reviews tab (coaching only; never change the bonus)
      DATA_DIR/need_rec_cal.txt   rebooked leads whose Calendly booking still has to be looked up (lead_id, email, from)
 
@@ -211,16 +212,17 @@ for lead, rs in by_lead.items():
         if orig:
             o = orig[-1]
             r["orig_call"], r["advisor"] = p(o["starts_at"]).isoformat(), uname(o["user_id"])
-        g = g_out(lead, start, stop)
+        # rebook: the first closer-length meeting booked after the call was lost
+        rb = [m for m in meets if m["lead_id"] == lead and m.get("duration") == 2700 and start < p(m["date_created"]) < stop]
+        rbm = rb[0] if rb else None
+        # his recovery attempts: calls after the loss and before the rebook (calls after it confirm the new booking)
+        g = g_out(lead, start, p(rbm["date_created"]) if rbm else stop)
         first = p(g[0]["date_created"]) if g else None
         r["first_attempt"] = first.isoformat() if first else None
         # reschedule request speed (during shift only)
         if r["type"] == "Reschedule request" and in_shift(start) and start.astimezone(ET).date() >= SCORE_FROM:
             mins = round((first - start).total_seconds() / 60) if first else None
             r["rr_minutes"], r["rr_on_time"] = mins, bool(first and mins <= 15)
-        # rebook: the first closer-length meeting booked after the call was lost
-        rb = [m for m in meets if m["lead_id"] == lead and m.get("duration") == 2700 and start < p(m["date_created"]) < stop]
-        rbm = rb[0] if rb else None
         end_t, end_why = None, None
         if rbm:
             r["rebooked_at"], r["new_call"] = p(rbm["date_created"]).isoformat(), p(rbm["starts_at"]).isoformat()
@@ -271,7 +273,7 @@ for lead, rs in by_lead.items():
         if first:
             for k, d in enumerate(bdays(first.astimezone(ET).date(), 5), 1):
                 if end_t and et(d, 0) > end_t:
-                    days.append({"date": d.isoformat(), "day": k, "status": "not due", "what": end_why})
+                    days.append({"date": d.isoformat(), "day": k, "status": "not due", "what": "N/A"})
                     continue
                 if d > TODAY:
                     days.append({"date": d.isoformat(), "day": k, "status": "ahead"})
@@ -284,8 +286,11 @@ for lead, rs in by_lead.items():
                     days.append({"date": d.isoformat(), "day": k, "status": "not due", "what": f"paused: callback task {pz.strftime('%b %-d')}"})
                     continue
                 c = day_check(lead, d, k)
-                if end_t and end_t.astimezone(ET).date() == d and not c["done"]:
-                    c.update(done=True, what=end_why)
+                if end_t and end_t.astimezone(ET).date() == d:
+                    # the day it ended: show what he did that day, then how it ended (and who booked it)
+                    who = {"Gino": "by Gino", "Lead (public link)": "by the lead (public link)"}.get(r.get("booked_by"), "")
+                    tail = f"rebooked {who}".strip() if end_why == "Rebooked" else end_why.lower()
+                    c.update(done=True, what=(f"{c['what']} → {tail}" if c.get("dials") else tail))
                 key = f"rec|{r['id']}|day{k}"
                 if not c["done"] and key in overrides:
                     c.update(done=True, what="Excused: " + overrides[key])
@@ -306,6 +311,11 @@ for lead, rs in by_lead.items():
         r["days"] = days
         r["status"] = (end_why if end_why else ("Waiting for first attempt" if not first else
                        f"Open (day {next((x['day'] for x in days if x['status'] == 'ahead'), 5)} of 5)"))
+        if end_why == "Rebooked":
+            who = {"Gino": "Gino", "Lead (public link)": "the lead (public link)", "Someone else in Calendly": "someone else"}.get(r.get("booked_by"), "")
+            r["status"] = f"Rebooked by {who}" if who else "Rebooked"
+            if not first:
+                r["status"] += " before Gino called"
         if r["found_by"].startswith("Backlog") and not first:
             r["status"] = "Backlog: no call yet"
         r["field_now"] = info.get(lead, {}).get(REC_CF) or ""
@@ -371,6 +381,33 @@ while d <= TODAY:
                      log_err=len(logerr), worked=len(open_), reached=len(reached), rebooked=len(rebooked),
                      shows=len(shows), shows_backlog=sum(1 for r in shows if "backlog" in r["type"]), bonus=sum(r["bonus"] for r in shows))
     d += timedelta(days=1)
+
+# ---------------- per week: two funnels (Sheila, Nov 24) ----------------
+# "new": calls lost that week (not backlog). "older": earlier lost calls and backlog leads he worked that week.
+# Showed counts the week the rebooked call is held, so showed (new + older) x $50 = that week's bonus.
+# Still ahead = credited rebooks whose new call hasn't happened yet; they are part of "rebooked".
+weeks = {}
+wk = lambda x: x - timedelta(days=x.weekday())
+w = wk(SCORE_FROM)
+while w <= TODAY:
+    lo, hi = w, w + timedelta(days=6)
+    inwk = lambda s_: bool(s_) and lo <= p(s_).astimezone(ET).date() <= hi if "T" in str(s_) else bool(s_) and lo.isoformat() <= str(s_) <= hi.isoformat()
+    new = [r for r in rows if "backlog" not in r["type"] and inwk(r["start"])]
+    older = [r for r in rows if r not in new and (any(x.get("dials") and inwk(x["date"]) for x in r.get("days") or [])
+                                                   or inwk(r.get("rebooked_at")) or inwk(r.get("show_date")))]
+    def fn(rs, lost=True):
+        out = dict(worked=sum(1 for r in rs if r.get("first_attempt")) if lost else
+                   sum(1 for r in rs if any(x.get("dials") and inwk(x["date"]) for x in r.get("days") or [])),
+                   rebooked=sum(1 for r in rs if r.get("booked_by") == "Gino" and (lost or inwk(r.get("rebooked_at")))),
+                   showed=sum(1 for r in rs if r.get("bonus") and inwk(r.get("show_date"))),
+                   ahead=sum(1 for r in rs if r.get("credit") == "Yes" and r.get("result") == "Upcoming"))
+        if lost:
+            out["lost"] = len(rs)
+        return out
+    weeks[w.isoformat()] = dict(week=w.isoformat(), new=fn(new), older=fn(older, False),
+                                bonus=sum(r["bonus"] for r in rows if inwk(r.get("show_date"))))
+    w += timedelta(days=7)
+json.dump(weeks, open(f"{D}/rec_weeks.json", "w"), indent=0)
 
 json.dump(rows, open(f"{D}/rec_rows.json", "w"), indent=0, default=str)
 json.dump(daily, open(f"{D}/rec_daily.json", "w"), indent=0)
