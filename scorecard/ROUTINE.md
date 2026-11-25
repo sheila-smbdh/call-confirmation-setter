@@ -29,8 +29,8 @@ Follow `/root/.claude/CLAUDE.md`. Supabase calls are inline curl only, never fro
 
 1. **Plan**: `python3 -I scorecard/plan.py $TODAY $DIR`.
    - If it prints `SKIP`, stop. Post nothing.
-   - Otherwise it prints seven lines, `<file> <url>`. For each, run `curl -s "<url>" -o $DIR/<file>`, copying the URL
-     exactly (one request per command; Sheila's Supabase rule). The last three (`rec_*`) are call recovery, from Nov 24. Each file must be a JSON list; if one holds an
+   - Otherwise it prints six lines, `<file> <url>`. For each, run `curl -s "<url>" -o $DIR/<file>`, copying the URL
+     exactly (one request per command; Sheila's Supabase rule). The last two (`rec_days.json`, `rec_weeks.json`) are call recovery, from Nov 24. Each file must be a JSON list; if one holds an
      error object instead, treat it as a failed step (step 5).
 2. **Build**: `python3 -I scorecard/build_card.py $DIR`.
    - `OK ...`: carry on.
