@@ -149,7 +149,13 @@ day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TOD
        (Sheila, Nov 27). Read Gino's reply for the same number: if Gino explained why it wasn't a miss (confirmed by
        text, talking with the closer, a Claude error), "Confirmed" = approved. If Gino admitted it ("miss on my end",
        "didn't call"), "Confirmed" = denied (it counts as a miss). Say which in `decision_summary`, e.g.
-       `Jay: "10 - Confirmed" (Gino admitted the miss)`. "Missed" = denied.
+       `Jay: "10 - Confirmed" (Gino admitted the miss)`. "Missed" = denied. A hindsight remark next to a reason
+       ("it was a weak confirmation, I could've given her a day-before call", Nov 24 #2) is not an admission, and a
+       closing "All good" from Jay excuses every item he marked Confirmed in that reply.
+     - **Decisions Sheila made outside Slack** (in a session) are in `docs/DECISIONS.md`, in each section's table for
+       that card (e.g. Nov 16 #1 Dean B, Nov 17 #2 Inderjeet Harika: excused). Where Slack alone would say "unclear" or
+       "no response" for an item that table decides, use the table: `decided_by` "Sheila", `decision_summary`
+       "Decided in a session (decisions log, <section>)". Slack still wins if a later reply changes it.
      - Gino's replies are context only; on their own they never decide an item (only through "Confirmed" above). An
        item nobody decided stays "no response".
      - When Sheila says an item was a Claude error or that Gino was compliant, that's approved, even if Jay deferred.

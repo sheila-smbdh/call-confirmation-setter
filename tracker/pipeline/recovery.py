@@ -195,6 +195,10 @@ for x in lsc:
         # still the same lost call (status bounced, or re-entered while he was working it)
         mt = [m for m in meets if m["lead_id"] == lead and p(last["start"]) < p(m["date_created"]) < t and m.get("duration") == 2700]
         if not mt:
+            # Sheila, Nov 27 (Nov 24 card #8, Yehuda Schuster): the status was corrected (e.g. Reschedule Request ->
+            # No Show) before he first called, so the corrected type applies, and with it the speed target or not.
+            if typ != last["type"].split(" (")[0] and not last["found_by"].startswith("His 5:45") and not g_out(lead, p(last["start"]), t):
+                last["type"] = typ
             continue
         last["_rebook_start"] = p(mt[0]["starts_at"])
     chain, no = (last["chain"], last["rebook_no"]) if last and last.get("_rebook_start") and t >= last["_rebook_start"] else (None, 0)

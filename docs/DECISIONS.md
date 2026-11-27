@@ -21,6 +21,16 @@ From Sheila's and Jay's review of Gino's Nov 25 scorecard ([thread](https://dyla
 | 10 | Stephen Wright: recovery Day 2 not called. Gino: he dialed fresh recoveries before follow-ups, so his follow-up smart view mixed them. | **Counts as a miss** (Gino admitted it; Jay confirmed). Gino now works follow-ups before fresh recoveries. |
 | 11 | Fahim N: reschedule request not called; the lead asked to be reached after the holidays. | Excused (Jay). **When a lead asks to be contacted later, Gino creates a Close task on the lead for that date.** An open task already pauses the recovery sequence until its date (Nov 24 rule). Without the task it still shows as a miss for Sheila and Jay to decide. (Claude's recommendation, pending Sheila.) |
 
+
+**From Jay's review of Gino's Nov 24 scorecard** ([thread](https://dylanhelen.slack.com/archives/C0CG28G7TQT/p1795606929345119)). Jay: "1–8 Confirmed … All good. Thanks!" Sheila left it to Jay and asked to hear about anything that keeps alerting when it shouldn't.
+
+| # | What happened (Nov 24) | Decision / rule from now on |
+|---|---|---|
+| 1–6 | Peter Mosesian, Monica Y, Tim Canaley, Mike Lariza: the prospect was talking with the closer (texted Harry, asked Harry or Owen to resend the invite) and Gino marked them Confirmed without the day-before call or 5:45 cancel. | All excused (Jay). Gino said #2/#5 was a weak confirmation and he could have made the day-before call. That's hindsight next to a reason, not an admission, and Jay's "All good" excuses it. **Recurring pattern** (also Nov 23 #1–6 and Nov 25 #1, #3, #4): Jay excuses every "prospect is engaging with the closer, Gino marked Confirmed" item. Until Sheila decides otherwise, the rule stays: Gino logs **Closer Confirmed** in these cases, which removes the checks. |
+| 7 | Ethan Menkin: logging. Moved to Confirmed with the invite not accepted; Ethan had only texted the closer "Yes I got it". | Excused (Jay). Same pattern as above. |
+| 8 | Yehuda Schuster: "reschedule request speed: not called". The lead went to Reschedule Request – Recovery at 12:09pm ET Nov 24 and was corrected to No Show – Recovery at 2:11pm ET (the closer's EOD already said no-show). Gino started recovery the next day. | Excused (Jay). **When the recovery status is corrected before his first call, the corrected type applies.** A no-show has no 15-minute target, so no speed item. |
+
+**Supabase check (Nov 27).** All 30 of Jay's decisions recorded so far match his replies. Two older items were recorded "unclear" although this log has them excused (Nov 16 #1 Dean B; Nov 17 #2 Inderjeet Harika, Sheila in a session). The morning run now takes decisions made in a session from this log when Slack alone is unclear (RUNBOOK step 4b).
 ---
 
 ## 00000000. Update Nov 24, 2026 (rev 10): call recovery tracking and pay
