@@ -226,6 +226,13 @@ def gino_claims(lead, lo, hi):
 def is_vm(c):
     return OUT.get(c.get("outcome_id")) == "No Answer – Left Voicemail" or c.get("disposition") == "vm-left" or bool(c.get("voicemail_url"))
 
+def vm_likely(c):
+    """Sheila, Nov 27 (#cc-gino, Nov 25 card #7 and #9): an answered call of 30-44 seconds with no outcome logged is
+    almost always Gino speaking a voicemail onto an answering machine (Close can't tell it apart). It counts as the
+    voicemail step, labelled "Voicemail likely (no outcome logged)". He should log "No Answer – Left Voicemail"."""
+    return (c.get("disposition") == "answered" and not c.get("outcome_id") and not is_vm(c)
+            and 30 <= (c.get("duration") or 0) < 45)
+
 def is_hangup(c):
     """Picked up and ended before a voicemail could be left: answered, no voicemail, not a conversation, and either
     under 30 seconds or logged 'No answer / hung up'."""
@@ -268,6 +275,7 @@ def checkpoint(lead, lo, hi, due, need_text=True):
     # Sheila, Nov 16: the prospect picked up and hung up, or the call dropped, before a voicemail could be left.
     vm_h = not r["voicemail"] and not vm_x and any(is_hangup(c) for c in cs)
     vm_r = not r["voicemail"] and not vm_x and not vm_h and any(no_ring(c) for c in cs)
+    vm_l = not r["voicemail"] and not vm_x and not vm_h and not vm_r and any(vm_likely(c) for c in cs)
     r["notes"] = "; ".join(" ".join(c["note"].split())[:120] for c in cs if (c.get("note") or "").strip())
     tx_x = not r["text"] and any(s["lead_id"] == lead and lo <= p(s["date_created"]) < hi and s["status"] in ("error", "failed", "undelivered")
                                  for s in allsms)
@@ -276,7 +284,7 @@ def checkpoint(lead, lo, hi, due, need_text=True):
     elif r["connected"]:
         r["finished"], r["dropoff"] = True, ""
     else:
-        miss = [n for n, ok in (("double dial", dd), ("voicemail", r["voicemail"] or vm_x or vm_h or vm_r),
+        miss = [n for n, ok in (("double dial", dd), ("voicemail", r["voicemail"] or vm_x or vm_h or vm_r or vm_l),
                                 ("text", r["text"] or tx_x or not need_text)) if not ok]
         r["finished"], r["dropoff"] = not miss, ("Missing " + ", ".join(miss)) if miss else ""
     if vm_x:
@@ -285,6 +293,8 @@ def checkpoint(lead, lo, hi, due, need_text=True):
         r["voicemail"] = "Hung up before voicemail"
     elif vm_r:
         r["voicemail"] = "Didn't ring (busy / straight disconnect)"
+    elif vm_l:
+        r["voicemail"] = "Voicemail likely (no outcome logged)"
     if tx_x:
         r["text"] = "Text failed to send"
     elif not need_text and not r["text"]:

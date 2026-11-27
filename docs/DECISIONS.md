@@ -2,7 +2,24 @@
 
 The source of truth for every decision about the Call Confirmation Specialist role. The SOP, the Close setup, the Zaps and the payout code all follow this file. If anything conflicts with it, this file wins until Sheila changes it.
 
-Last updated: 2026-11-24 (rev 10). **The newest section is first and overrides anything older below it** (00000000, then 0000000, then 000000, then 00000, then 0000, then 000, then 00, then 0).
+Last updated: 2026-11-27 (rev 11). **The newest section is first and overrides anything older below it** (000000000, then 00000000, then 0000000, then 000000, then 00000, then 0000, then 000, then 00, then 0).
+
+---
+
+## 000000000. Update Nov 27, 2026 (rev 11): Nov 25 scorecard review
+
+From Sheila's and Jay's review of Gino's Nov 25 scorecard ([thread](https://dylanhelen.slack.com/archives/C0CG28G7TQT/p1795703917997549)), and Sheila's request to update the rules from it (Nov 27). Where a rule below is Claude's recommendation that Sheila hasn't ruled on yet, it says so.
+
+| # | What happened (Nov 25) | Decision / rule from now on |
+|---|---|---|
+| — | Jay replied "N - Confirmed" to every item, including #10, where Gino admitted the miss. | **Jay's "Confirmed" means he agrees with Gino's explanation of that item.** If Gino explained why it wasn't a miss, it's excused. If Gino admitted the miss, it **counts as a miss**. "Missed" = a miss. The morning run reads Gino's reply for that number to tell which (RUNBOOK step 4b). Before Nov 27 the run read every "Confirmed" as excused; none of those earlier items was one Gino had admitted. |
+| 1, 3, 4 | Colin Mitchell, Peter Mosesian: Gino was texting or emailing with the closer, who confirmed. | Excused (Jay). Existing rule (SOP, Nov 13): when the closer confirms, Gino logs **Closer Confirmed**, which stops the welcome, day-before and 5:45 checks. Nothing changes in the tracker; Gino should log it. |
+| 2 | Steve Miller: follow-up call not made; confirmed by text. | Excused (Jay). **The morning run now reads the prospect's texts for follow-up calls too**, not just day-before calls, 5:45 cancels and logging errors. A text saying they'll attend stops the follow-ups from then on (rule since Nov 19). |
+| 5 | Loai Hekmat: "Call Confirmation Specialist activity logged, but no new booking found." | Excused (Sheila: compliant). Close shows Gino logged the activity on Nov 25 at 4:24pm ET and **deleted it** on Nov 26 at 12:47pm ET, after the Nov 26 run flagged it, so it no longer shows on the lead. **From now on an activity with no booking is flagged only if it's still there a day later, and only if Gino logged it.** One he deletes isn't an error. |
+| 6, 8 | Brian Kenney, Joe Kay: backlog leads he first called Nov 23, before tracking started. On Nov 25 he did Day 2 (double dial only) and set the field to Day 2; the tracker restarted the count at Day 1 and flagged a missing text plus a "wrong" field. | Excused (Jay). **A backlog lead he started before tracking began picks up at the day his Call Recovery field says** on his first tracked day. The Recovery tab shows the earlier days as "Before tracking (his field)". |
+| 7, 9 | Dipak Joshi, Priyanka Khanna: second dial answered for 30 seconds, with a recording, no outcome logged and no transcript. Gino says he left a voicemail. | Excused (Jay). **An answered call of 30–44 seconds with no outcome logged counts as the voicemail step**, labelled "Voicemail likely (no outcome logged)". This applies to confirmation checkpoints and recovery days alike. Under 30 seconds was already "Hung up before voicemail"; 45+ seconds with no outcome is still a conversation. Gino should log **"No Answer – Left Voicemail"** on these calls. (Claude's recommendation, pending Sheila.) |
+| 10 | Stephen Wright: recovery Day 2 not called. Gino: he dialed fresh recoveries before follow-ups, so his follow-up smart view mixed them. | **Counts as a miss** (Gino admitted it; Jay confirmed). Gino now works follow-ups before fresh recoveries. |
+| 11 | Fahim N: reschedule request not called; the lead asked to be reached after the holidays. | Excused (Jay). **When a lead asks to be contacted later, Gino creates a Close task on the lead for that date.** An open task already pauses the recovery sequence until its date (Nov 24 rule). Without the task it still shows as a miss for Sheila and Jay to decide. (Claude's recommendation, pending Sheila.) |
 
 ---
 

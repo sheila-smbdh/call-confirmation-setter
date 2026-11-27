@@ -6,7 +6,7 @@ day-before call or 5:45 cancel is required, and logging it accepted is valid
 the run reads them and decides which ones are confirmations.
 
 usage:
-  python3 -I text_confirms.py leads DIR    -> DIR/text_check_leads.txt: leads with a day-before call or 5:45 cancel
+  python3 -I text_confirms.py leads DIR    -> DIR/text_check_leads.txt: leads with a day-before call, follow-up call or 5:45 cancel
                                               required (or can't tell), or a logging error
                                               (Sheila, Nov 18), whose texts need checking
   python3 -I text_confirms.py list DIR     -> prints every inbound text on those leads (from DIR/sms_lead_*.json),
@@ -27,7 +27,9 @@ if mode == "leads":
     rows = json.load(open(os.path.join(DIR, "calls_new.json")))
     leads = sorted({r["lead_id"] for r in rows if r.get("lead_id")
                     and (r.get("db_required") in ("Yes", "Can't tell") or r.get("r_required") in ("Yes", "Can't tell")
-                         or r.get("check", "").startswith("Logging error"))})
+                         or r.get("check", "").startswith("Logging error")
+                         # Sheila, Nov 27 (Nov 25 card #2): follow-up calls stop once they confirm by text too
+                         or any(f.get("required") in ("Yes", "Can't tell") for f in r.get("fu") or []))})
     with open(os.path.join(DIR, "text_check_leads.txt"), "w") as fh:
         fh.write("\n".join(leads) + ("\n" if leads else ""))
     print(len(leads), "leads to check")
