@@ -145,7 +145,20 @@ day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TOD
        "should have called" = denied. A reply can cover several numbers ("3.5.6", "3, 5 and 6", "all the rest").
      - If Sheila and Jay seem to disagree, read the whole thread for the final word (a later reply that settles it,
        or one of them deferring to the other). Only if it's still not clear: "unclear", and list it in the run summary.
-     - Gino's replies are context only; they never decide an item. An item nobody decided stays "no response".
+     - **"Confirmed" (Jay's usual reply, e.g. `10 - Confirmed`) means he agrees with Gino's explanation of that item**
+       (Sheila, Nov 27). Read Gino's reply for the same number: if Gino explained why it wasn't a miss (confirmed by
+       text, talking with the closer, a Claude error), "Confirmed" = approved. If Gino admitted it ("miss on my end",
+       "didn't call"), "Confirmed" = denied (it counts as a miss). Say which in `decision_summary`, e.g.
+       `Jay: "10 - Confirmed" (Gino admitted the miss)`. "Missed" = denied. A hindsight remark next to a reason
+       ("it was a weak confirmation, I could've given her a day-before call", Nov 24 #2) is not an admission, and a
+       closing "All good" from Jay excuses every item he marked Confirmed in that reply.
+     - **Decisions Sheila made outside Slack** (in a session) are in `docs/DECISIONS.md`, in each section's table for
+       that card (e.g. Nov 16 #1 Dean B, Nov 17 #2 Inderjeet Harika: excused). Where Slack alone would say "unclear" or
+       "no response" for an item that table decides, use the table: `decided_by` "Sheila", `decision_summary`
+       "Decided in a session (decisions log, <section>)". Slack still wins if a later reply changes it.
+     - Gino's replies are context only; on their own they never decide an item (only through "Confirmed" above). An
+       item nobody decided stays "no response".
+     - When Sheila says an item was a Claude error or that Gino was compliant, that's approved, even if Jay deferred.
      - Re-read every scorecard thread from the last 14 days each run, so a decision changed later is picked up.
 
 5. **Scope and invitees**
@@ -235,6 +248,9 @@ day would have built, plus whatever was logged overnight. `DIR=tracker/data/$TOD
      - Only when a recovery day is a miss and Gino's notes on the lead explain it with Close evidence behind them (the
        same test as step 7c), add `{"<review key>": "<what the note says> (<the evidence>)"}` to `$DIR/rec_overrides.json`
        and run it again. Recovery items are coaching only; when in doubt, leave them for Sheila and Jay.
+     - Sheila, Nov 27: a lead who asked to be contacted later (e.g. "after the holidays") with no callback task on the
+       lead stays a miss for Sheila and Jay; put the lead's words on the Reviews row (rec_overrides only if Gino's own
+       task or note backs it up). The fix is Gino creating the task, which pauses the sequence automatically.
    - `python3 -I $P/export.py $DIR $DIR/tracker_out.xlsx $TODAY`
    - `python3 -I $P/slack_match.py $DIR $DIR/tracker_live.xlsx` -> `slack_decisions.json`, `reviews_fill.json`.
    - `python3 -I $P/reviews.py $DIR` -> `reviews_append.json` (rows Sheila or Jay already approved in Slack come

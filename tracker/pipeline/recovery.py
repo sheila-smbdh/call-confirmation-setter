@@ -11,7 +11,8 @@ Rules (Sheila, Nov 23-24; decisions log rev 9):
 - A row starts when a lead lands in a recovery status (No Show / Cancelled / Reschedule Request - Recovery), including
   Gino's own 5:45 day-before cancels. Leads he logged a Call Recovery day on with no such status change since REC_FROM
   are backlog rows, starting at his first call.
-- The 5 business days start at his first attempt. Day 1, 3 and 5: double dial + voicemail + text unless he reaches
+- The 5 business days start at his first attempt (a backlog lead he started before tracking began starts at the day
+  his Call Recovery field says; Sheila, Nov 27). Day 1, 3 and 5: double dial + voicemail + text unless he reaches
   them. Days 2 and 4: double dial unless he reaches them. Steps he can't do (no voicemail option, hung up before the
   voicemail, a dial that never rang, a text that won't send) aren't misses. Ends early on a rebook or "Not Interested".
   An open task of his on the lead pauses it until the task's date.
@@ -111,8 +112,14 @@ def is_conn(c):
         return True
     return not o and c.get("disposition") == "answered" and (c.get("duration") or 0) >= 45 and not is_vm(c)
 
+def vm_likely(c):
+    """Sheila, Nov 27: answered 30-44 seconds, no outcome logged = he spoke a voicemail onto an answering machine."""
+    return c.get("disposition") == "answered" and not c.get("outcome_id") and not is_vm(c) and 30 <= (c.get("duration") or 0) < 45
+
 def vm_excused(cs):
     for c in cs:
+        if vm_likely(c):
+            return "VM likely (no outcome logged)"
         if OUT.get(c.get("outcome_id")) == "No Answer – No VM Option":
             return "No VM option"
         if c.get("disposition") == "answered" and not is_vm(c) and not is_conn(c) and ((c.get("duration") or 0) < 30 or OUT.get(c.get("outcome_id")) == "No answer / hung up"):
@@ -188,6 +195,10 @@ for x in lsc:
         # still the same lost call (status bounced, or re-entered while he was working it)
         mt = [m for m in meets if m["lead_id"] == lead and p(last["start"]) < p(m["date_created"]) < t and m.get("duration") == 2700]
         if not mt:
+            # Sheila, Nov 27 (Nov 24 card #8, Yehuda Schuster): the status was corrected (e.g. Reschedule Request ->
+            # No Show) before he first called, so the corrected type applies, and with it the speed target or not.
+            if typ != last["type"].split(" (")[0] and not last["found_by"].startswith("His 5:45") and not g_out(lead, p(last["start"]), t):
+                last["type"] = typ
             continue
         last["_rebook_start"] = p(mt[0]["starts_at"])
     chain, no = (last["chain"], last["rebook_no"]) if last and last.get("_rebook_start") and t >= last["_rebook_start"] else (None, 0)
@@ -270,8 +281,19 @@ for lead, rs in by_lead.items():
             end_t, end_why = p((conn or g)[-1]["date_created"]), "Not interested"
         # the 5 days
         days = []
+        # Sheila, Nov 27 (Nov 25 card #6 and #8): a backlog lead he started working before tracking began is already
+        # part-way through his sequence. If the Call Recovery field he set on his first tracked day says "Day N",
+        # that day is Day N (kept from the earlier run once the field history rolls out of the window).
+        r["start_day"] = 1
+        if first and r["found_by"].startswith("Backlog"):
+            fd = first.astimezone(ET).date()
+            vals = [((e.get("data") or {}).get(REC_CF) or "") for e in fev if e.get("lead_id") == lead
+                    and et(fd, 0) <= p(e["date_updated"]) < et(fd + timedelta(days=1), 2)]
+            n = next((int(v[4]) for v in vals if v[:4] == "Day " and v[4:5].isdigit()), None)
+            r["start_day"] = n or (prev.get(r["id"]) or {}).get("start_day") or 1
         if first:
-            for k, d in enumerate(bdays(first.astimezone(ET).date(), 5), 1):
+            k0 = r["start_day"]
+            for k, d in enumerate(bdays(first.astimezone(ET).date(), 6 - k0), k0):
                 if end_t and et(d, 0) > end_t:
                     days.append({"date": d.isoformat(), "day": k, "status": "not due", "what": "N/A"})
                     continue
@@ -306,7 +328,7 @@ for lead, rs in by_lead.items():
                     if "field" in old:
                         c["field"] = old["field"]
                 days.append(c)
-            if not end_t and all(x["status"] in ("done", "missed", "not scored") for x in days) and len(days) == 5:
+            if not end_t and all(x["status"] in ("done", "missed", "not scored") for x in days) and len(days) == 6 - k0:
                 end_why = "Sequence done"
         r["days"] = days
         r["status"] = (end_why if end_why else ("Waiting for first attempt" if not first else
@@ -348,8 +370,14 @@ for lead, rs in by_lead.items():
         x.pop("_rebook_start", None)
 
 # activity logged with no rebook behind it
+# Sheila, Nov 27 (Nov 25 card #5): only flag it once a full day has passed and the activity is still there. Gino
+# deleted a mistaken one the next day; a deleted activity isn't in the search, so it isn't a logging error.
 for a in acts:
     rs = by_lead.get(a["lead_id"], [])
+    if p(a["date_created"]).astimezone(ET).date() >= TODAY:
+        continue
+    if a.get("user_id") and a["user_id"] != GINO:
+        continue
     if not any(r.get("rebooked_at") and abs(p(r["rebooked_at"]) - p(a["date_created"])) <= timedelta(days=1) for r in rs) and p(a["date_created"]).astimezone(ET).date() >= SCORE_FROM:
         reviews.append(dict(key=f"rec|act|{a['id']}", date=p(a["date_created"]).astimezone(ET).date().isoformat(),
                             lead_name=info.get(a["lead_id"], {}).get("display_name") or a["lead_id"], lead_id=a["lead_id"],
